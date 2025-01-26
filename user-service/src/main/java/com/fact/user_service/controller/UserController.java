@@ -2,12 +2,8 @@ package com.fact.user_service.controller;
 
 import com.fact.user_service.dto.UserRequest;
 import com.fact.user_service.dto.UserResponse;
-import com.fact.user_service.model.AppUser;
-import com.fact.user_service.repository.UserRepository;
 import com.fact.user_service.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
