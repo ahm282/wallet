@@ -6,18 +6,18 @@ import com.fact.user_service.mapper.UserMapper;
 import com.fact.user_service.model.AppUser;
 import com.fact.user_service.repository.UserRepository;
 import com.fact.user_service.service.UserService;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,229 +25,230 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
 
-@SpringBootTest
-class UserServiceTests {
-    private AutoCloseable mocks;
-
+@ExtendWith(MockitoExtension.class)
+public class UserServiceTests {
     @Mock
     private UserRepository userRepository;
 
     @Mock
-    private BCryptPasswordEncoder passwordEncoder;
+    private UserMapper userMapper;
 
     @Mock
-    private UserMapper userMapper;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @InjectMocks
     private UserService userService;
 
+    private UserRequest validUserRequest;
+    private AppUser savedAppUser;
+    private UserResponse userResponse;
+
     @BeforeEach
     void setUp() {
-        mocks = MockitoAnnotations.openMocks(this);
+        // Setup mock data
+        validUserRequest = new UserRequest();
+        validUserRequest.setUsername("testuser");
+        validUserRequest.setPassword("password123");
+        validUserRequest.setEmail("test@example.com");
+        validUserRequest.setFirstName("Test");
+        validUserRequest.setLastName("User");
 
-        when(userMapper.toUserResponse(any(AppUser.class))).thenAnswer(invocation ->
-        {
-            AppUser user = invocation.getArgument(0);
-            return new UserResponse(user.getId(), user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getCreatedAt());
-        });
-    }
+        savedAppUser = AppUser.builder()
+                .id(UUID.randomUUID())
+                .username(validUserRequest.getUsername())
+                .email(validUserRequest.getEmail())
+                .build();
 
-    @AfterEach
-    void tearDown() throws Exception {
-        if (mocks != null) {
-            mocks.close();
-        }
+        userResponse = new UserResponse();
+        userResponse.setId(savedAppUser.getId());
+        userResponse.setUsername(savedAppUser.getUsername());
     }
 
     @Test
-    void shouldGetAllUsers() {
+    void testGetAllUsers() {
         // Arrange
-        Long now = System.currentTimeMillis();
-        AppUser user1 = new AppUser(UUID.randomUUID(), "jpeeters", "Jan", "Peeters", "jp@gmail.com", "password1", now);
-        AppUser user2 = new AppUser(UUID.randomUUID(), "emmav", "Emma", "Vermeulen", "emmav@gmail.com", "password2", now);
+        List<AppUser> mockUsers = Arrays.asList(
+                AppUser.builder().username("user1").createdAt(1000L).build(),
+                AppUser.builder().username("user2").createdAt(2000L).build()
+        );
 
-        when(userRepository.findAll()).thenReturn(List.of(user1, user2));
+        List<UserResponse> mockUserResponses = Arrays.asList(
+                new UserResponse(), new UserResponse()
+        );
+
+        when(userRepository.findAll()).thenReturn(mockUsers);
+        when(userMapper.toUserResponse(any(AppUser.class)))
+                .thenReturn(mockUserResponses.get(0), mockUserResponses.get(1));
 
         // Act
-        List<UserResponse> users = userService.getAllUsers();
+        List<UserResponse> result = userService.getAllUsers();
 
         // Assert
-        assertEquals(2, users.size());
-        assertEquals("jpeeters", users.get(0).getUsername());
-        assertEquals("emmav@gmail.com", users.get(1).getEmail());
-        verify(userRepository, times(1)).findAll();
+        assertEquals(2, result.size());
+        verify(userRepository).findAll();
     }
 
     @Test
-    void shouldGetUserById() {
+    void testCreateUser_Success() {
         // Arrange
-        Long now = System.currentTimeMillis();
-        UUID userId = UUID.randomUUID();
-        AppUser user = new AppUser(userId, "maartenmaes", "Maarten", "Maes", "maarten.maes@gmail.com", "fortnite", now);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(validUserRequest.getUsername())).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(validUserRequest.getEmail())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(validUserRequest.getPassword())).thenReturn("encodedPassword");
+        when(userRepository.save(any(AppUser.class))).thenReturn(savedAppUser);
+        when(userMapper.toUserResponse(savedAppUser)).thenReturn(userResponse);
 
         // Act
-        Optional<UserResponse> userResponse = userService.getUserById(userId);
+        ResponseEntity<UserResponse> response = userService.createUser(validUserRequest);
 
         // Assert
-        assertTrue(userResponse.isPresent());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(savedAppUser.getId(), response.getBody().getId());
 
-        assertEquals("maartenmaes", userResponse.get().getUsername());
-        assertEquals("maarten.maes@gmail.com", userResponse.get().getEmail());
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository).save(any(AppUser.class));
+        verify(passwordEncoder).encode(validUserRequest.getPassword());
     }
 
     @Test
-    void shouldReturnEmptyWhenUserNotFoundById() {
+    void testCreateUser_Conflict() {
         // Arrange
-        UUID userId = UUID.randomUUID();
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findByUsername(validUserRequest.getUsername())).thenReturn(Optional.of(new AppUser()));
 
         // Act
-        Optional<UserResponse> userResponse = userService.getUserById(userId);
-
-        // Assert
-        assertTrue(userResponse.isEmpty());
-        verify(userRepository, times(1)).findById(userId);
-    }
-
-    @Test
-    void shouldCreateUser() {
-        Long now = System.currentTimeMillis();
-
-        // Arrange
-        UserRequest userRequest = new UserRequest("evdoesburg", "Els", "Van Doesburg", "els@example.be", "password3");
-        AppUser savedUser = new AppUser(UUID.randomUUID(),"evdoesburg", "Els", "Van Doesburg", "els@example.be", "password3", now);
-
-
-        when(userRepository.findByUsername("evdoesburg")).thenReturn(Optional.empty());
-        when(userRepository.findByEmail("els@example.be")).thenReturn(Optional.empty());
-        when(userRepository.save(any(AppUser.class))).thenReturn(savedUser);
-
-        // Act
-        ResponseEntity<UserResponse> response = userService.createUser(userRequest); // Create the user
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode()); // Assert status is OK
-        assertNotNull(response.getBody()); // Body is user confirmation
-        assertEquals("evdoesburg", response.getBody().getUsername());
-        assertEquals("els@example.be", response.getBody().getEmail());
-
-        // Capture the saved user
-        ArgumentCaptor<AppUser> userCaptor = ArgumentCaptor.forClass(AppUser.class); // ArgumentCaptor captures argument passed to the 'save' method
-        verify(userRepository, times(1)).save(userCaptor.capture()); // Verify that the 'save' method was called exactly once
-
-        AppUser capturedUser = userCaptor.getValue(); // Get captured AppUser instance
-        assertEquals("evdoesburg", capturedUser.getUsername());
-        assertEquals("els@example.be", capturedUser.getEmail());
-    }
-
-    @Test
-    void shouldReturnConflictWhenUserAlreadyExists() {
-        // Arrange
-        Long now = System.currentTimeMillis();
-        UserRequest userRequest = new UserRequest("tomjanssens99", "Tom", "Janssens", "tom@test.com", "password");
-        AppUser existingUser = new AppUser(UUID.randomUUID(), "tomjanssens99", "Tom", "Janssens", "tom@test.com", "password", now);
-
-        when(userRepository.findByUsername("tomjanssens99")).thenReturn(Optional.of(existingUser));
-        when(userRepository.findByEmail("tom@test.com")).thenReturn(Optional.empty());
-
-        // Act
-        ResponseEntity<UserResponse> response = userService.createUser(userRequest);
+        ResponseEntity<UserResponse> response = userService.createUser(validUserRequest);
 
         // Assert
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertNull(response.getBody());
+        verify(userRepository, never()).save(any(AppUser.class));
     }
 
     @Test
-    void shouldDeleteUserById() {
+    void testGetUserById_Found() {
         // Arrange
-        UUID userId = UUID.randomUUID();
+        AppUser mockUser = AppUser.builder()
+                .id(UUID.randomUUID())
+                .username("ppeeters")
+                .firstName("Piet")
+                .lastName("Peeters")
+                .build();
+
+        // Create a UserResponse that matches the mockUser
+        UserResponse mockUserResponse = new UserResponse();
+        mockUserResponse.setId(mockUser.getId());
+        mockUserResponse.setUsername(mockUser.getUsername());
+
+        when(userRepository.findById(mockUser.getId())).thenReturn(Optional.of(mockUser));
+        when(userMapper.toUserResponse(mockUser)).thenReturn(mockUserResponse);
 
         // Act
-        userService.deleteUserById(userId);
+        Optional<UserResponse> result = userService.getUserById(mockUser.getId());
 
         // Assert
-        verify(userRepository, times(1)).deleteById(userId);
+        assertTrue(result.isPresent());
+        assertEquals(mockUser.getId(), result.get().getId());
+        verify(userRepository).findById(mockUser.getId());
     }
 
     @Test
-    public void testAuthenticateUser_ValidCredentials() {
-        String username = "testuser";
-        String password = "password123";
-
-        String hashedPassword = "$2a$12$wILp.ZZaUTl66TR8gdDGs.NsbCmwNkG6dAA8if9vjb1x2e7K4r2CC";  // Mocked valid BCrypt hash for "password123"
-
-        // Mock password encoding
-        when(passwordEncoder.encode(password)).thenReturn(hashedPassword);  // Return the mocked valid hash
-
-        AppUser user = new AppUser(
-                UUID.randomUUID(),
-                username,
-                "Test",
-                "User",
-                "test@example.com",
-                hashedPassword,  // Use the mocked valid hash
-                System.currentTimeMillis()
-        );
-
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(password, hashedPassword)).thenReturn(true);  // Password matches
+    void testGetUserById_NotFound() {
+        // Arrange
+        UUID testId = UUID.randomUUID();
+        when(userRepository.findById(testId)).thenReturn(Optional.empty());
 
         // Act
-        boolean authenticated = userService.authenticateUser(username, password);
+        Optional<UserResponse> result = userService.getUserById(testId);
 
         // Assert
-        assertTrue(authenticated);
+        assertTrue(result.isEmpty());
     }
 
     @Test
-    public void testAuthenticateUser_InvalidCredentials() {
-        String username = "testuser";
-        String password = "wrongpassword";
+    void testDeleteUserById_Success() {
+        // Arrange
+        UUID testId = UUID.randomUUID();
+        AppUser mockUser = AppUser.builder().id(testId).build();
 
-        String hashedPassword = "$2a$12$TYjULn5jY2ovJ66bI3dvVO1O0Z1t1e10jf5H2hp.okJG8wYsOc3hC"; // Hashed "I like Java"
-
-        // Mock password encoding
-        when(passwordEncoder.encode(password)).thenReturn(hashedPassword);  // Mock correct encoding
-
-        AppUser user = new AppUser(
-                UUID.randomUUID(),
-                username,
-                "Test",
-                "User",
-                "test@example.com",
-                hashedPassword,
-                System.currentTimeMillis()
-        );
-
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(password, hashedPassword)).thenReturn(false);  // Mismatch for wrong password
+        when(userRepository.findById(testId)).thenReturn(Optional.of(mockUser));
 
         // Act
-        boolean authenticated = userService.authenticateUser(username, password);
+        ResponseEntity<HttpStatus> response = userService.deleteUserById(testId);
 
         // Assert
-        assertFalse(authenticated);  // Assert authentication fails for incorrect password
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(userRepository).deleteById(testId);
     }
 
     @Test
-    void testAuthenticateUser_UserDoesNotExist() {
+    void testDeleteUserById_NotFound() {
+        // Arrange
+        UUID testId = UUID.randomUUID();
+        when(userRepository.findById(testId)).thenReturn(Optional.empty());
+
+        // Act
+        ResponseEntity<HttpStatus> response = userService.deleteUserById(testId);
+
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(userRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void testAuthenticateUser_Success() {
         // Arrange
         String username = "testuser";
-        String password = "password123";
+        String rawPassword = "password123";
+        String encodedPassword = "encodedPassword";
 
-        // Mock the repository to return Optional.empty() (i.e., user does not exist)
+        AppUser mockUser = AppUser.builder()
+                .username(username)
+                .password(encodedPassword)
+                .build();
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(true);
+
+        // Act
+        boolean result = userService.authenticateUser(username, rawPassword);
+
+        // Assert
+        assertTrue(result);
+    }
+
+    @Test
+    void testAuthenticateUser_Failure() {
+        // Arrange
+        String username = "testuser";
+        String rawPassword = "wrongpassword";
+        String encodedPassword = "encodedPassword";
+
+        AppUser mockUser = AppUser.builder()
+                .username(username)
+                .password(encodedPassword)
+                .build();
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(false);
+
+        // Act
+        boolean result = userService.authenticateUser(username, rawPassword);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    void testAuthenticateUser_UserNotFound() {
+        // Arrange
+        String username = "nonexistentuser";
+        String rawPassword = "password123";
+
         when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
 
         // Act
-        boolean authenticated = userService.authenticateUser(username, password);
+        boolean result = userService.authenticateUser(username, rawPassword);
 
         // Assert
-        assertFalse(authenticated);  // User does not exist, so authentication should fail
+        assertFalse(result);
     }
 }
