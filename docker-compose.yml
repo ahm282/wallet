@@ -1,0 +1,37 @@
+services:
+    user-db:
+        image: mariadb:latest
+        environment:
+            MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${USER_DB_NAME}
+            MYSQL_USER: ${USER_DB_USER}
+            MYSQL_PASSWORD: ${USER_DB_PASS}
+        volumes:
+            - db_data:/var/lib/mysql
+        ports:
+            - "${USER_DB_PORT}:3306"
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${USER_DB_USER}", "-p${USER_DB_PASS}"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    app:
+        build:
+            context: ./user-service/
+            dockerfile: Dockerfile
+        image: ahm282/user-service:v1
+        depends_on:
+            - user-db
+        environment:
+            - DB_HOST=user-db
+            - DB_PORT=${USER_DB_PORT}
+            - DB_NAME=${USER_DB_NAME}
+            - DB_USER=${USER_DB_USER}
+            - DB_PASS=${USER_DB_PASS}
+        ports:
+            - "${USER_APP_PORT}:8080"
+        restart: always
+
+volumes:
+    db_data:
