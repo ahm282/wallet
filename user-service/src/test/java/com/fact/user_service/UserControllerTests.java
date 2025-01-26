@@ -4,16 +4,15 @@ import com.fact.user_service.controller.UserController;
 import com.fact.user_service.dto.UserRequest;
 import com.fact.user_service.dto.UserResponse;
 import com.fact.user_service.service.UserService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,25 +21,18 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-@SpringBootTest
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(controllers = UserController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class UserControllerTests {
-
-    @Mock
-    private UserService userService;
-
-    @InjectMocks
-    private UserController userController;
-
+    @Autowired
     private MockMvc mockMvc;
 
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
-    }
+    @MockitoBean
+    private UserService userService;
 
     @Test
     void shouldGetAllUsers() throws Exception {
@@ -115,28 +107,41 @@ class UserControllerTests {
         // Arrange: Mock the service to return an existing user
         UUID userId = UUID.randomUUID();
         Long now = System.currentTimeMillis();
-        UserResponse user = new UserResponse(userId, "arnep", "Arne", "Pelkmans", "apelkmans@telecom.be", now);
+        UserRequest newMockUser = new UserRequest("arnep", "Arne", "Pelkmans", "apelkmans@telecom.be", "topsecret");
 
-        when(userService.getUserById(userId)).thenReturn(Optional.of(user));
-        doNothing().when(userService).deleteUserById(userId);
+        // Create a UserResponse that the service would return after user creation
+        UserResponse createdUserResponse = new UserResponse(userId, "arnep", "Arne", "Pelkmans", "apelkmans@telecom.be", now);
 
-        // Act & Assert: Perform DELETE request and verify the response
-        mockMvc.perform(delete("/api/users/{id}", userId))
-                .andExpect(status().isOk());
+        // Mock the service to simulate user creation and retrieval
+        when(userService.createUser(newMockUser)).thenReturn(ResponseEntity.status(HttpStatus.CREATED).body(createdUserResponse));
 
-        verify(userService, times(1)).deleteUserById(userId);
+        // Mock the deleteUserById method to return ResponseEntity status for deletion
+        when(userService.deleteUserById(createdUserResponse.getId())).thenReturn(ResponseEntity.ok(HttpStatus.OK)); // Mock the return of deleteUserById to return ResponseEntity<HttpStatus>
+
+        // Act: Simulate POST request to create the user
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{ \"username\": \"arnep\", \"firstName\": \"Arne\", \"lastName\": \"Pelkmans\", \"email\": \"apelkmans@telecom.be\", \"password\": \"topsecret\" }"))
+                .andExpect(status().isCreated());  // Expecting 201 Created status after creation
+
+        // Act: Simulate DELETE request to delete the user by ID
+        mockMvc.perform(delete("/api/users/{id}", createdUserResponse.getId()))
+                .andExpect(status().isOk());  // Expecting 200 OK status after successful deletion
+
+        verify(userService, times(1)).deleteUserById(createdUserResponse.getId());
     }
 
     @Test
     void shouldReturnNotFoundWhenUserToDeleteDoesNotExist() throws Exception {
-        // Arrange: Mock the service to return an empty Optional (user does not exist)
+        // Arrange
         UUID userId = UUID.randomUUID();
         when(userService.getUserById(userId)).thenReturn(Optional.empty());
+        when(userService.deleteUserById(userId)).thenReturn(ResponseEntity.notFound().build());
 
-        // Act & Assert: Perform DELETE request and verify that the response status is 404 (Not Found)
+        // Act & Assert
         mockMvc.perform(delete("/api/users/{id}", userId))
                 .andExpect(status().isNotFound());
 
-        verify(userService, times(1)).getUserById(userId);
+        verify(userService, times(1)).deleteUserById(userId);
     }
 }

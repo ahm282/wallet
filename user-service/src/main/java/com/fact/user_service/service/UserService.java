@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.swing.text.html.Option;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +41,6 @@ public class UserService {
     private void createDefaultUsers() {
         saveUser ("ahm282", "Ahmed", "Mahgoub", "ahmed@wallet.be");
         saveUser ("hollegijs", "Holle", "Gijs", "holle.gijs@wallet.be");
-        saveUser ("bollegijs", "Bolle", "Gijs", "bolle.gijs@wallet.be");
     }
 
     private void saveUser (String username, String firstName, String lastName, String email) {
@@ -97,11 +97,18 @@ public class UserService {
 
         // Build UserResponse object (to adjust sent attributes)
         UserResponse userResponse = userMapper.toUserResponse(savedUser);
-        return new ResponseEntity<>(userResponse, HttpStatus.OK);
+        return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
     }
 
-    public void deleteUserById(UUID id) {
+    public ResponseEntity<HttpStatus> deleteUserById(UUID id) {
+        Optional<AppUser> user = userRepository.findById(id);
+
+        if (user.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
         userRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
     public boolean authenticateUser(String username, String password) {

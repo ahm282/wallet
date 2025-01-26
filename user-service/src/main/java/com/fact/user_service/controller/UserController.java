@@ -4,6 +4,7 @@ import com.fact.user_service.dto.UserRequest;
 import com.fact.user_service.dto.UserResponse;
 import com.fact.user_service.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,15 +40,8 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable("id") String id) {
+    public ResponseEntity<HttpStatus> deleteUser(@PathVariable("id") String id) {
         UUID userId = UUID.fromString(id);
-        Optional<UserResponse> user = this.userService.getUserById(userId);
-
-        if (user.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        this.userService.deleteUserById(userId);
-        return ResponseEntity.ok().build();
+        return userService.deleteUserById(userId);
     }
 }
