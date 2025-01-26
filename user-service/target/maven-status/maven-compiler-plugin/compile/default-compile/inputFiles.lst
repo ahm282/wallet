@@ -1,0 +1,7 @@
+/home/ahmed/Projects/wallet/user-service/src/main/java/com/fact/user_service/UserServiceApplication.java
+/home/ahmed/Projects/wallet/user-service/src/main/java/com/fact/user_service/controller/UserController.java
+/home/ahmed/Projects/wallet/user-service/src/main/java/com/fact/user_service/dto/UserRequest.java
+/home/ahmed/Projects/wallet/user-service/src/main/java/com/fact/user_service/dto/UserResponse.java
+/home/ahmed/Projects/wallet/user-service/src/main/java/com/fact/user_service/model/AppUser.java
+/home/ahmed/Projects/wallet/user-service/src/main/java/com/fact/user_service/repository/UserRepository.java
+/home/ahmed/Projects/wallet/user-service/src/main/java/com/fact/user_service/service/UserService.java
