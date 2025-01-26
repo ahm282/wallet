@@ -1,0 +1,10 @@
+com/fact/user_service/controller/UserController.class
+com/fact/user_service/service/UserService.class
+com/fact/user_service/dto/UserRequest.class
+com/fact/user_service/dto/UserResponse.class
+com/fact/user_service/model/AppUser.class
+com/fact/user_service/dto/UserResponse$UserResponseBuilder.class
+com/fact/user_service/UserServiceApplication.class
+com/fact/user_service/model/AppUser$AppUserBuilder.class
+com/fact/user_service/repository/UserRepository.class
+com/fact/user_service/dto/UserRequest$UserRequestBuilder.class
