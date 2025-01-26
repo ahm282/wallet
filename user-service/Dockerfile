@@ -7,7 +7,7 @@ COPY [".", "/app"]
 WORKDIR "/app"
 
 RUN mvn dependency:resolve -B
-RUN mvn clean install -B -DskipTests
+RUN mvn clean install -B
 
 FROM alpine:latest
 
