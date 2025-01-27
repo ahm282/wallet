@@ -44,7 +44,7 @@ class UserControllerTests {
         when(userService.getAllUsers()).thenReturn(List.of(user1, user2));
 
         // Act & Assert: Perform GET request and verify the response
-        mockMvc.perform(get("/api/users"))
+        mockMvc.perform(get("/api/user"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].username").value("hansb"))
                 .andExpect(jsonPath("$[1].username").value("marcdb"));
@@ -62,7 +62,7 @@ class UserControllerTests {
         when(userService.getUserById(userId)).thenReturn(Optional.of(user));
 
         // Act & Assert: Perform GET request for a specific user ID and verify the response
-        mockMvc.perform(get("/api/users/{id}", userId))
+        mockMvc.perform(get("/api/user/{id}", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("woutp"));
 
@@ -76,7 +76,7 @@ class UserControllerTests {
         when(userService.getUserById(userId)).thenReturn(Optional.empty());
 
         // Act & Assert: Perform GET request and verify that the response status is 404 (Not Found)
-        mockMvc.perform(get("/api/users/{id}", userId))
+        mockMvc.perform(get("/api/user/{id}", userId))
                 .andExpect(status().isNotFound());
 
         verify(userService, times(1)).getUserById(userId);
@@ -92,7 +92,7 @@ class UserControllerTests {
         when(userService.createUser(any(UserRequest.class))).thenReturn(ResponseEntity.ok(userResponse));
 
         // Act & Assert: Perform POST request to create a user and verify the response
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(post("/api/user")
                         .contentType("application/json")
                         .content("{\"username\": \"robbedb\", \"email\": \"robbed@tm.com\", \"password\": \"puddingmeneer\", \"firstName\": \"Robbe\", \"lastName\": \"De Busser\"}"))
                 .andExpect(status().isOk())
@@ -119,13 +119,13 @@ class UserControllerTests {
         when(userService.deleteUserById(createdUserResponse.getId())).thenReturn(ResponseEntity.ok(HttpStatus.OK)); // Mock the return of deleteUserById to return ResponseEntity<HttpStatus>
 
         // Act: Simulate POST request to create the user
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(post("/api/user")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{ \"username\": \"arnep\", \"firstName\": \"Arne\", \"lastName\": \"Pelkmans\", \"email\": \"apelkmans@telecom.be\", \"password\": \"topsecret\" }"))
                 .andExpect(status().isCreated());  // Expecting 201 Created status after creation
 
         // Act: Simulate DELETE request to delete the user by ID
-        mockMvc.perform(delete("/api/users/{id}", createdUserResponse.getId()))
+        mockMvc.perform(delete("/api/user/{id}", createdUserResponse.getId()))
                 .andExpect(status().isOk());  // Expecting 200 OK status after successful deletion
 
         verify(userService, times(1)).deleteUserById(createdUserResponse.getId());
@@ -139,7 +139,7 @@ class UserControllerTests {
         when(userService.deleteUserById(userId)).thenReturn(ResponseEntity.notFound().build());
 
         // Act & Assert
-        mockMvc.perform(delete("/api/users/{id}", userId))
+        mockMvc.perform(delete("/api/user/{id}", userId))
                 .andExpect(status().isNotFound());
 
         verify(userService, times(1)).deleteUserById(userId);
