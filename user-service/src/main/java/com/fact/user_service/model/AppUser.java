@@ -24,6 +24,7 @@ public class AppUser {
     private String email;
     private String password;
     private Long createdAt;
+    private String imageUrl;
 
     @PrePersist
     private void generateId() {

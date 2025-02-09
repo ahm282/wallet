@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./App.tsx";
 import "@fontsource/poppins/index.css";
 import "@fontsource-variable/inter/index.css";
+import "@fontsource-variable/raleway/index.css";
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>

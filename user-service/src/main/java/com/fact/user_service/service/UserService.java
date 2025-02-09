@@ -15,10 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -72,24 +69,28 @@ public class UserService {
 
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest userRequest) {
-        Optional<AppUser> existingUserByUsername = userRepository.findByUsername(userRequest.getUsername());
+        System.out.println(userRequest.toString());
         Optional<AppUser> existingUserByEmail = userRepository.findByEmail(userRequest.getEmail());
 
-        if (existingUserByUsername.isPresent() || existingUserByEmail.isPresent()) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
-        }
+        if (existingUserByEmail.isPresent()) {
+            AppUser existingUser = existingUserByEmail.get();
 
-        // Hash the password
-        String hashedPassword = passwordEncoder.encode(userRequest.getPassword());
+            // Update profile picture if changed
+            if (!Objects.equals(existingUser.getImageUrl(), userRequest.getImageUrl())) {
+                existingUser.setImageUrl(userRequest.getImageUrl());
+            }
+
+            UserResponse existingUserResponse = userMapper.toUserResponse(existingUser);
+            return new ResponseEntity<>(existingUserResponse, HttpStatus.OK);
+        }
 
         // Create a new user instance
         AppUser newUser = AppUser.builder()
-                .username(userRequest.getUsername())
-                .password(hashedPassword)
                 .email(userRequest.getEmail())
                 .firstName(userRequest.getFirstName())
                 .lastName(userRequest.getLastName())
                 .createdAt(System.currentTimeMillis())
+                .imageUrl(userRequest.getImageUrl())
                 .build();
 
         // Save the new user to the database
@@ -99,6 +100,36 @@ public class UserService {
         UserResponse userResponse = userMapper.toUserResponse(savedUser);
         return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
     }
+
+//    @PostMapping
+//    public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest userRequest) {
+//        Optional<AppUser> existingUserByUsername = userRepository.findByUsername(userRequest.getUsername());
+//        Optional<AppUser> existingUserByEmail = userRepository.findByEmail(userRequest.getEmail());
+//
+//        if (existingUserByUsername.isPresent() || existingUserByEmail.isPresent()) {
+//            return new ResponseEntity<>(HttpStatus.CONFLICT);
+//        }
+//
+//        // Hash the password
+//        String hashedPassword = passwordEncoder.encode(userRequest.getPassword());
+//
+//        // Create a new user instance
+//        AppUser newUser = AppUser.builder()
+//                .username(userRequest.getUsername())
+//                .password(hashedPassword)
+//                .email(userRequest.getEmail())
+//                .firstName(userRequest.getFirstName())
+//                .lastName(userRequest.getLastName())
+//                .createdAt(System.currentTimeMillis())
+//                .build();
+//
+//        // Save the new user to the database
+//        AppUser savedUser = userRepository.save(newUser);
+//
+//        // Build UserResponse object (to adjust sent attributes)
+//        UserResponse userResponse = userMapper.toUserResponse(savedUser);
+//        return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
+//    }
 
     public ResponseEntity<HttpStatus> deleteUserById(UUID id) {
         Optional<AppUser> user = userRepository.findById(id);
