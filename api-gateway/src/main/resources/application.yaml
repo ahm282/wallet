@@ -4,9 +4,12 @@ server:
 logging:
   level:
     root: INFO
-    org.springframework.cloud.gateway: TRACE
+    org.springframework.cloud.gateway: INFO
     org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: INFO
-    reactor.netty: TRACE
+    reactor.netty: ERROR
+    org.springframework.web: WARN
+    org.springframework.http: WARN
+    org.springframework.boot.web: WARN
 
 spring:
   security:
@@ -26,14 +29,25 @@ spring:
           jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+                - "http://localhost:5173"
+                - "http://localhost:*"
+                - "chrome-extension://"
+            allowedMethods:
+              - GET
+              - POST
+              - OPTIONS
       routes:
-        - id: user-service-get-by-id
-          uri: http://${USER_SERVICE_BASEURL:localhost:8081}
-          predicates:
-            - Path=/api/user/{id}, /api/user/{id}/
-            - Method=GET
         - id: user-service-get-all
           uri: http://${USER_SERVICE_BASEURL:localhost:8081}
           predicates:
             - Path=/api/user, /api/user/
+            - Method=GET
+        - id: user-service-get-by-id
+          uri: http://${USER_SERVICE_BASEURL:localhost:8081}
+          predicates:
+            - Path=/api/user/{id}, /api/user/{id}/
             - Method=GET
