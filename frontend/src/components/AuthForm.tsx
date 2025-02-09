@@ -72,7 +72,11 @@ export function AuthForm() {
                         </FormItem>
                     )}
                 />
-                <Button type='submit' className="w-8/12 bg-blue-900">Login</Button>
+                <Button
+                    type='submit'
+                    className='w-8/12 bg-blue-900'>
+                    Login
+                </Button>
             </form>
         </Form>
     );
