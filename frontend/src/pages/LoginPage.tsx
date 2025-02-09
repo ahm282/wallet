@@ -20,18 +20,12 @@ const LoginPage: React.FC = () => {
         setError("");
 
         try {
-            // In a production app, you might decode this token or send it to your backend for verification.
             const token: string = credentialResponse.credential;
 
-            // Optionally, decode the token to extract user info.
             const user = jwtDecode(token);
-            console.log("User info:", user);
             setAuth(token, user);
 
-            // sleep for 10 second to show the loading spinner
-            setTimeout(() => {
-                navigate("/dashboard");
-            }, 10000);
+            navigate("/dashboard");
         } catch (err) {
             console.error("Login error:", err);
             setError("Login failed. Please try again.");
