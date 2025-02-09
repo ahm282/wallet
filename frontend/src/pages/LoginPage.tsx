@@ -12,7 +12,6 @@ const LoginPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const navigate = useNavigate();
 
-    // Get the setAuth function from Zustand
     const setAuth = useAuthStore((state) => state.setAuth);
 
     const handleGoogleSuccess = (credentialResponse: any): void => {
@@ -45,7 +44,7 @@ const LoginPage: React.FC = () => {
                     <GiWallet className='size-12 inline mb-3 -ms-4 me-4' />
                     Wallet
                 </h1>
-                <h2 className='font-primary font-medium text-lg text-blue-900'>Your personal finance manager</h2>
+                <h2 className='font-primary font-medium text-lg text-blue-900'>Your personal finance assistant</h2>
             </div>
 
             <div className='w-80 flex justify-center flex-col items-center'>
