@@ -1,4 +1,3 @@
-// api_utils.ts
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 
 export class ApiUtil {
@@ -7,7 +6,7 @@ export class ApiUtil {
     constructor(baseURL: string) {
         this.api = axios.create({
             baseURL,
-            timeout: 10000,
+            timeout: 5000,
             headers: {
                 "Content-Type": "application/json",
             },
@@ -24,6 +23,11 @@ export class ApiUtil {
 
     async get<T>(path: string = "", token?: string): Promise<T> {
         const response = await this.api.get<T>(path, this.getConfig(token));
+        return response.data;
+    }
+
+    async put<T>(path: string = "", data?: unknown, token?: string): Promise<T> {
+        const response = await this.api.put<T>(path, data, this.getConfig(token));
         return response.data;
     }
 
