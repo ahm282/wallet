@@ -6,9 +6,9 @@ import { useAuthStore } from "@/store/authStore";
 import { jwtDecode } from "jwt-decode";
 import { ApiUtil } from "@/lib/api_utils";
 import { ScaleLoader } from "react-spinners";
-import { ModeToggle } from "@/components/ModeToggle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IoIosLogIn } from "react-icons/io";
+import { ModeSwitch } from "@/components/ModeSwitch";
 
 // Define Google user data.
 interface GoogleUser {
@@ -52,8 +52,6 @@ const createUserPayload = (googleUser: GoogleUser) => {
  */
 const postUserData = async (payload: object, token: string): Promise<UserResponse> => {
     const api = new ApiUtil("http://localhost:8080/api");
-    console.log("Payload:", payload);
-    // Await the post request so that the response is handled before continuing.
     return await api.post<UserResponse>("/user", payload, token);
 };
 
@@ -147,9 +145,8 @@ const LoginPage: React.FC = () => {
                     </div> */}
                 </CardContent>
             </Card>
-
             <div className='absolute bottom-4 right-4'>
-                <ModeToggle />
+                <ModeSwitch />
             </div>
         </div>
     );

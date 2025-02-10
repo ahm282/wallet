@@ -9,12 +9,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsConfigurationSource;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-
-
-import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -42,24 +36,24 @@ public class SecurityConfig {
         return serverHttpSecurity.build();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:*", "http://localhost:5173", "chrome-extension://")); //or * if you want to allow all
-        configuration.setAllowCredentials(true);
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of(
-                "Authorization",
-                "Accept",
-                "X-Requested-With",
-                "Content-Type",
-                "Access-Control-Request-Method",
-                "Access-Control-Request-Headers"));
-        configuration.setExposedHeaders(List.of(
-                "Access-Control-Allow-Origin",
-                "Access-Control-Allow-Credentials"));
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        configuration.setAllowedOrigins(List.of("http://localhost:*", "http://localhost:5173", "chrome-extension://"));
+//        configuration.setAllowCredentials(true);
+//        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+//        configuration.setAllowedHeaders(List.of(
+//                "Authorization",
+//                "Accept",
+//                "X-Requested-With",
+//                "Content-Type",
+//                "Access-Control-Request-Method",
+//                "Access-Control-Request-Headers"));
+//        configuration.setExposedHeaders(List.of(
+//                "Access-Control-Allow-Origin",
+//                "Access-Control-Allow-Credentials"));
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration);
+//        return source;
+//    }
 }
