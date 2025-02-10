@@ -108,7 +108,7 @@ const LoginPage: React.FC = () => {
 
     return (
         <div className='min-h-screen flex flex-col items-center justify-center bg-gray-200 dark:bg-dark'>
-            <Card className='w-11/12 px-8 py-10 flex flex-col justify-center items-center rounded-xl shadow-lg bg-gray-100 dark:bg-darkElement'>
+            <Card className='w-11/12 md:w-6/12 lg:w-4/12 xl:w-3/12 px-8 py-10 flex flex-col justify-center items-center rounded-xl shadow-lg bg-gray-100 dark:bg-darkElement'>
                 <CardTitle className='flex flex-row items-center justify-center font-secondary font-light text-5xl uppercase text-blue-900 dark:text-gray-100'>
                     <GiWallet className='size-12 inline mb-3 -ms-4 me-4' />
                     Wallet
@@ -121,7 +121,7 @@ const LoginPage: React.FC = () => {
                     {isLoading ? (
                         <ScaleLoader color={"#1e3a8a"} />
                     ) : (
-                        <div className='pt-4 w-full flex flex-col justify-center'>
+                        <div className='pt-4 w-full flex flex-col justify-center md:items-center'>
                             <p className='flex items-center gap-x-1 pb-4 font-primary text-muted-foreground text-sm font-medium leading-none dark:text-gray-300'>
                                 <IoIosLogIn />
                                 Login with Google to continue

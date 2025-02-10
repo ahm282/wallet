@@ -23,16 +23,17 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { GiWallet } from "react-icons/gi";
+import { Link } from "react-router-dom";
 
 function NavItem({ href, icon: Icon, children }: { href: string; icon: any; children: React.ReactNode }) {
     return (
-        <a
-            href={href}
+        <Link
+            to={href}
             onClick={(e) => e.preventDefault()}
             className='flex items-center px-3 py-2 text-sm rounded-md transition-colors text-customBlue-900 dark:text-darkText hover:text-customBlue-900 dark:hover:text-white hover:bg-customGray-100 dark:hover:bg-darkElement'>
             <Icon className='h-4 w-4 mr-3 flex-shrink-0' />
             {children}
-        </a>
+        </Link>
     );
 }
 
@@ -97,12 +98,12 @@ export function AppSidebar() {
     return (
         <Sidebar>
             <SidebarHeader className='py-8 flex flex-row font-secondary font-light text-3xl uppercase text-blue-900 dark:text-gray-100'>
-                <a
-                    href='/'
+                <Link
+                    to='/'
                     className='w-full h-16 flex items-center justify-center text-4xl rounded-md transition-colors text-customBlue-900 dark:text-darkText hover:text-customBlue-900 dark:hover:text-white hover:bg-customGray-100 dark:hover:bg-darkElement'>
                     <GiWallet className='size-8 me-4' />
                     Wallet
-                </a>
+                </Link>
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
@@ -112,10 +113,10 @@ export function AppSidebar() {
                             {overviewItems.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild>
-                                        <a href={item.url}>
+                                        <Link to={item.url}>
                                             <item.icon />
                                             <span>{item.title}</span>
-                                        </a>
+                                        </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             ))}
@@ -129,10 +130,10 @@ export function AppSidebar() {
                             {financesItems.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild>
-                                        <a href={item.url}>
+                                        <Link to={item.url}>
                                             <item.icon />
                                             <span>{item.title}</span>
-                                        </a>
+                                        </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             ))}
@@ -146,10 +147,10 @@ export function AppSidebar() {
                             {analysisItems.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild>
-                                        <a href={item.url}>
+                                        <Link to={item.url}>
                                             <item.icon />
                                             <span>{item.title}</span>
-                                        </a>
+                                        </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             ))}

@@ -29,9 +29,10 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Link } from "react-router-dom";
 
 const items = [
-    { href: "#", label: "Home" },
+    { href: "/dashboard", label: "Home" },
     { href: "#", label: "Documentation" },
     { href: "#", label: "Building Your Application" },
     { href: "#", label: "Data Fetching" },
@@ -48,7 +49,13 @@ export function BreadcrumbResponsive() {
         <Breadcrumb>
             <BreadcrumbList>
                 <BreadcrumbItem>
-                    <BreadcrumbLink href={items[0].href}>{items[0].label}</BreadcrumbLink>
+                    <BreadcrumbLink asChild>
+                        {items[0].href ? (
+                            <Link to={items[0].href}>{items[0].label}</Link>
+                        ) : (
+                            <span>{items[0].label}</span>
+                        )}
+                    </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 {items.length > ITEMS_TO_DISPLAY ? (
@@ -66,7 +73,7 @@ export function BreadcrumbResponsive() {
                                     <DropdownMenuContent align='start'>
                                         {items.slice(1, -2).map((item, index) => (
                                             <DropdownMenuItem key={index}>
-                                                <a href={item.href ? item.href : "#"}>{item.label}</a>
+                                                <Link to={item.href ? item.href : "#"}>{item.label}</Link>
                                             </DropdownMenuItem>
                                         ))}
                                     </DropdownMenuContent>
@@ -85,12 +92,12 @@ export function BreadcrumbResponsive() {
                                         </DrawerHeader>
                                         <div className='grid gap-1 px-4'>
                                             {items.slice(1, -2).map((item, index) => (
-                                                <a
+                                                <Link
                                                     key={index}
-                                                    href={item.href ? item.href : "#"}
+                                                    to={item.href ? item.href : "#"}
                                                     className='py-1 text-sm'>
                                                     {item.label}
-                                                </a>
+                                                </Link>
                                             ))}
                                         </div>
                                         <DrawerFooter className='pt-4'>
@@ -112,7 +119,7 @@ export function BreadcrumbResponsive() {
                                 <BreadcrumbLink
                                     asChild
                                     className='max-w-20 truncate md:max-w-none'>
-                                    <a href={item.href}>{item.label}</a>
+                                    <Link to={item.href}>{item.label}</Link>
                                 </BreadcrumbLink>
                                 <BreadcrumbSeparator />
                             </>
@@ -125,3 +132,5 @@ export function BreadcrumbResponsive() {
         </Breadcrumb>
     );
 }
+
+export default BreadcrumbResponsive;
