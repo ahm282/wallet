@@ -1,15 +1,5 @@
-import {
-    BarChart2,
-    Wallet,
-    Home,
-    PieChart,
-    Target,
-    List,
-    Calendar,
-    TrendingUp,
-    LogOut,
-    UserCircle,
-} from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
+import { BarChart2, Wallet, Home, PieChart, Target, List, Calendar, TrendingUp, UserCircle } from "lucide-react";
 import {
     Sidebar,
     SidebarContent,
@@ -24,17 +14,13 @@ import {
 } from "@/components/ui/sidebar";
 import { GiWallet } from "react-icons/gi";
 import { Link } from "react-router-dom";
+import { LogoutButton } from "@/components/ui/logout-button";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
-function NavItem({ href, icon: Icon, children }: { href: string; icon: any; children: React.ReactNode }) {
-    return (
-        <Link
-            to={href}
-            onClick={(e) => e.preventDefault()}
-            className='flex items-center px-3 py-2 text-sm rounded-md transition-colors text-customBlue-900 dark:text-darkText hover:text-customBlue-900 dark:hover:text-white hover:bg-customGray-100 dark:hover:bg-darkElement'>
-            <Icon className='h-4 w-4 mr-3 flex-shrink-0' />
-            {children}
-        </Link>
-    );
+interface MenuItem {
+    title: string;
+    url: string;
+    icon: React.ComponentType;
 }
 
 // Overview items
@@ -46,7 +32,7 @@ const overviewItems = [
     },
     {
         title: "Profile",
-        url: "#",
+        url: "/profile",
         icon: UserCircle,
     },
     {
@@ -95,11 +81,15 @@ const analysisItems = [
 ];
 
 export function AppSidebar() {
+    const { toggleSidebar } = useSidebar();
+    const isMobile = useMediaQuery("(max-width: 640px)");
+
     return (
         <Sidebar>
             <SidebarHeader className='py-8 flex flex-row font-secondary font-light text-3xl uppercase text-blue-900 dark:text-gray-100'>
                 <Link
-                    to='/'
+                    to='/Dashboard'
+                    onClick={toggleSidebar}
                     className='w-full h-16 flex items-center justify-center text-4xl rounded-md transition-colors text-customBlue-900 dark:text-darkText hover:text-customBlue-900 dark:hover:text-white hover:bg-customGray-100 dark:hover:bg-darkElement'>
                     <GiWallet className='size-8 me-4' />
                     Wallet
@@ -111,14 +101,11 @@ export function AppSidebar() {
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {overviewItems.map((item) => (
-                                <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild>
-                                        <Link to={item.url}>
-                                            <item.icon />
-                                            <span>{item.title}</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
+                                <SidebarLinkItem
+                                    key={item.title}
+                                    item={item}
+                                    onClick={isMobile ? toggleSidebar : () => {}}
+                                />
                             ))}
                         </SidebarMenu>
                     </SidebarGroupContent>
@@ -128,14 +115,11 @@ export function AppSidebar() {
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {financesItems.map((item) => (
-                                <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild>
-                                        <Link to={item.url}>
-                                            <item.icon />
-                                            <span>{item.title}</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
+                                <SidebarLinkItem
+                                    key={item.title}
+                                    item={item}
+                                    onClick={isMobile ? toggleSidebar : () => {}}
+                                />
                             ))}
                         </SidebarMenu>
                     </SidebarGroupContent>
@@ -145,14 +129,11 @@ export function AppSidebar() {
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {analysisItems.map((item) => (
-                                <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild>
-                                        <Link to={item.url}>
-                                            <item.icon />
-                                            <span>{item.title}</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
+                                <SidebarLinkItem
+                                    key={item.title}
+                                    item={item}
+                                    onClick={isMobile ? toggleSidebar : () => {}}
+                                />
                             ))}
                         </SidebarMenu>
                     </SidebarGroupContent>
@@ -160,13 +141,26 @@ export function AppSidebar() {
             </SidebarContent>
             <SidebarFooter>
                 <div className='mt-auto px-4 py-4 border-t border-gray-200 dark:border-darkElement'>
-                    <NavItem
-                        href='/login'
-                        icon={LogOut}>
-                        Logout
-                    </NavItem>
+                    <LogoutButton />
                 </div>
             </SidebarFooter>
         </Sidebar>
+    );
+}
+
+function SidebarLinkItem({ item, onClick }: { item: MenuItem; onClick: () => void }) {
+    // Grab the icon component from the item
+    const Icon = item.icon;
+    return (
+        <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+                <Link
+                    to={item.url}
+                    onClick={onClick}>
+                    <Icon />
+                    <span>{item.title}</span>
+                </Link>
+            </SidebarMenuButton>
+        </SidebarMenuItem>
     );
 }
