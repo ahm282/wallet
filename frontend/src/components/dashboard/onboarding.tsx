@@ -6,13 +6,12 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 
 const Onboarding: React.FC = () => {
     const isDesktop = useMediaQuery("(min-width: 768px)");
-
     return <>{isDesktop ? <DesktopLayout /> : <MobileLayout />}</>;
 };
 
 const DesktopLayout: React.FC = () => {
     return (
-        <div className='md:w-6/12 lg:w-8/12 2xl:w-6/12 mt-8 mx-auto flex flex-col gap-y-8'>
+        <div className='md:w-6/12 lg:w-8/12 xl:w-7/12 2xl:w-6/12 mt-8 mx-auto flex flex-col gap-y-8'>
             <Card className='flex-1'>
                 <CardHeader>
                     <CardTitle className='text-2xl'>Welcome to Wallet!</CardTitle>
@@ -23,14 +22,16 @@ const DesktopLayout: React.FC = () => {
                     </p>
                     <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
                         <Card className='flex flex-col justify-between'>
-                            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                                <CardTitle className='text-sm font-medium'>Connect Bank</CardTitle>
-                                <Wallet className='h-4 w-4 text-muted-foreground' />
+                            <CardHeader className='flex flex-col justify-between space-y-0 pb-2'>
+                                <div className='flex justify-between'>
+                                    <CardTitle className='text-sm font-medium'>Add Account</CardTitle>
+                                    <Wallet className='h-4 w-4 text-muted-foreground' />
+                                </div>
+                                <p className='text-xs text-muted-foreground pt-2'>
+                                    Add your bank accounts to track your finances
+                                </p>
                             </CardHeader>
                             <CardContent>
-                                <p className='text-xs text-muted-foreground'>
-                                    Link your bank accounts to track your finances
-                                </p>
                                 <Button
                                     className='mt-4 w-full'
                                     size='sm'>
@@ -39,13 +40,17 @@ const DesktopLayout: React.FC = () => {
                                 </Button>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                                <CardTitle className='text-sm font-medium'>Set Budget</CardTitle>
-                                <PieChart className='h-4 w-4 text-muted-foreground' />
+                        <Card className='flex flex-col justify-between'>
+                            <CardHeader className='flex flex-col justify-between space-y-0 pb-2'>
+                                <div className='flex justify-between'>
+                                    <CardTitle className='text-sm font-medium'>Set Budget</CardTitle>
+                                    <PieChart className='h-4 w-4 text-muted-foreground' />
+                                </div>
+                                <p className='text-xs text-muted-foreground pt-2'>
+                                    Create a budget to manage your spending
+                                </p>
                             </CardHeader>
                             <CardContent>
-                                <p className='text-xs text-muted-foreground'>Create a budget to manage your spending</p>
                                 <Button
                                     className='mt-4 w-full'
                                     size='sm'>
@@ -73,15 +78,17 @@ const DesktopLayout: React.FC = () => {
                                 </Button>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                                <CardTitle className='text-sm font-medium'>Track Expenses</CardTitle>
-                                <CreditCard className='h-4 w-4 text-muted-foreground' />
-                            </CardHeader>
-                            <CardContent>
-                                <p className='text-xs text-muted-foreground'>
+                        <Card className='flex flex-col justify-between'>
+                            <CardHeader className='flex flex-col justify-between space-y-0 pb-2'>
+                                <div className='flex justify-between'>
+                                    <CardTitle className='text-sm font-medium'>Track Expenses</CardTitle>
+                                    <CreditCard className='h-4 w-4 text-muted-foreground' />
+                                </div>
+                                <p className='text-xs text-muted-foreground pt-2'>
                                     Start logging your expenses to gain insights
                                 </p>
+                            </CardHeader>
+                            <CardContent>
                                 <Button
                                     className='mt-4 w-full'
                                     size='sm'>
@@ -97,12 +104,12 @@ const DesktopLayout: React.FC = () => {
                 <CardHeader>
                     <CardTitle className='flex items-center'>
                         <UserCircle className='size-5 inline me-2 text-muted-foreground' />
-                        Complete Your Profile
+                        Check Your Profile
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className='text-muted-foreground mb-6'>
-                        Check out your profile to see your account details and settings.
+                        Check out your profile to see your account details and recent activities.
                     </p>
                     <Link to='/profile'>
                         <Button>

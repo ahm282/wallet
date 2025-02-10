@@ -54,56 +54,56 @@ function App() {
                                     </ProtectedRoute>
                                 }
                             />
+
+                            <Route
+                                path='/goals'
+                                element={
+                                    <ProtectedRoute>
+                                        <DashboardPage />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path='/transactions'
+                                element={
+                                    <ProtectedRoute>
+                                        <DashboardPage />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path='/accounts'
+                                element={
+                                    <ProtectedRoute>
+                                        <DashboardPage />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path='/bills'
+                                element={
+                                    <ProtectedRoute>
+                                        <DashboardPage />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path='/reports'
+                                element={
+                                    <ProtectedRoute>
+                                        <DashboardPage />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path='/insights'
+                                element={
+                                    <ProtectedRoute>
+                                        <DashboardPage />
+                                    </ProtectedRoute>
+                                }
+                            />
                         </Route>
-                        {/* Other standalone protected routes */}
-                        <Route
-                            path='/goals'
-                            element={
-                                <ProtectedRoute>
-                                    <DashboardPage />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path='/transactions'
-                            element={
-                                <ProtectedRoute>
-                                    <DashboardPage />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path='/accounts'
-                            element={
-                                <ProtectedRoute>
-                                    <DashboardPage />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path='/bills'
-                            element={
-                                <ProtectedRoute>
-                                    <DashboardPage />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path='/reports'
-                            element={
-                                <ProtectedRoute>
-                                    <DashboardPage />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path='/insights'
-                            element={
-                                <ProtectedRoute>
-                                    <DashboardPage />
-                                </ProtectedRoute>
-                            }
-                        />
                     </Routes>
                 </BrowserRouter>
             </ThemeProvider>
