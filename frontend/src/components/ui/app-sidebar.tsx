@@ -37,7 +37,7 @@ const overviewItems = [
     },
     {
         title: "Budget",
-        url: "#",
+        url: "/budget",
         icon: PieChart,
     },
     {
