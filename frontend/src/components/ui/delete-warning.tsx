@@ -17,7 +17,7 @@ export const DeleteWarning: React.FC<DeleteWarningProps> = ({ icon, onConfirm, o
     return (
         <AlertDialog>
             <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className='w-10/12 rounded-md'>
                 <AlertDialogHeader>
                     <AlertDialogTitle className='flex items-center'>
                         <IconComponent className='inline me-2 size-5' />
