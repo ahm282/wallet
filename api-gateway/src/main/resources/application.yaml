@@ -1,11 +1,19 @@
 server:
-  port: 8083
+  port: 8080
+
 logging:
   level:
-    root: info
-    org.springframework.cloud.gateway: TRACE
+    root: INFO
+    org.springframework.cloud.gateway: INFO
     org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: INFO
-    reactor.netty: TRACE
+    reactor.netty: INFO
+    org.springframework.web: INFO
+    org.springframework.http: INFO
+    org.springframework.boot.web: INFO
+#    reactor.netty: ERROR
+#    org.springframework.web: WARN
+#    org.springframework.http: WARN
+#    org.springframework.boot.web: WARN
 
 spring:
   security:
@@ -23,13 +31,27 @@ spring:
         jwt:
           issuer-uri: https://accounts.google.com
           jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
-
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+                - "http://localhost:5173"
+                - "http://localhost:*"
+                - "chrome-extension://"
+            allowedMethods:
+              - GET
+              - POST
+              - OPTIONS
       routes:
         - id: user-service
-          uri: http://${USER_SERVICE_BASEURL:localhost:8080}
+          uri: http://${USER_SERVICE_BASEURL:localhost:8081}
           predicates:
-            - Path=/api/user/**
-#          filters:
-#            - RewritePath=/api/users/(?<segment>.*), /api/users/${segment}
+            - Path=/api/user, /api/user/
+            - Method=GET, POST
+        - id: user-service-get-by-id
+          uri: http://${USER_SERVICE_BASEURL:localhost:8081}
+          predicates:
+            - Path=/api/user/{id}, /api/user/{id}/
+            - Method=GET
