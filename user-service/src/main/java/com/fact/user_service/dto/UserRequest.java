@@ -10,9 +10,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserRequest {
-    private String username;
+    /**
+     * User creation mostly
+     */
+//    private String username;
     private String firstName;
     private String lastName;
     private String email;
-    private String password;
+//    private String password;
+    private String imageUrl;
 }

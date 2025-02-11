@@ -18,4 +18,5 @@ public class UserResponse {
     private String lastName;
     private String email;
     private Long createdAt;
+    private String imageUrl;
 }
