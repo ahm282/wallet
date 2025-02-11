@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+// import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, ExternalLink, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -11,7 +11,7 @@ export default function Profile() {
     const user = useAuthStore((state) => state.user);
 
     return (
-        <div className='w-11/12 md:w-6/12 lg:w-8/12 2xl:w-6/12 mt-8 mx-auto flex flex-col space-y-6'>
+        <div className='w-11/12 md:w-10/12 lg:w-7/12 2xl:w-6/12 my-8 mx-auto flex flex-col space-y-7'>
             <Card>
                 <CardHeader>
                     <CardTitle className='flex items-center'>
@@ -27,7 +27,7 @@ export default function Profile() {
                                 alt='User Avatar'
                             />
                             <AvatarFallback>
-                                <User className='h-10 w-10' />
+                                <User className='size-12' />
                             </AvatarFallback>
                         </Avatar>
                         <div className='grid gap-y-6'>

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import Onboarding from "@/components/dashboard/onboarding";
+import Onboarding from "@/components/dashboard/Onboarding";
 
 const DashboardPage: React.FC = () => {
     useEffect(() => {

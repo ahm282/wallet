@@ -11,8 +11,8 @@ const Onboarding: React.FC = () => {
 
 const DesktopLayout: React.FC = () => {
     return (
-        <div className='md:w-6/12 lg:w-8/12 xl:w-7/12 2xl:w-6/12 mt-8 mx-auto flex flex-col gap-y-8'>
-            <Card className='flex-1'>
+        <div className='md:w-10/12 lg:w-7/12 2xl:w-6/12 my-8 mx-auto flex flex-col space-y-7'>
+            <Card>
                 <CardHeader>
                     <CardTitle className='text-2xl'>Welcome to Wallet!</CardTitle>
                 </CardHeader>
@@ -125,7 +125,7 @@ const DesktopLayout: React.FC = () => {
 
 const MobileLayout: React.FC = () => {
     return (
-        <div className='w-10/12 mx-auto'>
+        <div className='w-10/12 mx-auto my-8'>
             <div
                 id='introduction'
                 className='py-4 space-y-3'>
@@ -135,8 +135,8 @@ const MobileLayout: React.FC = () => {
                     <p className='text-muted-foreground'>Here are some steps to help you begin:</p>
                 </div>
             </div>
-            <div className='w-full flex flex-col gap-y-4 justify-center items-center mx-auto my-4'>
-                <Card className='w-full'>
+            <div className='w-full flex flex-col gap-y-4 justify-center items-stretch mx-auto my-4'>
+                <Card>
                     <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                         <CardTitle className='text-sm font-medium'>Connect Bank</CardTitle>
                         <Wallet className='h-4 w-4 text-muted-foreground' />
@@ -151,7 +151,7 @@ const MobileLayout: React.FC = () => {
                         </Button>
                     </CardContent>
                 </Card>
-                <Card className='w-full'>
+                <Card>
                     <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                         <CardTitle className='text-sm font-medium'>Set Budget</CardTitle>
                         <PieChart className='h-4 w-4 text-muted-foreground' />
@@ -166,7 +166,7 @@ const MobileLayout: React.FC = () => {
                         </Button>
                     </CardContent>
                 </Card>
-                <Card className='w-full'>
+                <Card>
                     <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                         <CardTitle className='text-sm font-medium'>Add Goals</CardTitle>
                         <Target className='h-4 w-4 text-muted-foreground' />
@@ -181,7 +181,7 @@ const MobileLayout: React.FC = () => {
                         </Button>
                     </CardContent>
                 </Card>
-                <Card className='w-full'>
+                <Card>
                     <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                         <CardTitle className='text-sm font-medium'>Track Expenses</CardTitle>
                         <CreditCard className='h-4 w-4 text-muted-foreground' />
@@ -196,7 +196,7 @@ const MobileLayout: React.FC = () => {
                         </Button>
                     </CardContent>
                 </Card>
-                <Card className='w-full'>
+                <Card>
                     <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                         <CardTitle>Complete Your Profile</CardTitle>
                         <UserCircle className='h-4 w-4 text-muted-foreground' />
