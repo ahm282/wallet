@@ -3,36 +3,37 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ThemeProvider";
 
 export function ModeSwitch() {
-    const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
-    // Toggle between light and dark
-    const toggleTheme = () => {
-        if (theme === "dark") {
-            setTheme("light");
-        } else {
-            setTheme("dark");
-        }
-    };
+  // Toggle between light and dark
+  const toggleTheme = () => {
+    if (theme === "dark") {
+      setTheme("light");
+    } else {
+      setTheme("dark");
+    }
+  };
 
-    return (
-        <Button
-            variant='outline'
-            size='icon'
-            onClick={toggleTheme}
-            className='size-10'>
-            <Sun
-                className={`h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 ${
-                    theme === "dark" ? "hidden" : ""
-                }`}
-            />
-            <Moon
-                className={`h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 ${
-                    theme === "dark" ? "" : "hidden"
-                }`}
-            />
-            <span className='sr-only'>Toggle theme</span>
-        </Button>
-    );
+  return (
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={toggleTheme}
+      className="size-10"
+    >
+      <Sun
+        className={`h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 ${
+          theme === "dark" ? "hidden" : ""
+        }`}
+      />
+      <Moon
+        className={`h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 ${
+          theme === "dark" ? "" : "hidden"
+        }`}
+      />
+      <span className="sr-only">Toggle theme</span>
+    </Button>
+  );
 }
 
 export default ModeSwitch;
