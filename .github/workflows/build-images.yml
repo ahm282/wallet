@@ -1,0 +1,51 @@
+name: Build and Push Docker Images
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        env:
+            DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+            USER_DB_NAME: user_db
+            USER_DB_USER: user
+            USER_DB_PASS: ${{ secrets.USER_DB_PASS }}
+            USER_DB_PORT: ${{ secrets.USER_DB_PORT }}
+            USER_APP_PORT: ${{ secrets.USER_APP_PORT }}
+            API_GATEWAY_PORT: ${{ secrets.API_GATEWAY_PORT }}
+            GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+            DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+            DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+              with:
+                  driver: docker
+
+            - name: Build Docker images using Docker Compose
+              run: docker compose build
+
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKER_HUB_USERNAME }}
+                  password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+            # push all images with at once
+            # - name: Push images using Docker Compose
+            #   run: docker compose push
+
+            - name: Push user-service image to Docker Hub
+              run: docker push ahm282/user-service:latest
+
+            - name: Push api-gateway image to Docker Hub
+              run: docker push ahm282/api-gateway:latest

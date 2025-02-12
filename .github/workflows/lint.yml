@@ -1,0 +1,63 @@
+name: Lint Code Base
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [22]
+                java-version: [17]
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            # 2. Lint YAML files
+            #    This step uses a shell command to find YAML files (in root or up to two levels deep)
+            - name: Lint YAML files
+              run: |
+                  echo "Linting YAML files..."
+                  find . -maxdepth 2 -type f \( -name "*.yaml" -o -name "*.yml" \) -exec yamllint {} \;
+
+            # 3. Set up Java and run Spotless linting
+            - name: Set up Java
+              uses: actions/setup-java@v3
+              with:
+                  java-version: ${{ matrix.java-version }}
+                  distribution: temurin
+
+            - name: Lint Java code with Spotless (User Service)
+              continue-on-error: true
+              run: |
+                  cd user-service
+                  echo "Running Spotless (User Service)..."
+                  mvn spotless:check
+
+            - name: Lint Java code with Checkstyle (API Gateway)
+              continue-on-error: true
+              run: |
+                  cd api-gateway
+                  echo "Running Spotless (API Gateway)..."
+                  mvn spotless:check
+
+            # 4. Lint JavaScript/TypeScript code with ESLint in the 'frontend' folder
+            - name: Set up Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+
+            - name: Lint JavaScript/TypeScript code with Prettier
+              continue-on-error: true
+              run: |
+                  cd frontend
+                  echo "Installing Node.js dependencies..."
+                  npm install
+                  echo "Running Prettier check..."
+                  npx prettier --check .
