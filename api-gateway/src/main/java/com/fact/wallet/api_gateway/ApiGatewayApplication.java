@@ -6,10 +6,7 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 
 @SpringBootApplication
 @EnableWebFlux
-// CHECKSTYLE:OFF DesignForExtension
 public class ApiGatewayApplication {
-  private ApiGatewayApplication() {}
-
   public static void main(final String[] args) {
     SpringApplication.run(ApiGatewayApplication.class, args);
   }
