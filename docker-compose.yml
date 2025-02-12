@@ -20,7 +20,7 @@ services:
         build:
             context: ./user-service/
             dockerfile: Dockerfile
-        image: ahm282/user-service:v1
+        image: ahm282/user-service:latest
         depends_on:
             - user-db
         environment:
@@ -37,7 +37,7 @@ services:
         build:
             context: ./api-gateway/
             dockerfile: Dockerfile
-        image: ahm282/api-gateway:v1
+        image: ahm282/api-gateway:latest
         depends_on:
             - user-service
         environment:
