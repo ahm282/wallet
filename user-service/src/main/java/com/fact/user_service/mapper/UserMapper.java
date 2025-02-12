@@ -7,15 +7,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapper {
 
-    public UserResponse toUserResponse(AppUser appUser) {
-        return UserResponse.builder()
-                .id(appUser.getId())
-                .username(appUser.getUsername())
-                .email(appUser.getEmail())
-                .firstName(appUser.getFirstName())
-                .lastName(appUser.getLastName())
-                .createdAt(appUser.getCreatedAt())
-                .imageUrl(appUser.getImageUrl())
-                .build();
-    }
+  public UserResponse toUserResponse(AppUser appUser) {
+    return UserResponse.builder()
+        .id(appUser.getId())
+        .username(appUser.getUsername())
+        .email(appUser.getEmail())
+        .firstName(appUser.getFirstName())
+        .lastName(appUser.getLastName())
+        .createdAt(appUser.getCreatedAt())
+        .imageUrl(appUser.getImageUrl())
+        .build();
+  }
 }
