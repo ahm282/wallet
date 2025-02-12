@@ -6,37 +6,36 @@ import useAuthStore from "@/store/authStore";
 import { ModeToggle } from "@/components/ModeToggle";
 
 export const TopBar = () => {
-    const user = useAuthStore((state) => state.user);
-    return (
-        <>
-            <div className='flex justify-between items-center'>
-                <div className='md:w-6/12 flex items-center gap-x-4 px-4 py-3'>
-                    <CustomTrigger />
-                    <Separator
-                        orientation='vertical'
-                        className='me-2 h-4'
-                    />
-                    <BreadcrumbResponsive />
-                </div>
-                <div className='flex items-center gap-x-4'>
-                    <ModeToggle />
-                    <Avatar className='me-4 size-7'>
-                        <AvatarImage
-                            src={user.picture}
-                            referrerPolicy='no-referrer'
-                            alt='User picture'
-                        />
-                        <AvatarFallback>{getInitials(user.given_name, user.family_name)}</AvatarFallback>
-                    </Avatar>
-                </div>
-            </div>
-            <Separator orientation='horizontal' />
-        </>
-    );
+  const user = useAuthStore((state) => state.user);
+  return (
+    <>
+      <div className="flex justify-between items-center">
+        <div className="md:w-6/12 flex items-center gap-x-4 px-4 py-3">
+          <CustomTrigger />
+          <Separator orientation="vertical" className="me-2 h-4" />
+          <BreadcrumbResponsive />
+        </div>
+        <div className="flex items-center gap-x-4">
+          <ModeToggle />
+          <Avatar className="me-4 size-7">
+            <AvatarImage
+              src={user.picture}
+              referrerPolicy="no-referrer"
+              alt="User picture"
+            />
+            <AvatarFallback>
+              {getInitials(user.given_name, user.family_name)}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+      </div>
+      <Separator orientation="horizontal" />
+    </>
+  );
 };
 
 function getInitials(given_name: string, family_name: string): string {
-    return `${given_name.charAt(0)}${family_name.charAt(0)}`;
+  return `${given_name.charAt(0)}${family_name.charAt(0)}`;
 }
 
 export default TopBar;
