@@ -1,33 +1,33 @@
-//package com.fact.user_service;
+// package com.fact.user_service;
 //
-//import com.fact.user_service.dto.UserRequest;
-//import com.fact.user_service.dto.UserResponse;
-//import com.fact.user_service.mapper.UserMapper;
-//import com.fact.user_service.model.AppUser;
-//import com.fact.user_service.repository.UserRepository;
-//import com.fact.user_service.service.UserService;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+// import com.fact.user_service.dto.UserRequest;
+// import com.fact.user_service.dto.UserResponse;
+// import com.fact.user_service.mapper.UserMapper;
+// import com.fact.user_service.model.AppUser;
+// import com.fact.user_service.repository.UserRepository;
+// import com.fact.user_service.service.UserService;
+// import org.junit.jupiter.api.BeforeEach;
+// import org.junit.jupiter.api.Test;
+// import org.junit.jupiter.api.extension.ExtendWith;
+// import org.mockito.InjectMocks;
+// import org.mockito.Mock;
+// import org.mockito.junit.jupiter.MockitoExtension;
+// import org.springframework.boot.test.context.SpringBootTest;
+// import org.springframework.http.HttpStatus;
+// import org.springframework.http.ResponseEntity;
+// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 //
-//import java.util.Arrays;
-//import java.util.List;
-//import java.util.Optional;
-//import java.util.UUID;
+// import java.util.Arrays;
+// import java.util.List;
+// import java.util.Optional;
+// import java.util.UUID;
 //
-//import static org.junit.jupiter.api.Assertions.*;
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.Mockito.*;
+// import static org.junit.jupiter.api.Assertions.*;
+// import static org.mockito.ArgumentMatchers.any;
+// import static org.mockito.Mockito.*;
 //
-//@ExtendWith(MockitoExtension.class)
-//public class UserServiceTests {
+// @ExtendWith(MockitoExtension.class)
+// public class UserServiceTests {
 //    @Mock
 //    private UserRepository userRepository;
 //
@@ -92,9 +92,12 @@
 ////    @Test
 ////    void testCreateUser_Success() {
 ////        // Arrange
-////        when(userRepository.findByUsername(validUserRequest.getUsername())).thenReturn(Optional.empty());
-////        when(userRepository.findByEmail(validUserRequest.getEmail())).thenReturn(Optional.empty());
-////        when(passwordEncoder.encode(validUserRequest.getPassword())).thenReturn("encodedPassword");
+////
+// when(userRepository.findByUsername(validUserRequest.getUsername())).thenReturn(Optional.empty());
+////
+// when(userRepository.findByEmail(validUserRequest.getEmail())).thenReturn(Optional.empty());
+////
+// when(passwordEncoder.encode(validUserRequest.getPassword())).thenReturn("encodedPassword");
 ////        when(userRepository.save(any(AppUser.class))).thenReturn(savedAppUser);
 ////        when(userMapper.toUserResponse(savedAppUser)).thenReturn(userResponse);
 ////
@@ -113,7 +116,9 @@
 ////    @Test
 ////    void testCreateUser_Conflict() {
 ////        // Arrange
-////        when(userRepository.findByUsername(validUserRequest.getUsername())).thenReturn(Optional.of(new AppUser()));
+////
+// when(userRepository.findByUsername(validUserRequest.getUsername())).thenReturn(Optional.of(new
+// AppUser()));
 ////
 ////        // Act
 ////        ResponseEntity<UserResponse> response = userService.createUser(validUserRequest);
@@ -251,4 +256,4 @@
 //        // Assert
 //        assertFalse(result);
 //    }
-//}
+// }

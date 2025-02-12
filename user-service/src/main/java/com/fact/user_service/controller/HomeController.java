@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/")
 public class HomeController {
-    @GetMapping
-    public String home() {
-        return "User Service API is operational! 🚀";
-    }
+  @GetMapping
+  public String home() {
+    return "User Service API is operational! 🚀";
+  }
 }
