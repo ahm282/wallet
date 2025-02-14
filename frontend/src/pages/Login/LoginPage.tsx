@@ -12,137 +12,124 @@ import { ModeSwitch } from "@/components/ModeSwitch";
 
 // Define Google user data.
 interface GoogleUser {
-  email: string;
-  given_name: string;
-  family_name: string;
-  picture: string;
+    email: string;
+    given_name: string;
+    family_name: string;
+    picture: string;
 }
 
 // Define backend's user response.
 interface UserResponse {
-  id: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  imageUrl: string;
-  createdAt: string;
+    id: number;
+    email: string;
+    firstName: string;
+    lastName: string;
+    imageUrl: string;
+    createdAt: string;
 }
 
 /**
  * Decodes the Google JWT and returns a typed GoogleUser.
  */
 const decodeGoogleUser = (token: string): GoogleUser => {
-  return jwtDecode<GoogleUser>(token);
+    return jwtDecode<GoogleUser>(token);
 };
 
 /**
  * Creates the payload that your backend API expects.
  */
 const createUserPayload = (googleUser: GoogleUser) => {
-  return {
-    email: googleUser.email,
-    firstName: googleUser.given_name,
-    lastName: googleUser.family_name,
-    imageUrl: googleUser.picture,
-  };
+    return {
+        email: googleUser.email,
+        firstName: googleUser.given_name,
+        lastName: googleUser.family_name,
+        imageUrl: googleUser.picture,
+    };
 };
 
 /**
  * Posts the user payload to the backend and returns the response.
  */
-const postUserData = async (
-  payload: object,
-  token: string,
-): Promise<UserResponse> => {
-  const api = new ApiUtil("http://localhost:8080/api");
-  return await api.post<UserResponse>("/user", payload, token);
+const postUserData = async (payload: object, token: string): Promise<UserResponse> => {
+    const GATEWAY_URL = "http://localhost:8080/api";
+    const api = new ApiUtil(GATEWAY_URL);
+    return await api.post<UserResponse>("/user", payload, token);
 };
 
 const LoginPage: React.FC = () => {
-  const [error, setError] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const navigate = useNavigate();
-  const setAuth = useAuthStore((state) => state.setAuth);
+    const [error, setError] = useState<string>("");
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const navigate = useNavigate();
+    const setAuth = useAuthStore((state) => state.setAuth);
 
-  /**
-   * Handles the Google login success event:
-   * - Decodes the token,
-   * - Prepares the payload,
-   * - Sends the payload to the backend,
-   * - Updates the auth store,
-   * - And navigates to the dashboard.
-   */
-  const handleGoogleSuccess = async (
-    credentialResponse: any,
-  ): Promise<void> => {
-    setIsLoading(true);
-    setError("");
+    /**
+     * Handles the Google login success event:
+     * - Decodes the token,
+     * - Prepares the payload,
+     * - Sends the payload to the backend,
+     * - Updates the auth store,
+     * - And navigates to the dashboard.
+     */
+    const handleGoogleSuccess = async (credentialResponse: any): Promise<void> => {
+        setIsLoading(true);
+        setError("");
 
-    try {
-      // Extract and decode the Google token
-      const token: string = credentialResponse.credential;
-      const googleUser = decodeGoogleUser(token);
+        try {
+            // Extract and decode the Google token
+            const token: string = credentialResponse.credential;
+            const googleUser = decodeGoogleUser(token);
 
-      // Update the auth store with the token and the backend's response data
-      setAuth(token, googleUser);
+            // Update the auth store with the token and the backend's response data
+            setAuth(token, googleUser);
 
-      // Prepare the payload for the backend
-      const userPayload = createUserPayload(googleUser);
+            // Prepare the payload for the backend
+            const userPayload = createUserPayload(googleUser);
 
-      // Post the user data to the backend and wait for the response
-      const userResponse = await postUserData(userPayload, token);
+            // Navigate to the dashboard upon successful login
+            navigate("/dashboard");
+        } catch (err) {
+            console.error("Login error:", err);
+            setError("Login failed. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-      console.log("User response:", userResponse);
+    const handleGoogleError = (): void => {
+        setError("Google login failed. Please try again.");
+        setIsLoading(false);
+    };
 
-      // Navigate to the dashboard upon successful login
-      navigate("/dashboard");
-    } catch (err) {
-      console.error("Login error:", err);
-      setError("Login failed. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    return (
+        <div className='min-h-screen flex flex-col items-center justify-center bg-gray-200 dark:bg-dark'>
+            <Card className='w-11/12 md:w-6/12 lg:w-4/12 xl:w-3/12 px-8 py-10 flex flex-col justify-center items-center rounded-xl shadow-lg bg-gray-100 dark:bg-darkElement'>
+                <CardTitle className='flex flex-row items-center justify-center font-secondary font-light text-5xl uppercase text-blue-900 dark:text-gray-100'>
+                    <GiWallet className='size-12 inline mb-3 -ms-4 me-4' />
+                    Wallet
+                </CardTitle>
+                <CardHeader className='pt-6 pb-4 px-3 font-primary font-bold text-lg text-blue-900 dark:text-gray-100'>
+                    Your personal finance assistant
+                </CardHeader>
+                <CardContent className='w-full min-h-28 flex flex-col items-center justify-center'>
+                    {error && <div className='w-full mb-4 p-3 bg-red-100 text-red-700 rounded-md'>{error}</div>}
+                    {isLoading ? (
+                        <ScaleLoader color={"#1e3a8a"} />
+                    ) : (
+                        <div className='pt-4 w-full flex flex-col justify-center md:items-center'>
+                            <p className='flex items-center gap-x-1 pb-4 font-primary text-muted-foreground text-sm font-medium leading-none dark:text-gray-300'>
+                                <IoIosLogIn />
+                                Login with Google to continue
+                            </p>
+                            <div className='flex items-center justify-center'>
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={handleGoogleError}
+                                />
+                            </div>
+                        </div>
+                    )}
 
-  const handleGoogleError = (): void => {
-    setError("Google login failed. Please try again.");
-    setIsLoading(false);
-  };
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-200 dark:bg-dark">
-      <Card className="w-11/12 md:w-6/12 lg:w-4/12 xl:w-3/12 px-8 py-10 flex flex-col justify-center items-center rounded-xl shadow-lg bg-gray-100 dark:bg-darkElement">
-        <CardTitle className="flex flex-row items-center justify-center font-secondary font-light text-5xl uppercase text-blue-900 dark:text-gray-100">
-          <GiWallet className="size-12 inline mb-3 -ms-4 me-4" />
-          Wallet
-        </CardTitle>
-        <CardHeader className="pt-6 pb-4 px-3 font-primary font-bold text-lg text-blue-900 dark:text-gray-100">
-          Your personal finance assistant
-        </CardHeader>
-        <CardContent className="w-full min-h-28 flex flex-col items-center justify-center">
-          {error && (
-            <div className="w-full mb-4 p-3 bg-red-100 text-red-700 rounded-md">
-              {error}
-            </div>
-          )}
-          {isLoading ? (
-            <ScaleLoader color={"#1e3a8a"} />
-          ) : (
-            <div className="pt-4 w-full flex flex-col justify-center md:items-center">
-              <p className="flex items-center gap-x-1 pb-4 font-primary text-muted-foreground text-sm font-medium leading-none dark:text-gray-300">
-                <IoIosLogIn />
-                Login with Google to continue
-              </p>
-              <div className="flex items-center justify-center">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={handleGoogleError}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* <div className='w-full flex justify-center items-center mt-4'>
+                    {/* <div className='w-full flex justify-center items-center mt-4'>
                         <div className='h-0 w-5/12 border border-slate-300' />
                         <span className='mx-2 text-sm text-slate-500'>or</span>
                         <div className='h-0 w-5/12 border border-slate-300' />
@@ -152,13 +139,13 @@ const LoginPage: React.FC = () => {
                         <h2 className='font-light text-3xl'>Login</h2>
                         <h2 className='text-sm text-slate-600'>Enter your credentials to continue</h2>
                     </div> */}
-        </CardContent>
-      </Card>
-      <div className="absolute bottom-4 right-4">
-        <ModeSwitch />
-      </div>
-    </div>
-  );
+                </CardContent>
+            </Card>
+            <div className='absolute bottom-4 right-4'>
+                <ModeSwitch />
+            </div>
+        </div>
+    );
 };
 
 export default LoginPage;
