@@ -49,3 +49,6 @@ jobs:
 
             - name: Push api-gateway image to Docker Hub
               run: docker push ahm282/api-gateway:latest
+
+            - name: Push frontend image to Docker Hub
+              run: docker push ahm282/frontend:latest
