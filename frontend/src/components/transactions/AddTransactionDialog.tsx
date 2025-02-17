@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
     Credenza,
     CredenzaClose,
@@ -13,7 +14,8 @@ import { Label } from "@/components/ui/label";
 import { PlusCircle } from "lucide-react";
 import { CategorySelect } from "@/components/transactions/CategoriesDropdown";
 import { DatePicker } from "@/components/ui/date-picker";
-import { type AddTransactionDialogProps, Category } from "@/types/transactions.types";
+import { validateTransactionForm } from "@/lib/validate_transaction_form";
+import type { AddTransactionDialogProps, TransactionFormErrors, Category } from "@/types/transactions.types";
 
 export const AddTransactionDialog: React.FC<AddTransactionDialogProps> = ({
     isOpen,
@@ -22,18 +24,52 @@ export const AddTransactionDialog: React.FC<AddTransactionDialogProps> = ({
     newTransaction,
     setNewTransaction,
 }) => {
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Only add if all required fields are provided
-        if (newTransaction.date && newTransaction.description && newTransaction.amount && newTransaction.category) {
-            onAdd(newTransaction);
+    const [errors, setErrors] = useState<TransactionFormErrors>({});
+
+    // Reset form and errors when the dialog is closed.
+    useEffect(() => {
+        if (!isOpen) {
+            setErrors({});
             setNewTransaction({
                 date: undefined,
                 description: "",
                 amount: 0,
-                category: Category.Other,
+                category: null,
             });
+        }
+    }, [isOpen, setNewTransaction]);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const { isValid, errors } = validateTransactionForm(newTransaction);
+
+        if (isValid) {
+            onAdd(newTransaction);
+            // Clear form and errors after adding.
+            setNewTransaction({
+                date: undefined,
+                description: "",
+                amount: 0,
+                category: null,
+            });
+            setErrors({});
             setIsOpen(false);
+        } else {
+            setErrors(errors);
+        }
+    };
+
+    // Helper to update a field and clear its error if any.
+    const handleFieldChange = (field: keyof typeof newTransaction, value: any) => {
+        setNewTransaction({
+            ...newTransaction,
+            [field]: value,
+        });
+        if (errors[field]) {
+            setErrors({
+                ...errors,
+                [field]: undefined,
+            });
         }
     };
 
@@ -58,14 +94,10 @@ export const AddTransactionDialog: React.FC<AddTransactionDialogProps> = ({
                             <div className='col-span-3'>
                                 <DatePicker
                                     date={newTransaction.date}
-                                    onSelect={(selectedDate) =>
-                                        setNewTransaction({
-                                            ...newTransaction,
-                                            date: selectedDate,
-                                        })
-                                    }
+                                    onSelect={(selectedDate) => handleFieldChange("date", selectedDate)}
                                     className='col-span-3'
                                 />
+                                {errors.date && <p className='text-red-500 text-xs'>{errors.date}</p>}
                             </div>
                         </div>
                         {/* Description Field */}
@@ -75,17 +107,15 @@ export const AddTransactionDialog: React.FC<AddTransactionDialogProps> = ({
                                 className='text-right'>
                                 Description
                             </Label>
-                            <Input
-                                id='description'
-                                value={newTransaction.description}
-                                onChange={(e) =>
-                                    setNewTransaction({
-                                        ...newTransaction,
-                                        description: e.target.value,
-                                    })
-                                }
-                                className='col-span-3'
-                            />
+                            <div className='col-span-3'>
+                                <Input
+                                    id='description'
+                                    value={newTransaction.description}
+                                    onChange={(e) => handleFieldChange("description", e.target.value)}
+                                    className='col-span-3'
+                                />
+                                {errors.description && <p className='text-red-500 text-xs'>{errors.description}</p>}
+                            </div>
                         </div>
                         {/* Amount Field */}
                         <div className='grid grid-cols-4 items-center gap-4'>
@@ -94,19 +124,17 @@ export const AddTransactionDialog: React.FC<AddTransactionDialogProps> = ({
                                 className='text-right'>
                                 Amount
                             </Label>
-                            <Input
-                                id='amount'
-                                type='number'
-                                step='0.01'
-                                value={newTransaction.amount}
-                                onChange={(e) =>
-                                    setNewTransaction({
-                                        ...newTransaction,
-                                        amount: Number(e.target.value),
-                                    })
-                                }
-                                className='col-span-3'
-                            />
+                            <div className='col-span-3'>
+                                <Input
+                                    id='amount'
+                                    type='number'
+                                    step='0.01'
+                                    value={newTransaction.amount}
+                                    onChange={(e) => handleFieldChange("amount", Number(e.target.value))}
+                                    className='col-span-3'
+                                />
+                                {errors.amount && <p className='text-red-500 text-xs'>{errors.amount}</p>}
+                            </div>
                         </div>
                         {/* Category Field */}
                         <div className='grid grid-cols-4 items-center gap-4'>
@@ -119,19 +147,15 @@ export const AddTransactionDialog: React.FC<AddTransactionDialogProps> = ({
                                 <CategorySelect
                                     value={newTransaction.category}
                                     isFormSelect={true}
-                                    onValueChange={(value) =>
-                                        setNewTransaction({
-                                            ...newTransaction,
-                                            category: value as Category,
-                                        })
-                                    }
+                                    onValueChange={(value) => handleFieldChange("category", value as Category)}
                                 />
+                                {errors.category && <p className='text-red-500 text-xs'>{errors.category}</p>}
                             </div>
                         </div>
                     </div>
                     <CredenzaFooter className='w-11/12 mx-auto'>
                         <Button type='submit'>
-                            <PlusCircle className='mr-2 size-4' /> Add Transaction
+                            <PlusCircle className='mr-2 h-4 w-4' /> Add Transaction
                         </Button>
                         <CredenzaClose asChild>
                             <Button variant='outline'>Cancel</Button>

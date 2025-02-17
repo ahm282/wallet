@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Credenza,
     CredenzaClose,
@@ -13,8 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CategorySelect } from "@/components/transactions/CategoriesDropdown";
 import { DatePicker } from "@/components/ui/date-picker";
-import type { Transaction, EditTransactionDialogProps } from "@/types/transactions.types";
-import { Category } from "@/types/transactions.types";
+import { validateTransactionForm } from "@/lib/validate_transaction_form";
+import type {
+    EditTransactionDialogProps,
+    TransactionFormErrors,
+    Category,
+    Transaction,
+} from "@/types/transactions.types";
 
 export const EditTransactionDialog: React.FC<EditTransactionDialogProps> = ({
     isOpen,
@@ -22,17 +27,41 @@ export const EditTransactionDialog: React.FC<EditTransactionDialogProps> = ({
     transaction,
     onSave,
 }) => {
+    // Explicitly type the state as Transaction | null.
     const [editedTransaction, setEditedTransaction] = useState<Transaction | null>(transaction);
+    const [errors, setErrors] = useState<TransactionFormErrors>({});
 
+    // Update state and clear errors when transaction changes.
     useEffect(() => {
         setEditedTransaction(transaction);
+        setErrors({});
     }, [transaction]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (editedTransaction) {
-            onSave(editedTransaction);
-            setIsOpen(false);
+            const { isValid, errors } = validateTransactionForm(editedTransaction);
+            if (isValid) {
+                onSave(editedTransaction);
+                setIsOpen(false);
+            } else {
+                setErrors(errors);
+            }
+        }
+    };
+
+    // Make the function generic over keys of Transaction.
+    const handleFieldChange = <K extends keyof TransactionFormErrors>(field: K, value: Transaction[K]) => {
+        if (!editedTransaction) return;
+        setEditedTransaction({
+            ...editedTransaction,
+            [field]: value,
+        });
+        if (errors[field]) {
+            setErrors({
+                ...errors,
+                [field]: undefined,
+            });
         }
     };
 
@@ -56,17 +85,15 @@ export const EditTransactionDialog: React.FC<EditTransactionDialogProps> = ({
                                 className='text-right'>
                                 Description
                             </Label>
-                            <Input
-                                id='edit-description'
-                                value={editedTransaction.description}
-                                onChange={(e) =>
-                                    setEditedTransaction({
-                                        ...editedTransaction,
-                                        description: e.target.value,
-                                    })
-                                }
-                                className='col-span-3'
-                            />
+                            <div className='col-span-3'>
+                                <Input
+                                    id='edit-description'
+                                    value={editedTransaction.description}
+                                    onChange={(e) => handleFieldChange("description", e.target.value)}
+                                    className='col-span-3'
+                                />
+                                {errors.description && <p className='text-red-500 text-xs'>{errors.description}</p>}
+                            </div>
                         </div>
                         {/* Date Field */}
                         <div className='grid grid-cols-4 items-center gap-4'>
@@ -75,13 +102,14 @@ export const EditTransactionDialog: React.FC<EditTransactionDialogProps> = ({
                                 className='text-right'>
                                 Date
                             </Label>
-                            <DatePicker
-                                date={editedTransaction.date}
-                                onSelect={(selectedDate) =>
-                                    setEditedTransaction({ ...editedTransaction, date: selectedDate })
-                                }
-                                className='col-span-3'
-                            />
+                            <div className='col-span-3'>
+                                <DatePicker
+                                    date={editedTransaction.date}
+                                    onSelect={(selectedDate) => handleFieldChange("date", selectedDate)}
+                                    className='col-span-3'
+                                />
+                                {errors.date && <p className='text-red-500 text-xs'>{errors.date}</p>}
+                            </div>
                         </div>
                         {/* Amount Field */}
                         <div className='grid grid-cols-4 items-center gap-4'>
@@ -90,19 +118,17 @@ export const EditTransactionDialog: React.FC<EditTransactionDialogProps> = ({
                                 className='text-right'>
                                 Amount
                             </Label>
-                            <Input
-                                id='edit-amount'
-                                type='number'
-                                step='0.01'
-                                value={editedTransaction.amount}
-                                onChange={(e) =>
-                                    setEditedTransaction({
-                                        ...editedTransaction,
-                                        amount: Number(e.target.value),
-                                    })
-                                }
-                                className='col-span-3'
-                            />
+                            <div className='col-span-3'>
+                                <Input
+                                    id='edit-amount'
+                                    type='number'
+                                    step='0.01'
+                                    value={editedTransaction.amount}
+                                    onChange={(e) => handleFieldChange("amount", Number(e.target.value))}
+                                    className='col-span-3'
+                                />
+                                {errors.amount && <p className='text-red-500 text-xs'>{errors.amount}</p>}
+                            </div>
                         </div>
                         {/* Category Field */}
                         <div className='grid grid-cols-4 items-center gap-4'>
@@ -115,13 +141,9 @@ export const EditTransactionDialog: React.FC<EditTransactionDialogProps> = ({
                                 <CategorySelect
                                     value={editedTransaction.category}
                                     isFormSelect={true}
-                                    onValueChange={(value) =>
-                                        setEditedTransaction({
-                                            ...editedTransaction,
-                                            category: value as Category,
-                                        })
-                                    }
+                                    onValueChange={(value) => handleFieldChange("category", value as Category)}
                                 />
+                                {errors.category && <p className='text-red-500 text-xs'>{errors.category}</p>}
                             </div>
                         </div>
                     </div>
