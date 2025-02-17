@@ -1,35 +1,3 @@
-// Budget definitions
-export interface Budget {
-    id: number;
-    name: string;
-    budgeted: number;
-    spent: number;
-}
-
-export interface NoBudgetProps {
-    budgets: Budget[];
-    setBudgets: React.Dispatch<React.SetStateAction<Budget[]>>;
-}
-
-export interface BudgetDataExistsProps {
-    budgets: Budget[];
-    setBudgets: React.Dispatch<React.SetStateAction<Budget[]>>;
-}
-
-export interface AddBudgetDialogProps {
-    budgets: Budget[];
-    setBudgets: React.Dispatch<React.SetStateAction<Budget[]>>;
-    children?: React.ReactNode;
-}
-
-export interface DeleteWarningProps {
-    icon: React.ComponentType<{ className?: string }>;
-    message: string;
-    children: React.ReactNode;
-    onConfirm?: () => void;
-    onCancel?: () => void;
-}
-
 // Goals definitions
 export interface Goal {
     id: number;
@@ -62,10 +30,6 @@ export interface EditGoalDialogProps {
     onSave: (goal: Goal) => void;
 }
 
-export interface EditedGoalForm extends GoalForm {
-    id: number;
-}
-
 export interface GoalForm {
     name: string;
     target: string;
@@ -80,11 +44,6 @@ export interface GoalFormErrors {
     targetDate: string;
 }
 
-// Transactions definitions
-export type Transaction = {
+export interface EditedGoalForm extends GoalForm {
     id: number;
-    date: string;
-    description: string;
-    amount: number;
-    category: string;
-};
+}

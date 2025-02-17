@@ -51,7 +51,7 @@ const overviewItems = [
 const financesItems = [
     {
         title: "Transactions",
-        url: "/dashboard",
+        url: "/transactions",
         icon: List,
     },
     {
