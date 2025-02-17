@@ -51,8 +51,7 @@ const createUserPayload = (googleUser: GoogleUser) => {
  * Posts the user payload to the backend and returns the response.
  */
 const postUserData = async (payload: object, token: string): Promise<UserResponse> => {
-    const GATEWAY_URL = "http://localhost:8080/api";
-    const api = new ApiUtil(GATEWAY_URL);
+    const api = import.meta.env.VITE_ENV_NAME === "dev" ? new ApiUtil("http://localhost:8080/api") : new ApiUtil();
     return await api.post<UserResponse>("/user", payload, token);
 };
 
@@ -84,6 +83,9 @@ const LoginPage: React.FC = () => {
 
             // Prepare the payload for the backend
             const userPayload = createUserPayload(googleUser);
+
+            // Send the payload to the backend
+            await postUserData(userPayload, token);
 
             // Navigate to the dashboard upon successful login
             navigate("/dashboard");
