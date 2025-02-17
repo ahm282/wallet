@@ -8,6 +8,7 @@ import DashboardPage from "@/pages/Dashboard/DashboardPage";
 import ProfilePage from "@/pages/Profile/ProfilePage";
 import BudgetPage from "./pages/Budget/BudgetPage";
 import GoalsPage from "@/pages/Goals/GoalsPage";
+import TransactionsPage from "@/pages/Transactions/TransactionsPage";
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "CLIENT_ID_NOT_FOUND";
 
@@ -72,7 +73,7 @@ function App() {
                                     path='/transactions'
                                     element={
                                         <ProtectedRoute>
-                                            <DashboardPage />
+                                            <TransactionsPage />
                                         </ProtectedRoute>
                                     }
                                 />

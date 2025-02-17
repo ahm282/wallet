@@ -32,7 +32,7 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({ budgets, set
     const totalSpent = budgets.reduce((acc, budget) => acc + budget.spent, 0);
 
     return (
-        <div className='w-11/12 md:w-10/12 lg:max-w-4xl 2xl:max-w-5xl my-8 mx-auto flex flex-col space-y-7'>
+        <div className='w-11/12 md:w-10/12 lg:max-w-4xl 2xl:max-w-5xl my-8 mx-auto flex flex-col space-y-5'>
             <Card>
                 <CardHeader className='space-y-0 pb-8'>
                     <CardTitle className='text-2xl font-bold flex flex-row items-center justify-between'>
