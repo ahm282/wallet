@@ -1,46 +1,6 @@
+// src/types/transactions.types.ts
 import { DateRange } from "react-day-picker";
 import { Dispatch, SetStateAction } from "react";
-
-// Transactions definitions
-export type Transaction = {
-    id: number;
-    date?: Date | undefined;
-    description: string;
-    amount: number;
-    category: Category;
-};
-
-export interface TransactionsTableProps {
-    transactions: Transaction[];
-    onEdit: (transaction: Transaction) => void;
-    onDelete: (id: number) => void;
-}
-
-export interface TransactionFiltersProps {
-    searchTerm: string;
-    setSearchTerm: (value: string) => void;
-    categoryFilter: Category | string;
-    setCategoryFilter: (value: Category | string) => void;
-    dateRange: DateRange | undefined;
-    setDateRange: Dispatch<SetStateAction<DateRange | undefined>>;
-}
-
-export interface AddTransactionDialogProps {
-    isOpen: boolean;
-    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    onAdd: (transaction: Omit<Transaction, "id">) => void;
-    newTransaction: Omit<Transaction, "id">;
-    setNewTransaction: React.Dispatch<React.SetStateAction<Omit<Transaction, "id">>>;
-    categories: Category[];
-}
-
-export interface EditTransactionDialogProps {
-    isOpen: boolean;
-    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    transaction: Transaction | null;
-    onSave: (transaction: Transaction) => void;
-    categories: Category[];
-}
 
 export enum Category {
     Food = "Food",
@@ -66,9 +26,65 @@ export enum Category {
     Other = "Other",
 }
 
+export type Transaction = {
+    id?: number | string;
+    date: Date | undefined;
+    description: string;
+    amount: number;
+    category: Category | null;
+};
+
+export type TransactionForm = Omit<Transaction, "id">;
+
+export interface TransactionFormErrors {
+    date?: string;
+    description?: string;
+    amount?: string;
+    category?: string;
+}
+
+export interface TransactionsTableProps {
+    transactions: Transaction[];
+    onEdit: (transaction: Transaction) => void;
+    onDelete: (id: number) => void;
+}
+
+export interface TransactionsContentProps {
+    transactions: Transaction[];
+    filteredTransactions: Transaction[];
+    onEdit: (transaction: Transaction) => void;
+    onDelete: (id: number) => void;
+}
+
+export interface TransactionFiltersProps {
+    searchTerm: string;
+    setSearchTerm: (value: string) => void;
+    categoryFilter: Category | string;
+    setCategoryFilter: (value: Category | string) => void;
+    dateRange: DateRange | undefined;
+    setDateRange: Dispatch<SetStateAction<DateRange | undefined>>;
+}
+
+export interface AddTransactionDialogProps {
+    isOpen: boolean;
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    onAdd: (transaction: TransactionForm) => void;
+    newTransaction: TransactionForm;
+    setNewTransaction: React.Dispatch<React.SetStateAction<TransactionForm>>;
+    categories: Category[];
+}
+
+export interface EditTransactionDialogProps {
+    isOpen: boolean;
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    transaction: Transaction | null;
+    onSave: (transaction: Transaction) => void;
+    categories: Category[];
+}
+
 export interface CategorySelectProps {
-    value: Category;
-    onValueChange: (value: Category) => void;
+    value: Category | string | null;
+    onValueChange: (value: string) => void;
     isFormSelect?: boolean;
     className?: string;
 }

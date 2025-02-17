@@ -25,3 +25,7 @@ replay_pid*
 
 # env
 .env
+
+# node
+node_modules/
+npm-debug.log

@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { validateGoalForm } from "@/lib/validate_goal_forms";
+import { validateGoalForm } from "@/lib/validate_goal_form";
 import type { AddGoalDialogProps } from "@/types/types";
 
 export const AddGoalDialog: React.FC<AddGoalDialogProps> = ({ goals, setGoals }) => {
