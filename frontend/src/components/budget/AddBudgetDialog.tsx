@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import type { AddBudgetDialogProps } from "@/types/types";
+import type { AddBudgetDialogProps } from "@/types/budget.types";
 
 export const AddBudgetDialog: React.FC<AddBudgetDialogProps> = ({ budgets, setBudgets }) => {
     const [newBudget, setNewBudget] = useState({
@@ -93,7 +93,7 @@ export const AddBudgetDialog: React.FC<AddBudgetDialogProps> = ({ budgets, setBu
     return (
         <>
             <Button onClick={() => setIsAddDialogOpen(true)}>
-                <Plus className='mr-2 h-4 w-4' /> Add Budget
+                <Plus className='mr-2 size-4' /> Add Budget
             </Button>
             <Credenza
                 open={isAddDialogOpen}

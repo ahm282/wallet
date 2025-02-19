@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { currencyNotation } from "@/lib/utils";
 import { DeleteWarning } from "@/components/ui/delete-warning";
-import type { BudgetDataExistsProps, Budget } from "@/types/types";
+import type { BudgetDataExistsProps, Budget } from "@/types/budget.types";
 
 export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({ budgets, setBudgets }) => {
     const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
@@ -37,7 +37,7 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({ budgets, set
                 <CardHeader className='space-y-0 pb-8'>
                     <CardTitle className='text-2xl font-bold flex flex-row items-center justify-between'>
                         <div className='flex items-center'>
-                            <EuroIcon className='inline size-7 me-3' />
+                            <EuroIcon className='size-7 me-3' />
                             <span>Budgets</span>
                         </div>
                         <AddBudgetDialog

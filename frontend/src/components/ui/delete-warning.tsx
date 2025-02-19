@@ -9,7 +9,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { DeleteWarningProps } from "@/types/types";
+import type { DeleteWarningProps } from "@/types/budget.types";
 
 export const DeleteWarning: React.FC<DeleteWarningProps> = ({ icon, onConfirm, onCancel, message, children }) => {
     const IconComponent = icon;

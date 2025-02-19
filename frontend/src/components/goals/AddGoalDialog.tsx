@@ -12,8 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { validateGoalForm } from "@/lib/validate_goal_form";
-import type { AddGoalDialogProps } from "@/types/types";
+import { validateGoalForm } from "@/lib/validations/validate_goal_form";
+import type { AddGoalDialogProps } from "@/types/goals.types";
 
 export const AddGoalDialog: React.FC<AddGoalDialogProps> = ({ goals, setGoals }) => {
     const [newGoal, setNewGoal] = useState({

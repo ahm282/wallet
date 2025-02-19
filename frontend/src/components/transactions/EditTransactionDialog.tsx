@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CategorySelect } from "@/components/transactions/CategoriesDropdown";
 import { DatePicker } from "@/components/ui/date-picker";
-import { validateTransactionForm } from "@/lib/validate_transaction_form";
+import { validateTransactionForm } from "@/lib/validations/validate_transaction_form";
 import type {
     EditTransactionDialogProps,
     TransactionFormErrors,

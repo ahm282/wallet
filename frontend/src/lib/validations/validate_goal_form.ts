@@ -1,4 +1,4 @@
-import type { GoalForm, GoalFormErrors } from "@/types/types";
+import type { GoalForm, GoalFormErrors } from "@/types/goals.types";
 
 export const validateGoalForm = (form: GoalForm): { isValid: boolean; errors: GoalFormErrors } => {
     let isValid = true;

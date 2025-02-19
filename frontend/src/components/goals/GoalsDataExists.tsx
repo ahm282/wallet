@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { currencyNotation } from "@/lib/utils";
 import { DeleteWarning } from "@/components/ui/delete-warning";
-import type { GoalsDataExistsProps, Goal } from "@/types/types";
+import type { GoalsDataExistsProps, Goal } from "@/types/goals.types";
 
 export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoals }) => {
     const [editingGoal, setEditingGoal] = useState<Goal | null>(null);

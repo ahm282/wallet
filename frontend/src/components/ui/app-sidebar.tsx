@@ -56,7 +56,7 @@ const financesItems = [
     },
     {
         title: "Accounts",
-        url: "#",
+        url: "/accounts",
         icon: Wallet,
     },
     {
