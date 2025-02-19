@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowRight, Ambulance, House, Leaf, Ruler, CalendarClock, Milestone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AddGoalDialog } from "@/components/goals/AddGoalDialog";
-import type { NoGoalsProps } from "@/types/types";
+import type { NoGoalsProps } from "@/types/goals.types";
 import GoalSettingGuide from "./GoalSettingGuide";
 
 export const NoGoals: React.FC<NoGoalsProps> = ({ goals, setGoals }) => {

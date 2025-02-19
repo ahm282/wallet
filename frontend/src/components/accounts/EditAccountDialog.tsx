@@ -11,52 +11,40 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
-import type { EditGoalDialogProps, EditedGoalForm } from "@/types/goals.types";
-import { validateGoalForm } from "@/lib/validations/validate_goal_form";
+import type { Account, EditAccountDialogProps } from "@/types/accounts.types";
+import validateAccountForm from "@/lib/validations/validate_account_form";
 
-export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, setIsOpen, onSave }) => {
-    const [editedGoal, setEditedGoal] = useState<EditedGoalForm | null>(null);
+export const EditAccountDialog: React.FC<EditAccountDialogProps> = ({ account, isOpen, setIsOpen, onSave }) => {
+    const [editedAccount, setEditedAccount] = useState<Account | null>(null);
     const [errors, setErrors] = useState({
         name: "",
-        target: "",
-        current: "",
-        targetDate: "",
+        institution: "",
+        balance: "",
+        currency: "",
     });
 
     useEffect(() => {
-        if (goal) {
-            setEditedGoal({
-                id: goal.id,
-                name: goal.name,
-                target: goal.target.toString(),
-                current: goal.current.toString(),
-                targetDate: goal.targetDate,
-            });
-            // Reset errors when a new goal is loaded.
-            setErrors({ name: "", target: "", current: "", targetDate: "" });
+        if (account) {
+            setEditedAccount(account);
+            setErrors({ name: "", institution: "", balance: "", currency: "" });
         }
-    }, [goal]);
+    }, [account]);
 
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!editedGoal) return;
+        if (!editedAccount) return;
 
-        const { isValid, errors } = validateGoalForm(editedGoal);
+        const { isValid, errors } = validateAccountForm(editedAccount);
+
         setErrors(errors);
 
         if (isValid) {
-            onSave({
-                id: editedGoal.id,
-                name: editedGoal.name,
-                target: Number(editedGoal.target),
-                current: Number(editedGoal.current),
-                targetDate: editedGoal.targetDate,
-            });
+            onSave(editedAccount);
             setIsOpen(false);
         }
     };
 
-    if (!editedGoal) return null;
+    if (!editedAccount) return null;
 
     return (
         <Credenza
@@ -64,8 +52,8 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
             onOpenChange={setIsOpen}>
             <CredenzaContent className='sm:max-w-[425px]'>
                 <CredenzaHeader>
-                    <CredenzaTitle>Edit Goal</CredenzaTitle>
-                    <CredenzaDescription>Update your goal details</CredenzaDescription>
+                    <CredenzaTitle>Edit Account</CredenzaTitle>
+                    <CredenzaDescription>Update your account details</CredenzaDescription>
                 </CredenzaHeader>
                 <form onSubmit={handleSave}>
                     <div className='w-11/12 grid gap-4 py-4'>
@@ -79,62 +67,66 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
                             <div className='col-span-3'>
                                 <Input
                                     id='name'
-                                    type='text'
-                                    value={editedGoal.name}
-                                    onChange={(e) => setEditedGoal({ ...editedGoal, name: e.target.value })}
+                                    value={editedAccount.name}
+                                    onChange={(e) => setEditedAccount({ ...editedAccount, name: e.target.value })}
                                 />
                                 {errors.name && <p className='text-xs text-red-500'>{errors.name}</p>}
                             </div>
                         </div>
-                        {/* Target Field */}
+                        {/* Institution Field */}
                         <div className='grid grid-cols-4 items-center gap-4'>
                             <Label
-                                htmlFor='target'
+                                htmlFor='institution'
                                 className='text-right'>
-                                Target
+                                Institution
                             </Label>
                             <div className='col-span-3'>
                                 <Input
-                                    id='target'
-                                    type='text'
-                                    value={editedGoal.target}
-                                    onChange={(e) => setEditedGoal({ ...editedGoal, target: e.target.value })}
+                                    id='institution'
+                                    value={editedAccount.institution}
+                                    onChange={(e) =>
+                                        setEditedAccount({ ...editedAccount, institution: e.target.value })
+                                    }
                                 />
-                                {errors.target && <p className='text-xs text-red-500'>{errors.target}</p>}
+                                {errors.institution && <p className='text-xs text-red-500'>{errors.institution}</p>}
                             </div>
                         </div>
-                        {/* Current Field */}
+                        {/* Balance Field */}
                         <div className='grid grid-cols-4 items-center gap-4'>
                             <Label
-                                htmlFor='current'
+                                htmlFor='balance'
                                 className='text-right'>
-                                Current
+                                Balance
                             </Label>
                             <div className='col-span-3'>
                                 <Input
-                                    id='current'
-                                    type='text'
-                                    value={editedGoal.current}
-                                    onChange={(e) => setEditedGoal({ ...editedGoal, current: e.target.value })}
+                                    id='balance'
+                                    type='number'
+                                    value={editedAccount.balance}
+                                    onChange={(e) =>
+                                        setEditedAccount({
+                                            ...editedAccount,
+                                            balance: parseFloat(e.target.value) || 0,
+                                        })
+                                    }
                                 />
-                                {errors.current && <p className='text-xs text-red-500'>{errors.current}</p>}
+                                {errors.balance && <p className='text-xs text-red-500'>{errors.balance}</p>}
                             </div>
                         </div>
-                        {/* Target Date Field */}
+                        {/* Currency Field */}
                         <div className='grid grid-cols-4 items-center gap-4'>
                             <Label
-                                htmlFor='targetDate'
+                                htmlFor='currency'
                                 className='text-right'>
-                                Target Date
+                                Currency
                             </Label>
                             <div className='col-span-3'>
                                 <Input
-                                    id='targetDate'
-                                    type='date'
-                                    value={editedGoal.targetDate}
-                                    onChange={(e) => setEditedGoal({ ...editedGoal, targetDate: e.target.value })}
+                                    id='currency'
+                                    value={editedAccount.currency}
+                                    onChange={(e) => setEditedAccount({ ...editedAccount, currency: e.target.value })}
                                 />
-                                {errors.targetDate && <p className='text-xs text-red-500'>{errors.targetDate}</p>}
+                                {errors.currency && <p className='text-xs text-red-500'>{errors.currency}</p>}
                             </div>
                         </div>
                     </div>
@@ -150,4 +142,4 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
     );
 };
 
-export default EditGoalDialog;
+export default EditAccountDialog;

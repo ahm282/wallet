@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { PlusCircle } from "lucide-react";
 import { CategorySelect } from "@/components/transactions/CategoriesDropdown";
 import { DatePicker } from "@/components/ui/date-picker";
-import { validateTransactionForm } from "@/lib/validate_transaction_form";
+import { validateTransactionForm } from "@/lib/validations/validate_transaction_form";
 import type { AddTransactionDialogProps, TransactionFormErrors, Category } from "@/types/transactions.types";
 
 export const AddTransactionDialog: React.FC<AddTransactionDialogProps> = ({

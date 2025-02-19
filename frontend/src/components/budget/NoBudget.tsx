@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DollarSign, PieChart, ArrowRight } from "lucide-react";
 import { AddBudgetDialog } from "@/components/budget/AddBudgetDialog";
 import { useState } from "react";
-import type { NoBudgetProps } from "@/types/types";
+import type { NoBudgetProps } from "@/types/budget.types";
 
 export const NoBudget: React.FC<NoBudgetProps> = ({ budgets, setBudgets }) => {
     const [isBudgetGuideOpen, setisBudgetGuideOpen] = useState(false);

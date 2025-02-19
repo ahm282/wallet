@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NoGoals } from "@/components/goals/NoGoals";
 import { GoalsDataExists } from "@/components/goals/GoalsDataExists";
-import type { Goal } from "@/types/types";
+import type { Goal } from "@/types/goals.types";
 
 export const GoalsPage = () => {
     // Sample data

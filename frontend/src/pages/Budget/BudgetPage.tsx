@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NoBudget } from "@/components/budget/NoBudget";
 import { BudgetDataExists } from "@/components/budget/BudgetDataExists";
-import type { Budget } from "@/types/types";
+import type { Budget } from "@/types/budget.types";
 
 export const BudgetPage = () => {
     // Sample budgets data
