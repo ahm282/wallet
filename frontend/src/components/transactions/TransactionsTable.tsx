@@ -29,12 +29,12 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactio
                             <TableCell className='px-4 md:px-2'>{transaction.category}</TableCell>
                             <TableCell className='px-4 md:px-2'>
                                 <span className={transaction.amount >= 0 ? "text-green-600" : "text-red-600"}>
-                                    {transaction.amount >= 0 ? (
-                                        <ArrowUpRight className='inline mr-1 h-4 w-4' />
-                                    ) : (
-                                        <ArrowDownRight className='inline mr-1 h-4 w-4' />
-                                    )}
                                     {currencyNotation(transaction.amount)}
+                                    {transaction.amount >= 0 ? (
+                                        <ArrowUpRight className='inline ms-1 size-4' />
+                                    ) : (
+                                        <ArrowDownRight className='inline ms-1 size-4' />
+                                    )}
                                 </span>
                             </TableCell>
                             <TableCell className='min-w-fit flex justify-center items-center'>
@@ -42,7 +42,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactio
                                     variant='ghost'
                                     size='sm'
                                     onClick={() => onEdit(transaction)}>
-                                    <Edit2 className='h-4 w-4' />
+                                    <Edit2 className='size-4' />
                                 </Button>
                                 <DeleteWarning
                                     icon={Trash2}
@@ -52,7 +52,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactio
                                         variant='ghost'
                                         size='xl'
                                         className='px-2 !max-h-12 rounded-md hover:text-red-500'>
-                                        <Trash2 className='h-4 w-4' />
+                                        <Trash2 className='size-4' />
                                     </Button>
                                 </DeleteWarning>
                             </TableCell>
