@@ -38,7 +38,7 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({ budgets, set
                     <CardTitle className='text-2xl font-bold flex flex-row items-center justify-between'>
                         <div className='flex items-center font-primary text-2xl font-bold'>
                             <EuroIcon className='size-7 me-3' />
-                            <span>Budgets</span>
+                            Monthly Budgets
                         </div>
                         <AddBudgetDialog
                             budgets={budgets}

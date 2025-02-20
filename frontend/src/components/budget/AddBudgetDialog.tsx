@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
+import { EuroIcon, Plus } from "lucide-react";
 import { validateBudgetForm } from "@/lib/validations/validate_budget_form";
 import type { AddBudgetDialogProps, NewBudget } from "@/types/budget.types";
 
@@ -53,14 +53,17 @@ export const AddBudgetDialog: React.FC<AddBudgetDialogProps> = ({ budgets, setBu
     return (
         <>
             <Button onClick={() => setIsAddDialogOpen(true)}>
-                <Plus className='mr-2 size-4' /> Add Budget
+                <Plus className='me-2 size-4' /> Add Budget
             </Button>
             <Credenza
                 open={isAddDialogOpen}
                 onOpenChange={setIsAddDialogOpen}>
                 <CredenzaContent className='sm:max-w-[425px]'>
                     <CredenzaHeader>
-                        <CredenzaTitle>Add New Budget</CredenzaTitle>
+                        <CredenzaTitle className='flex items-center justify-center md:justify-start'>
+                            <EuroIcon className='size-5 me-2' />
+                            Add New Budget
+                        </CredenzaTitle>
                         <CredenzaDescription>Create a new budget category to track your spending</CredenzaDescription>
                     </CredenzaHeader>
                     <form onSubmit={handleAddBudget}>
