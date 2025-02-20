@@ -36,7 +36,7 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoal
             <Card>
                 <CardHeader className='pb-4'>
                     <CardTitle className='text-2xl font-bold flex flex-row items-center justify-between'>
-                        <div className='flex items-center'>
+                        <div className='flex items-center font-primary text-2xl font-bold'>
                             <PiggyBank className='inline size-7 me-3' />
                             <span>Goals</span>
                         </div>

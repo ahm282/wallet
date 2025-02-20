@@ -36,7 +36,7 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({ budgets, set
             <Card>
                 <CardHeader className='space-y-0 pb-8'>
                     <CardTitle className='text-2xl font-bold flex flex-row items-center justify-between'>
-                        <div className='flex items-center'>
+                        <div className='flex items-center font-primary text-2xl font-bold'>
                             <EuroIcon className='size-7 me-3' />
                             <span>Budgets</span>
                         </div>
@@ -55,7 +55,7 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({ budgets, set
                                 <div className='flex items-center justify-between'>
                                     <span className='text-sm font-medium'>{budget.name}</span>
                                     <div className='flex item-center lg:gap-4'>
-                                        <span className='me-2 text-xs font-medium lg:text-sm'>
+                                        <span className='flex items-center me-2 text-xs font-medium lg:text-sm'>
                                             {currencyNotation(budget.spent)} / {currencyNotation(budget.budgeted)}
                                         </span>
                                         <div className='flex justify-center items-center gap-y-1 gap-x-0.5'>
