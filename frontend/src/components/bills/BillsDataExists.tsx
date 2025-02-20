@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Edit2, Trash2, LucideCalendarDays } from "lucide-react";
+import { Edit2, Trash2, LucideCalendar } from "lucide-react";
 import { AddBillDialog } from "@/components/bills/AddBillDialog";
 import { EditBillDialog } from "@/components/bills/EditBillDialog";
 import { DeleteWarning } from "@/components/ui/delete-warning";
@@ -48,9 +48,9 @@ export const BillsDataExists: React.FC<BillsDataExistsProps> = ({ bills, setBill
             <Card>
                 <CardHeader className='space-y-0 pb-8'>
                     <CardTitle className='text-2xl font-bold flex flex-row items-center justify-between'>
-                        <div className='flex items-center'>
-                            <LucideCalendarDays className='me-2' />
-                            <CardTitle className='text-2xl font-bold'>Your Bills</CardTitle>
+                        <div className='flex items-center font-primary text-2xl font-bold'>
+                            <LucideCalendar className='me-2' />
+                            <CardTitle className='text-2xl font-bold'>Bills</CardTitle>
                         </div>
                         <AddBillDialog
                             bills={bills}

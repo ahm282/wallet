@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, List } from "lucide-react";
 import { Label } from "@/components/ui/label";
-
 import { useTransactions } from "@/hooks/transactions/use-transactions";
 import { useTransactionFilters } from "@/hooks/transactions/use-transactions-filters";
 import { TransactionsFilters } from "@/components/transactions/TransactionsFilters";
@@ -44,7 +43,10 @@ export const TransactionsPage = () => {
         <div className='w-11/12 md:w-10/12 lg:max-w-6xl 2xl:max-w-7xl my-8 mx-auto flex flex-col space-y-5'>
             <Card className='lg:min-h-[400px]'>
                 <CardHeader>
-                    <CardTitle className='text-2xl font-bold'>Transactions</CardTitle>
+                    <CardTitle className='flex items-center font-primary text-2xl font-bold'>
+                        <List className='h-6 w-6 me-3' />
+                        Transactions
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className='lg:flex lg:justify-between lg:items-center lg:px-1'>
