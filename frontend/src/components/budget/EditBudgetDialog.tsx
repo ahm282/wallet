@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { validateBudgetForm } from "@/lib/validations/validate_budget_form";
+import { EuroIcon } from "lucide-react";
 import type { EditBudgetDialogProps, EditedBudgetForm } from "@/types/budget.types";
 
 export const EditBudgetDialog: React.FC<EditBudgetDialogProps> = ({ budget, isOpen, setIsOpen, onSave }) => {
@@ -64,7 +65,10 @@ export const EditBudgetDialog: React.FC<EditBudgetDialogProps> = ({ budget, isOp
             onOpenChange={setIsOpen}>
             <CredenzaContent className='sm:max-w-[425px]'>
                 <CredenzaHeader>
-                    <CredenzaTitle>Edit Budget</CredenzaTitle>
+                    <CredenzaTitle className='flex items-center justify-center md:justify-start'>
+                        <EuroIcon className='size-5 me-2' />
+                        Edit Budget
+                    </CredenzaTitle>
                     <CredenzaDescription>Update your budget category details</CredenzaDescription>
                 </CredenzaHeader>
                 <form onSubmit={handleSave}>

@@ -20,7 +20,7 @@ export const BudgetPage = () => {
      * Sets the title of the page to "Budgets | Wallet" when the component mounts
      */
     useEffect(() => {
-        document.title = "Budgets | Wallet";
+        document.title = "Monthly Budgets | Wallet";
     }, []);
 
     return hasBudgetData ? (

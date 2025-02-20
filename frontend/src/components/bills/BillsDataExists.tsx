@@ -48,8 +48,8 @@ export const BillsDataExists: React.FC<BillsDataExistsProps> = ({ bills, setBill
             <Card>
                 <CardHeader className='space-y-0 pb-8'>
                     <CardTitle className='text-2xl font-bold flex flex-row items-center justify-between'>
-                        <div className='flex items-center font-primary text-2xl font-bold'>
-                            <LucideCalendar className='me-2' />
+                        <div className='flex items-center font-primary text-2xl'>
+                            <LucideCalendar className='size-7 me-3' />
                             <CardTitle className='text-2xl font-bold'>Bills</CardTitle>
                         </div>
                         <AddBillDialog

@@ -74,7 +74,7 @@ export const AddBillDialog: React.FC<AddBillDialogProps> = ({ bills, setBills })
                 <CredenzaContent className='sm:max-w-[425px]'>
                     <CredenzaHeader>
                         <CredenzaTitle className='flex items-center justify-center md:justify-start font-bold'>
-                            <LucideCalendarDays className='me-2 size-5' />
+                            <LucideCalendarDays className='size-5 me-2' />
                             Add New Bill
                         </CredenzaTitle>
                         <CredenzaDescription>Create a new bill to track your expenses</CredenzaDescription>
