@@ -48,7 +48,11 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({
         </CardHeader>
         <CardContent>
           <div
-            className={`space-y-3 ${goals.length >= 5 ? "max-h-[500px] overflow-y-auto lg:px-4" : ""}`}
+            className={`space-y-3 ${
+              goals.length >= 5
+                ? "max-h-[500px] overflow-y-auto lg:px-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800"
+                : ""
+            }`}
           >
             {goals.map((goal, index) => (
               <div key={goal.id} className="space-y-2">
