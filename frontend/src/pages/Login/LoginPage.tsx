@@ -24,9 +24,9 @@ const decodeGoogleUser = (token: string): GoogleUser => {
  */
 const createUserPayload = (googleUser: GoogleUser) => {
     return {
-        email: googleUser.email,
         firstName: googleUser.given_name,
         lastName: googleUser.family_name,
+        email: googleUser.email,
         imageUrl: googleUser.picture,
     };
 };
@@ -35,8 +35,12 @@ const createUserPayload = (googleUser: GoogleUser) => {
  * Posts the user payload to the backend and returns the response.
  */
 const postUserData = async (payload: object, token: string): Promise<UserResponse> => {
+    console.log("payload", payload);
+    console.log("token", token);
     const api = import.meta.env.VITE_ENV_NAME === "dev" ? new ApiUtil("http://localhost:8080/api") : new ApiUtil();
-    return await api.post<UserResponse>("/user", payload, token);
+    const user = api.post<UserResponse>("/user", payload, token);
+    console.log("user", user);
+    return user;
 };
 
 const LoginPage: React.FC = () => {
@@ -69,14 +73,14 @@ const LoginPage: React.FC = () => {
             const token: string = credentialResponse.credential;
             const googleUser = decodeGoogleUser(token);
 
-            // Update the auth store with the token and the backend's response data
-            setAuth(token, googleUser);
-
             // Prepare the payload for the backend
             const userPayload = createUserPayload(googleUser);
 
             // Send the payload to the backend
-            await postUserData(userPayload, token);
+            const userServiceResponse: UserResponse = await postUserData(userPayload, token);
+
+            // Update the auth store with the token and the backend's response data
+            setAuth(token, googleUser, userServiceResponse.id);
 
             // Navigate to the dashboard upon successful login
             navigate("/dashboard");
