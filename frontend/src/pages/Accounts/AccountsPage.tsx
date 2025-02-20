@@ -3,7 +3,7 @@ import type { Account } from "@/types/accounts.types";
 import NoAccounts from "@/components/accounts/NoAccounts";
 import AccountsDataExists from "@/components/accounts/AccountsDataExists";
 
-export const GoalsPage = () => {
+export const AccountsPage = () => {
     // Sample data
     const sampleAccounts = [
         {
@@ -45,4 +45,4 @@ export const GoalsPage = () => {
     );
 };
 
-export default GoalsPage;
+export default AccountsPage;

@@ -36,7 +36,7 @@ export const AddAccountDialog: React.FC<AddAccountDialogProps> = ({ accounts, se
         if (isValid) {
             // Simulate API behavior by adding a temporary id.
             // In production, we call the API and use the returned account with its id.
-            const createdAccount: Account = { ...newAccount, id: "temp-id" };
+            const createdAccount: Account = { ...newAccount, id: accounts.length + 1 };
             setAccounts([...accounts, createdAccount]);
             setNewAccount({ name: "", balance: 0, institution: "", currency: "" });
             clearErrors();
