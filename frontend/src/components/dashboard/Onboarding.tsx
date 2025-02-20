@@ -32,12 +32,14 @@ const DesktopLayout: React.FC = () => {
                                 </p>
                             </CardHeader>
                             <CardContent>
-                                <Button
-                                    className='mt-4 w-full'
-                                    size='sm'>
-                                    <PlusCircle className='mr-2 h-4 w-4' />
-                                    Add Account
-                                </Button>
+                                <Link to='/accounts'>
+                                    <Button
+                                        className='mt-4 w-full'
+                                        size='sm'>
+                                        <PlusCircle className='mr-2 h-4 w-4' />
+                                        Add Account
+                                    </Button>
+                                </Link>
                             </CardContent>
                         </Card>
                         <Card className='flex flex-col justify-between'>
@@ -51,12 +53,14 @@ const DesktopLayout: React.FC = () => {
                                 </p>
                             </CardHeader>
                             <CardContent>
-                                <Button
-                                    className='mt-4 w-full'
-                                    size='sm'>
-                                    <PlusCircle className='mr-2 h-4 w-4' />
-                                    Create Budget
-                                </Button>
+                                <Link to='/accounts'>
+                                    <Button
+                                        className='mt-4 w-full'
+                                        size='sm'>
+                                        <PlusCircle className='mr-2 h-4 w-4' />
+                                        Create Budget
+                                    </Button>
+                                </Link>
                             </CardContent>
                         </Card>
                         <Card className='flex flex-col justify-between'>
@@ -70,12 +74,14 @@ const DesktopLayout: React.FC = () => {
                                 </p>
                             </CardHeader>
                             <CardContent>
-                                <Button
-                                    className='mt-4 w-full'
-                                    size='sm'>
-                                    <PlusCircle className='mr-2 h-4 w-4' />
-                                    Add Goal
-                                </Button>
+                                <Link to='/goals'>
+                                    <Button
+                                        className='mt-4 w-full'
+                                        size='sm'>
+                                        <PlusCircle className='mr-2 h-4 w-4' />
+                                        Add Goal
+                                    </Button>
+                                </Link>
                             </CardContent>
                         </Card>
                         <Card className='flex flex-col justify-between'>
@@ -89,12 +95,14 @@ const DesktopLayout: React.FC = () => {
                                 </p>
                             </CardHeader>
                             <CardContent>
-                                <Button
-                                    className='mt-4 w-full'
-                                    size='sm'>
-                                    <PlusCircle className='mr-2 h-4 w-4' />
-                                    Log Expense
-                                </Button>
+                                <Link to='/transactions'>
+                                    <Button
+                                        className='mt-4 w-full'
+                                        size='sm'>
+                                        <PlusCircle className='mr-2 h-4 w-4' />
+                                        Log Expense
+                                    </Button>
+                                </Link>
                             </CardContent>
                         </Card>
                     </div>
