@@ -35,11 +35,8 @@ const createUserPayload = (googleUser: GoogleUser) => {
  * Posts the user payload to the backend and returns the response.
  */
 const postUserData = async (payload: object, token: string): Promise<UserResponse> => {
-    console.log("payload", payload);
-    console.log("token", token);
     const api = import.meta.env.VITE_ENV_NAME === "dev" ? new ApiUtil("http://localhost:8080/api") : new ApiUtil();
     const user = api.post<UserResponse>("/user", payload, token);
-    console.log("user", user);
     return user;
 };
 
@@ -108,9 +105,13 @@ const LoginPage: React.FC = () => {
                     Your personal finance assistant
                 </CardHeader>
                 <CardContent className='w-full min-h-28 flex flex-col items-center justify-center'>
-                    {error && <div className='w-full mb-4 p-3 bg-red-100 text-red-700 rounded-md'>{error}</div>}
+                    {error && (
+                        <div className='w-full mb-4 p-3 bg-red-200 text-center font-primary text-red-700 rounded-md'>
+                            {error}
+                        </div>
+                    )}
                     {isLoading ? (
-                        <ScaleLoader color={"#1e3a8a"} />
+                        <ScaleLoader color={"#f3f4f6"} />
                     ) : (
                         <div className='pt-4 w-full flex flex-col justify-center md:items-center'>
                             <p className='flex items-center justify-center gap-x-1 pb-4 font-primary text-sm font-medium leading-none text-accent-foreground dark:text-muted-foreground'>

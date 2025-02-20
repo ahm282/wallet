@@ -11,12 +11,27 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
+import { format } from "date-fns";
 import { PiggyBank } from "lucide-react";
-import type { EditGoalDialogProps, EditedGoalForm } from "@/types/goals.types";
+import type { EditGoalDialogProps, EditedGoalForm, GoalResponse } from "@/types/goals.types";
 import { validateGoalForm } from "@/lib/validations/validate_goal_form";
+import { ApiUtil } from "@/lib/api_utils";
+import { useAuthStore } from "@/store/authStore";
+
+// Update a goal via a PUT request.
+async function updateGoalData(goalId: string, payload: object): Promise<GoalResponse> {
+    const { token, user } = useAuthStore.getState();
+    const data = {
+        ...payload,
+        userId: user?.id,
+    };
+    const api = import.meta.env.VITE_ENV_NAME === "dev" ? new ApiUtil("http://localhost:8080/api") : new ApiUtil();
+    return api.put<GoalResponse>(`/goal/${goalId}`, data, token ?? "");
+}
 
 export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, setIsOpen, onSave }) => {
-    const [editedGoal, setEditedGoal] = useState<EditedGoalForm | null>(null);
+    const [editedGoal, setEditedGoal] = useState<EditedGoalForm>();
     const [errors, setErrors] = useState({
         name: "",
         target: "",
@@ -27,18 +42,18 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
     useEffect(() => {
         if (goal) {
             setEditedGoal({
-                id: goal.id,
+                id: goal.id, // ensure id type matches your backend (e.g. string)
                 name: goal.name,
                 target: goal.target.toString(),
                 current: goal.current.toString(),
-                targetDate: goal.targetDate,
+                targetDate: goal.targetDate ?? "",
             });
             // Reset errors when a new goal is loaded.
             setErrors({ name: "", target: "", current: "", targetDate: "" });
         }
     }, [goal]);
 
-    const handleSave = (e: React.FormEvent) => {
+    const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editedGoal) return;
 
@@ -46,13 +61,22 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
         setErrors(errors);
 
         if (isValid) {
-            onSave({
-                id: editedGoal.id,
+            const payload = {
                 name: editedGoal.name,
                 target: Number(editedGoal.target),
                 current: Number(editedGoal.current),
                 targetDate: editedGoal.targetDate,
-            });
+            };
+
+            try {
+                // Call the API to update the goal.
+                const updatedGoal = await updateGoalData(editedGoal.id, payload);
+                onSave(updatedGoal);
+            } catch (error) {
+                console.error("Error updating goal:", error);
+                // Optionally, set an error message here to notify the user.
+            }
+
             setIsOpen(false);
         }
     };
@@ -132,11 +156,14 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
                                 Target Date
                             </Label>
                             <div className='col-span-3'>
-                                <Input
-                                    id='targetDate'
-                                    type='date'
-                                    value={editedGoal.targetDate}
-                                    onChange={(e) => setEditedGoal({ ...editedGoal, targetDate: e.target.value })}
+                                <DatePicker
+                                    date={editedGoal.targetDate ? new Date(editedGoal.targetDate) : undefined}
+                                    onSelect={(selectedDate) =>
+                                        setEditedGoal({
+                                            ...editedGoal,
+                                            targetDate: selectedDate ? format(selectedDate, "yyyy-MM-dd") : "",
+                                        })
+                                    }
                                 />
                                 {errors.targetDate && <p className='text-xs text-red-500'>{errors.targetDate}</p>}
                             </div>

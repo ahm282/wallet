@@ -11,12 +11,26 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
+import { format } from "date-fns";
 import { Plus, PiggyBank } from "lucide-react";
+import { ApiUtil } from "@/lib/api_utils";
+import { useAuthStore } from "@/store/authStore";
 import { validateGoalForm } from "@/lib/validations/validate_goal_form";
-import type { AddGoalDialogProps } from "@/types/goals.types";
+import type { AddGoalDialogProps, GoalForm, GoalResponse } from "@/types/goals.types";
+
+async function postGoalData(payload: object): Promise<GoalResponse> {
+    const { token, user } = useAuthStore.getState();
+    const data = {
+        ...payload,
+        userId: user?.id,
+    };
+    const api = import.meta.env.VITE_ENV_NAME === "dev" ? new ApiUtil("http://localhost:8080/api") : new ApiUtil();
+    return api.post<GoalResponse>("/goal", data, token ?? "");
+}
 
 export const AddGoalDialog: React.FC<AddGoalDialogProps> = ({ goals, setGoals }) => {
-    const [newGoal, setNewGoal] = useState({
+    const [newGoal, setNewGoal] = useState<GoalForm>({
         name: "",
         target: "",
         current: "",
@@ -30,21 +44,33 @@ export const AddGoalDialog: React.FC<AddGoalDialogProps> = ({ goals, setGoals })
     });
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-    const handleAddGoal = (e: React.FormEvent) => {
+    const handleAddGoal = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const { isValid, errors } = validateGoalForm(newGoal);
         setErrors(errors);
 
         if (isValid) {
+            const payload = {
+                name: newGoal.name,
+                target: Number(newGoal.target),
+                current: newGoal.current ? Number(newGoal.current) : 0,
+                targetDate: newGoal.targetDate,
+            };
+
+            const goalResponse = await postGoalData(payload);
+
+            console.log("Goal Response:", goalResponse);
+            console.log("New Goal:", newGoal);
+
             setGoals([
                 ...goals,
                 {
-                    id: goals.length + 1,
-                    name: newGoal.name,
-                    target: Number.parseFloat(newGoal.target),
-                    current: newGoal.current ? Number.parseFloat(newGoal.current) : 0,
-                    targetDate: newGoal.targetDate,
+                    id: goalResponse.id,
+                    name: goalResponse.name,
+                    target: goalResponse.target,
+                    current: goalResponse.current,
+                    targetDate: goalResponse.targetDate,
                 },
             ]);
 
@@ -133,11 +159,14 @@ export const AddGoalDialog: React.FC<AddGoalDialogProps> = ({ goals, setGoals })
                                     Target Date
                                 </Label>
                                 <div className='col-span-3'>
-                                    <Input
-                                        id='targetDate'
-                                        type='date'
-                                        value={newGoal.targetDate}
-                                        onChange={(e) => setNewGoal({ ...newGoal, targetDate: e.target.value })}
+                                    <DatePicker
+                                        date={newGoal.targetDate ? new Date(newGoal.targetDate) : undefined}
+                                        onSelect={(selectedDate) =>
+                                            setNewGoal({
+                                                ...newGoal,
+                                                targetDate: selectedDate ? format(selectedDate, "yyyy-MM-dd") : "",
+                                            })
+                                        }
                                     />
                                     {errors.targetDate && <p className='text-xs text-red-500'>{errors.targetDate}</p>}
                                 </div>

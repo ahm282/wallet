@@ -3,8 +3,8 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 export interface AuthState {
-    token: string | null;
-    user: UserResponse | null;
+    token: string | undefined;
+    user: UserResponse | undefined;
     isLogged: boolean;
     setAuth: (token: string, user: UserResponse) => void;
     clearAuth: () => void;
@@ -13,11 +13,11 @@ export interface AuthState {
 export const useAuthStore = create<AuthState>()(
     persist(
         (set) => ({
-            token: null,
-            user: null,
+            token: undefined,
+            user: undefined,
             isLogged: false,
             setAuth: (token, user) => set({ token, user, isLogged: true }),
-            clearAuth: () => set({ token: null, user: null, isLogged: false }),
+            clearAuth: () => set({ token: undefined, user: undefined, isLogged: false }),
         }),
         { name: "auth-storage", storage: createJSONStorage(() => sessionStorage) }
     )
