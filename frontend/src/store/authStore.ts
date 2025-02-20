@@ -1,12 +1,12 @@
+import { UserResponse } from "@/types/user.types";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 export interface AuthState {
     token: string | null;
-    user: any;
-    userId: string | null;
+    user: UserResponse | null;
     isLogged: boolean;
-    setAuth: (token: string, user: any, userId: string | null) => void;
+    setAuth: (token: string, user: UserResponse) => void;
     clearAuth: () => void;
 }
 
@@ -15,10 +15,9 @@ export const useAuthStore = create<AuthState>()(
         (set) => ({
             token: null,
             user: null,
-            userId: null,
             isLogged: false,
-            setAuth: (token, user, userId) => set({ token, user, userId, isLogged: true }),
-            clearAuth: () => set({ token: null, user: null, userId: null, isLogged: false }),
+            setAuth: (token, user) => set({ token, user, isLogged: true }),
+            clearAuth: () => set({ token: null, user: null, isLogged: false }),
         }),
         { name: "auth-storage", storage: createJSONStorage(() => sessionStorage) }
     )

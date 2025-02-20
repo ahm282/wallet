@@ -80,7 +80,7 @@ const LoginPage: React.FC = () => {
             const userServiceResponse: UserResponse = await postUserData(userPayload, token);
 
             // Update the auth store with the token and the backend's response data
-            setAuth(token, googleUser, userServiceResponse.id);
+            setAuth(token, userServiceResponse);
 
             // Navigate to the dashboard upon successful login
             navigate("/dashboard");
