@@ -10,6 +10,7 @@ import useAuthStore from "@/store/authStore";
 
 export default function Profile() {
     const user = useAuthStore((state) => state.user);
+    const lastLogin = user && user.lastLogin ? new Date(user.lastLogin).toLocaleString("en-US") : "";
 
     /*
      * Sets the title of the page to "Profile | Wallet" when the component mounts
@@ -31,7 +32,7 @@ export default function Profile() {
                     <div className='flex items-center space-x-10'>
                         <Avatar className='size-16'>
                             <AvatarImage
-                                src={user.picture}
+                                src={user?.imageUrl}
                                 alt='User Avatar'
                             />
                             <AvatarFallback>
@@ -49,7 +50,7 @@ export default function Profile() {
                                     <span
                                         id='firstName'
                                         className='text-primary'>
-                                        {user.given_name}
+                                        {user?.firstName}
                                     </span>
                                 </div>
                                 <div className='flex flex-col justify-center gap-y-1'>
@@ -61,7 +62,7 @@ export default function Profile() {
                                     <span
                                         id='familyName'
                                         className='text-primary'>
-                                        {user.family_name}
+                                        {user?.lastName}
                                     </span>
                                 </div>
                             </div>
@@ -74,7 +75,7 @@ export default function Profile() {
                                 <span
                                     id='email'
                                     className='text-primary'>
-                                    {user.email}
+                                    {user?.email}
                                 </span>
                             </div>
                         </div>
@@ -93,7 +94,7 @@ export default function Profile() {
                     <div className='space-y-4'>
                         <div>
                             <p className='text-sm font-medium'>Last Login</p>
-                            <p className='text-xs text-muted-foreground'>june 10, 2025</p>
+                            <p className='text-xs text-muted-foreground'>{lastLogin}</p>
                         </div>
                         <div>
                             <p className='text-sm font-medium'>Recent Transactions</p>
