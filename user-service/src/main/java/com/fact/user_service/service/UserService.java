@@ -31,7 +31,6 @@ public class UserService {
 
   @PostConstruct
   public void init() {
-    createDefaultUsers(); // Initialize with some users
   }
 
   private void createDefaultUsers() {
