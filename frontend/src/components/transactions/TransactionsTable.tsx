@@ -19,9 +19,15 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   onDelete,
 }) => {
   return (
-    <div className="overflow-x-auto">
+    <div
+      className={`overflow-auto max-h-[500px] lg:px-4 ${
+        transactions.length >= 10
+          ? "overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800"
+          : ""
+      }`}
+    >
       <Table className="text-center">
-        <TableHeader>
+        <TableHeader className="sticky top-0 z-10 bg-white dark:bg-darkElement">
           <TableRow>
             <TableHead className="text-center">Date</TableHead>
             <TableHead className="text-center">Description</TableHead>
@@ -33,26 +39,22 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
         <TableBody>
           {transactions.map((transaction) => (
             <TableRow key={transaction.id}>
-              <TableCell className="px-4 md:px-2">
+              <TableCell className="px-2">
                 {transaction.date?.toLocaleDateString("nl-BE")}
               </TableCell>
-              <TableCell className="px-4 md:px-2">
-                {transaction.description}
-              </TableCell>
-              <TableCell className="px-4 md:px-2">
-                {transaction.category}
-              </TableCell>
-              <TableCell className="px-4 md:px-2">
+              <TableCell className="px-2">{transaction.description}</TableCell>
+              <TableCell className="px-2">{transaction.category}</TableCell>
+              <TableCell className="px-2">
                 <span
                   className={
                     transaction.amount >= 0 ? "text-green-600" : "text-red-600"
                   }
                 >
-                  {currencyNotation(transaction.amount)}
+                  {currencyNotation(transaction.amount)}&nbsp;
                   {transaction.amount >= 0 ? (
-                    <ArrowUpRight className="inline ms-1 size-4" />
+                    <ArrowUpRight className="ms-1 size-4 hidden md:inline" />
                   ) : (
-                    <ArrowDownRight className="inline ms-1 size-4" />
+                    <ArrowDownRight className="ms-1 size-4 hidden md:inline" />
                   )}
                 </span>
               </TableCell>

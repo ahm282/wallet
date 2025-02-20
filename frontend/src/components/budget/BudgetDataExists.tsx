@@ -61,7 +61,11 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({
         </CardHeader>
         <CardContent>
           <div
-            className={`space-y-5 ${budgets.length >= 5 ? "max-h-[500px] overflow-y-auto lg:px-4" : ""}`}
+            className={`space-y-5 ${
+              budgets.length >= 5
+                ? "max-h-[500px] overflow-y-auto lg:px-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800"
+                : ""
+            }`}
           >
             {budgets.map((budget, index) => (
               <div key={budget.id} className="space-y-2">

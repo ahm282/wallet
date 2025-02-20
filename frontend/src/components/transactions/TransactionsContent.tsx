@@ -24,7 +24,7 @@ export const TransactionsContent: React.FC<TransactionsContentProps> = ({
   }
 
   return (
-    <div className="py-14">
+    <div className="pt-14">
       <TransactionsTable
         transactions={filteredTransactions}
         onEdit={onEdit}

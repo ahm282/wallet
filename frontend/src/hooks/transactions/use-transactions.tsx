@@ -38,6 +38,49 @@ export function useTransactions() {
       amount: -1000,
       category: Category.Housing,
     },
+    // More 10
+    {
+      id: 6,
+      date: new Date(),
+      description: "Groceries",
+      amount: -50,
+      category: Category.Food,
+    },
+    {
+      id: 7,
+      date: new Date(),
+      description: "Gas",
+      amount: -30,
+      category: Category.Transportation,
+    },
+    {
+      id: 8,
+      date: new Date(),
+      description: "Movie",
+      amount: -15,
+      category: Category.Entertainment,
+    },
+    {
+      id: 9,
+      date: new Date(),
+      description: "Salary",
+      amount: 2000,
+      category: Category.Income,
+    },
+    {
+      id: 10,
+      date: new Date(),
+      description: "Rent",
+      amount: -1000,
+      category: Category.Housing,
+    },
+    {
+      id: 11,
+      date: new Date(),
+      description: "Groceries",
+      amount: -50,
+      category: Category.Food,
+    },
   ]);
 
   const addTransaction = (transaction: Omit<Transaction, "id">) => {
