@@ -22,8 +22,10 @@ public class AppUser {
   private String lastName;
   private String email;
   private String password;
-  private Long createdAt;
   private String imageUrl;
+  private Long lastLogin;
+  private Long createdAt;
+  private Long updatedAt;
 
   @PrePersist
   private void generateId() {

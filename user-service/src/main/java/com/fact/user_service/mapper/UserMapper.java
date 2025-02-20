@@ -14,8 +14,8 @@ public class UserMapper {
         .email(appUser.getEmail())
         .firstName(appUser.getFirstName())
         .lastName(appUser.getLastName())
-        .createdAt(appUser.getCreatedAt())
         .imageUrl(appUser.getImageUrl())
+        .lastLogin(appUser.getLastLogin())
         .build();
   }
 }

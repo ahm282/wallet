@@ -29,3 +29,6 @@ replay_pid*
 # node
 node_modules/
 npm-debug.log
+
+# Idea
+.idea
