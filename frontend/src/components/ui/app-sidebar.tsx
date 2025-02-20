@@ -61,7 +61,7 @@ const financesItems = [
     },
     {
         title: "Bills",
-        url: "#",
+        url: "/bills",
         icon: Calendar,
     },
 ];

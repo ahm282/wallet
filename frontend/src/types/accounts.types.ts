@@ -39,6 +39,6 @@ export interface AccountFormErrors {
     currency: string;
 }
 
-export interface EditedGoalForm extends AccountForm {
+export interface EditedAccountForm extends AccountForm {
     id: number;
 }
