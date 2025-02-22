@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { GiWallet } from "react-icons/gi";
@@ -7,26 +7,10 @@ import { jwtDecode } from "jwt-decode";
 import { ApiUtil } from "@/lib/api_utils";
 import { ScaleLoader } from "react-spinners";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { IoIosLogIn } from "react-icons/io";
+import { LogIn } from "lucide-react";
 import { ModeSwitch } from "@/components/ModeSwitch";
-
-// Define Google user data.
-interface GoogleUser {
-    email: string;
-    given_name: string;
-    family_name: string;
-    picture: string;
-}
-
-// Define backend's user response.
-interface UserResponse {
-    id: number;
-    email: string;
-    firstName: string;
-    lastName: string;
-    imageUrl: string;
-    createdAt: string;
-}
+import { BackgroundPaths } from "@/components/BackgroundPaths";
+import { GoogleUser, UserResponse } from "@/types/user.types";
 
 /**
  * Decodes the Google JWT and returns a typed GoogleUser.
@@ -40,9 +24,9 @@ const decodeGoogleUser = (token: string): GoogleUser => {
  */
 const createUserPayload = (googleUser: GoogleUser) => {
     return {
-        email: googleUser.email,
         firstName: googleUser.given_name,
         lastName: googleUser.family_name,
+        email: googleUser.email,
         imageUrl: googleUser.picture,
     };
 };
@@ -51,9 +35,9 @@ const createUserPayload = (googleUser: GoogleUser) => {
  * Posts the user payload to the backend and returns the response.
  */
 const postUserData = async (payload: object, token: string): Promise<UserResponse> => {
-    const GATEWAY_URL = "http://localhost:8080/api";
-    const api = new ApiUtil(GATEWAY_URL);
-    return await api.post<UserResponse>("/user", payload, token);
+    const api = import.meta.env.VITE_ENV_NAME === "dev" ? new ApiUtil("http://localhost:8080/api") : new ApiUtil();
+    const user = api.post<UserResponse>("/user", payload, token);
+    return user;
 };
 
 const LoginPage: React.FC = () => {
@@ -61,6 +45,13 @@ const LoginPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const navigate = useNavigate();
     const setAuth = useAuthStore((state) => state.setAuth);
+
+    /**
+     * Sets the page title to "Login | Wallet" on component mount.
+     */
+    useEffect(() => {
+        document.title = "Login | Wallet";
+    }, []);
 
     /**
      * Handles the Google login success event:
@@ -79,11 +70,14 @@ const LoginPage: React.FC = () => {
             const token: string = credentialResponse.credential;
             const googleUser = decodeGoogleUser(token);
 
-            // Update the auth store with the token and the backend's response data
-            setAuth(token, googleUser);
-
             // Prepare the payload for the backend
             const userPayload = createUserPayload(googleUser);
+
+            // Send the payload to the backend
+            const userServiceResponse: UserResponse = await postUserData(userPayload, token);
+
+            // Update the auth store with the token and the backend's response data
+            setAuth(token, userServiceResponse);
 
             // Navigate to the dashboard upon successful login
             navigate("/dashboard");
@@ -101,8 +95,8 @@ const LoginPage: React.FC = () => {
     };
 
     return (
-        <div className='min-h-screen flex flex-col items-center justify-center bg-gray-200 dark:bg-dark'>
-            <Card className='w-11/12 md:w-6/12 lg:w-4/12 xl:w-3/12 px-8 py-10 flex flex-col justify-center items-center rounded-xl shadow-lg bg-gray-100 dark:bg-darkElement'>
+        <div className='min-h-dvh flex flex-col items-center justify-center bg-gray-200 dark:bg-dark'>
+            <Card className='w-11/12 md:w-6/12 lg:w-4/12 xl:w-3/12 px-8 py-10 flex flex-col justify-center items-center rounded-xl shadow-lg bg-gray-100 dark:bg-darkElement z-50'>
                 <CardTitle className='flex flex-row items-center justify-center font-secondary font-light text-5xl uppercase text-blue-900 dark:text-gray-100'>
                     <GiWallet className='size-12 inline mb-3 -ms-4 me-4' />
                     Wallet
@@ -111,16 +105,20 @@ const LoginPage: React.FC = () => {
                     Your personal finance assistant
                 </CardHeader>
                 <CardContent className='w-full min-h-28 flex flex-col items-center justify-center'>
-                    {error && <div className='w-full mb-4 p-3 bg-red-100 text-red-700 rounded-md'>{error}</div>}
+                    {error && (
+                        <div className='w-full mb-4 p-3 bg-red-200 text-center font-primary text-red-700 rounded-md'>
+                            {error}
+                        </div>
+                    )}
                     {isLoading ? (
-                        <ScaleLoader color={"#1e3a8a"} />
+                        <ScaleLoader color={"#f3f4f6"} />
                     ) : (
                         <div className='pt-4 w-full flex flex-col justify-center md:items-center'>
-                            <p className='flex items-center gap-x-1 pb-4 font-primary text-muted-foreground text-sm font-medium leading-none dark:text-gray-300'>
-                                <IoIosLogIn />
+                            <p className='flex items-center justify-center gap-x-1 pb-4 font-primary text-sm font-medium leading-none text-accent-foreground dark:text-muted-foreground'>
+                                <LogIn className='size-4 me-1' />
                                 Login with Google to continue
                             </p>
-                            <div className='flex items-center justify-center'>
+                            <div className='flex items-center justify-center my-2'>
                                 <GoogleLogin
                                     onSuccess={handleGoogleSuccess}
                                     onError={handleGoogleError}
@@ -141,6 +139,7 @@ const LoginPage: React.FC = () => {
                     </div> */}
                 </CardContent>
             </Card>
+            <BackgroundPaths />
             <div className='absolute bottom-4 right-4'>
                 <ModeSwitch />
             </div>

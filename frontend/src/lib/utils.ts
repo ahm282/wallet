@@ -7,8 +7,12 @@ export function cn(...inputs: ClassValue[]) {
 
 // TODO: MAKE THIS BASED ON USER PREFERENCE
 export function currencyNotation(value: number) {
-  return value.toLocaleString("nl-BE", {
-    style: "currency",
-    currency: "EUR",
-  });
+  return value
+    .toLocaleString("nl-BE", {
+      style: "currency",
+      currency: "EUR",
+      currencySign: "standard",
+    })
+    .replace(/€\s*-\s*/, "-€ ")
+    .replace(/€(?!\s)/, "€ ");
 }

@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { DeleteWarningProps } from "@/types/types";
+import type { DeleteWarningProps } from "@/types/budget.types";
 
 export const DeleteWarning: React.FC<DeleteWarningProps> = ({
   icon,
@@ -36,7 +36,7 @@ export const DeleteWarning: React.FC<DeleteWarningProps> = ({
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
-            className="bg-red-700 text-destructive-foreground"
+            className="bg-red-700 text-destructive-foreground hover:bg-red-600"
             onClick={() => onConfirm?.()}
           >
             Continue

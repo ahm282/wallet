@@ -31,7 +31,6 @@ public class UserService {
 
   @PostConstruct
   public void init() {
-    createDefaultUsers(); // Initialize with some users
   }
 
   private void createDefaultUsers() {
@@ -69,7 +68,6 @@ public class UserService {
 
   @PostMapping
   public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest userRequest) {
-    System.out.println(userRequest.toString());
     Optional<AppUser> existingUserByEmail = userRepository.findByEmail(userRequest.getEmail());
 
     if (existingUserByEmail.isPresent()) {
@@ -79,6 +77,12 @@ public class UserService {
       if (!Objects.equals(existingUser.getImageUrl(), userRequest.getImageUrl())) {
         existingUser.setImageUrl(userRequest.getImageUrl());
       }
+
+      // Set lastLogin to current time
+        existingUser.setLastLogin(System.currentTimeMillis());
+
+      // Save the updated user to the database
+      AppUser savedUser = userRepository.save(existingUser);
 
       UserResponse existingUserResponse = userMapper.toUserResponse(existingUser);
       return new ResponseEntity<>(existingUserResponse, HttpStatus.OK);
@@ -90,7 +94,9 @@ public class UserService {
             .email(userRequest.getEmail())
             .firstName(userRequest.getFirstName())
             .lastName(userRequest.getLastName())
+            .lastLogin(System.currentTimeMillis())
             .createdAt(System.currentTimeMillis())
+            .updatedAt(System.currentTimeMillis())
             .imageUrl(userRequest.getImageUrl())
             .build();
 
