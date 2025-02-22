@@ -1,12 +1,16 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PublicRoute, ProtectedRoute } from "@/components/RouteGuards";
-import { ThemeProvider } from "./components/ThemeProvider";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import Layout from "@/components/MainLayout";
 import LoginPage from "@/pages/Login/LoginPage";
 import DashboardPage from "@/pages/Dashboard/DashboardPage";
 import ProfilePage from "@/pages/Profile/ProfilePage";
-import BudgetPage from "./pages/budget/BudgetPage";
+import BudgetPage from "@/pages/Budget/BudgetPage";
+import GoalsPage from "@/pages/Goals/GoalsPage";
+import TransactionsPage from "@/pages/Transactions/TransactionsPage";
+import AccountsPage from "@/pages/Accounts/AccountsPage";
+import BillsPage from "@/pages/Bills/BillsPage";
 
 const CLIENT_ID =
   import.meta.env.VITE_GOOGLE_CLIENT_ID || "CLIENT_ID_NOT_FOUND";
@@ -58,7 +62,7 @@ function App() {
                   path="/goals"
                   element={
                     <ProtectedRoute>
-                      <DashboardPage />
+                      <GoalsPage />
                     </ProtectedRoute>
                   }
                 />
@@ -66,7 +70,7 @@ function App() {
                   path="/transactions"
                   element={
                     <ProtectedRoute>
-                      <DashboardPage />
+                      <TransactionsPage />
                     </ProtectedRoute>
                   }
                 />
@@ -74,7 +78,7 @@ function App() {
                   path="/accounts"
                   element={
                     <ProtectedRoute>
-                      <DashboardPage />
+                      <AccountsPage />
                     </ProtectedRoute>
                   }
                 />
@@ -82,7 +86,7 @@ function App() {
                   path="/bills"
                   element={
                     <ProtectedRoute>
-                      <DashboardPage />
+                      <BillsPage />
                     </ProtectedRoute>
                   }
                 />

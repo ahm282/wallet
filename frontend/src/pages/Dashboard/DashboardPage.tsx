@@ -2,11 +2,14 @@ import React, { useEffect } from "react";
 import Onboarding from "@/components/dashboard/Onboarding";
 
 const DashboardPage: React.FC = () => {
-  useEffect(() => {
-    document.title = "Wallet | Dashboard";
-  }, []);
+    /*
+     * Sets the title of the page to " Dashboard | Wallet" when the component mounts
+     */
+    useEffect(() => {
+        document.title = "Dashboard | Wallet";
+    }, []);
 
-  return <Onboarding />;
+    return <Onboarding />;
 };
 
 export default DashboardPage;

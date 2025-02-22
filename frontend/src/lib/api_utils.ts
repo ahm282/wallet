@@ -6,7 +6,7 @@ export class ApiUtil {
     constructor(baseURL: string = "https://api.walletapp.top/api") {
         this.api = axios.create({
             baseURL,
-            timeout: 5000,
+            timeout: 10000,
             headers: {
                 "Content-Type": "application/json",
             },

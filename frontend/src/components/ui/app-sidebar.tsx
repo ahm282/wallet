@@ -52,7 +52,7 @@ const overviewItems = [
   },
   {
     title: "Goals",
-    url: "#",
+    url: "/goals",
     icon: Target,
   },
 ];
@@ -61,17 +61,17 @@ const overviewItems = [
 const financesItems = [
   {
     title: "Transactions",
-    url: "/dashboard",
+    url: "/transactions",
     icon: List,
   },
   {
     title: "Accounts",
-    url: "#",
+    url: "/accounts",
     icon: Wallet,
   },
   {
     title: "Bills",
-    url: "#",
+    url: "/bills",
     icon: Calendar,
   },
 ];

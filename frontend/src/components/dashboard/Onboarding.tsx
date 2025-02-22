@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { PlusCircle, ArrowRight, Wallet, PieChart, Target, CreditCard, UserCircle } from "lucide-react";
+import { PlusCircle, ArrowRight, Wallet, PieChart, Target, CreditCard, UserCircle, Smile } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
 const Onboarding: React.FC = () => {
@@ -14,7 +14,9 @@ const DesktopLayout: React.FC = () => {
         <div className='md:w-10/12 lg:w-10/12 lg:max-w-4xl 2xl:max-w-5xl my-8 mx-auto flex flex-col space-y-7'>
             <Card>
                 <CardHeader>
-                    <CardTitle className='text-2xl'>Welcome to Wallet!</CardTitle>
+                    <CardTitle className='flex items-center text-2xl font-primary'>
+                        <Smile className='size-7 me-3' /> Welcome to Wallet!
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className='text-muted-foreground mb-6'>
@@ -32,12 +34,14 @@ const DesktopLayout: React.FC = () => {
                                 </p>
                             </CardHeader>
                             <CardContent>
-                                <Button
-                                    className='mt-4 w-full'
-                                    size='sm'>
-                                    <PlusCircle className='mr-2 h-4 w-4' />
-                                    Add Account
-                                </Button>
+                                <Link to='/accounts'>
+                                    <Button
+                                        className='mt-4 w-full'
+                                        size='sm'>
+                                        <PlusCircle className='mr-2 h-4 w-4' />
+                                        Add Account
+                                    </Button>
+                                </Link>
                             </CardContent>
                         </Card>
                         <Card className='flex flex-col justify-between'>
@@ -51,12 +55,14 @@ const DesktopLayout: React.FC = () => {
                                 </p>
                             </CardHeader>
                             <CardContent>
-                                <Button
-                                    className='mt-4 w-full'
-                                    size='sm'>
-                                    <PlusCircle className='mr-2 h-4 w-4' />
-                                    Create Budget
-                                </Button>
+                                <Link to='/accounts'>
+                                    <Button
+                                        className='mt-4 w-full'
+                                        size='sm'>
+                                        <PlusCircle className='mr-2 h-4 w-4' />
+                                        Create Budget
+                                    </Button>
+                                </Link>
                             </CardContent>
                         </Card>
                         <Card className='flex flex-col justify-between'>
@@ -70,12 +76,14 @@ const DesktopLayout: React.FC = () => {
                                 </p>
                             </CardHeader>
                             <CardContent>
-                                <Button
-                                    className='mt-4 w-full'
-                                    size='sm'>
-                                    <PlusCircle className='mr-2 h-4 w-4' />
-                                    Add Goal
-                                </Button>
+                                <Link to='/goals'>
+                                    <Button
+                                        className='mt-4 w-full'
+                                        size='sm'>
+                                        <PlusCircle className='mr-2 h-4 w-4' />
+                                        Add Goal
+                                    </Button>
+                                </Link>
                             </CardContent>
                         </Card>
                         <Card className='flex flex-col justify-between'>
@@ -89,12 +97,14 @@ const DesktopLayout: React.FC = () => {
                                 </p>
                             </CardHeader>
                             <CardContent>
-                                <Button
-                                    className='mt-4 w-full'
-                                    size='sm'>
-                                    <PlusCircle className='mr-2 h-4 w-4' />
-                                    Log Expense
-                                </Button>
+                                <Link to='/transactions'>
+                                    <Button
+                                        className='mt-4 w-full'
+                                        size='sm'>
+                                        <PlusCircle className='mr-2 h-4 w-4' />
+                                        Log Expense
+                                    </Button>
+                                </Link>
                             </CardContent>
                         </Card>
                     </div>
@@ -102,8 +112,8 @@ const DesktopLayout: React.FC = () => {
             </Card>
             <Card>
                 <CardHeader>
-                    <CardTitle className='flex items-center'>
-                        <UserCircle className='size-5 inline me-2 text-muted-foreground' />
+                    <CardTitle className='flex items-center text-xl font-primary'>
+                        <UserCircle className='size-7 inline me-3' />
                         Check Your Profile
                     </CardTitle>
                 </CardHeader>
@@ -129,7 +139,9 @@ const MobileLayout: React.FC = () => {
             <div
                 id='introduction'
                 className='py-4 space-y-3'>
-                <h1 className='text-2xl font-primary font-semibold'>Welcome to Wallet!</h1>
+                <h1 className='text-2xl font-primary font-semibold flex items-center'>
+                    <Smile className='size-4 me-3' /> Welcome to Wallet!
+                </h1>
                 <div>
                     <p className='text-muted-foreground'>Let's get started with setting up your account.</p>
                     <p className='text-muted-foreground'>Here are some steps to help you begin:</p>
