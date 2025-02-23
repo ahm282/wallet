@@ -1,10 +1,11 @@
 // Goals definitions
 export interface Goal {
-    id: string;
+    _id: string;
     name: string;
     target: number;
     current: number;
-    targetDate: string | null;
+    status?: boolean | null;
+    targetDate: string | number;
 }
 
 export interface NoGoalsProps {
@@ -34,7 +35,11 @@ export interface GoalForm {
     name: string;
     target: string;
     current: string;
-    targetDate: string | undefined;
+    targetDate: string | number;
+}
+
+export interface EditedGoalForm extends GoalForm {
+    _id: string;
 }
 
 export interface GoalFormErrors {
@@ -44,11 +49,13 @@ export interface GoalFormErrors {
     targetDate: string;
 }
 
-export interface EditedGoalForm extends GoalForm {
-    id: string;
-}
-
 // Define backend's user response.
-export interface GoalResponse extends Goal {
+export interface GoalResponse {
+    _id: string;
+    name: string;
+    totalAmount: number;
+    currentAmount: number;
+    status: string;
+    targetDate: string;
     userId: string;
 }

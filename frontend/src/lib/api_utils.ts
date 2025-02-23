@@ -3,9 +3,13 @@ import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 export class ApiUtil {
     private readonly api: AxiosInstance;
 
-    constructor(baseURL: string = "https://api.walletapp.top/api") {
+    constructor(baseURL?: string) {
+        const api_endpoint =
+            baseURL ||
+            (import.meta.env.VITE_ENV_NAME === "dev" ? "http://localhost:8080/api" : "https://api.walletapp.top/api");
+
         this.api = axios.create({
-            baseURL,
+            baseURL: api_endpoint,
             timeout: 10000,
             headers: {
                 "Content-Type": "application/json",
@@ -31,6 +35,11 @@ export class ApiUtil {
         return response.data;
     }
 
+    async patch<T>(path: string = "", data?: unknown, token?: string): Promise<T> {
+        const response = await this.api.patch<T>(path, data, this.getConfig(token));
+        return response.data;
+    }
+
     async post<T>(path: string = "", data?: unknown, token?: string): Promise<T> {
         const response = await this.api.post<T>(path, data, this.getConfig(token));
         return response.data;
@@ -41,3 +50,5 @@ export class ApiUtil {
         return response.data;
     }
 }
+
+export const instantiateAPI = (baseURL?: string) => new ApiUtil(baseURL);

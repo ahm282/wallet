@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { PiggyBank, Edit2, Trash2, Target } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -5,9 +6,9 @@ import { AddGoalDialog } from "@/components/goals/AddGoalDialog";
 import { EditGoalDialog } from "@/components/goals/EditGoalDialog";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { currencyNotation } from "@/lib/utils";
 import { DeleteWarning } from "@/components/ui/delete-warning";
+import { instantiateAPI } from "@/lib/api_utils";
+import { getToken, fromUnixTimestamp, currencyNotation, formatDateString } from "@/lib/utils";
 import type { GoalsDataExistsProps, Goal } from "@/types/goals.types";
 
 export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoals }) => {
@@ -20,12 +21,15 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoal
     };
 
     const handleSaveEdit = (updatedGoal: Goal) => {
-        setGoals(goals.map((g) => (g.id === updatedGoal.id ? updatedGoal : g)));
+        setGoals(goals.map((g) => (g._id === updatedGoal._id ? updatedGoal : g)));
         setEditingGoal(null);
     };
 
     const handleDelete = (id: string) => {
-        setGoals(goals.filter((g) => g.id !== id));
+        const api = instantiateAPI("http://localhost:3000/api");
+        api.delete("/finance/goal?id=" + id, getToken()).then(() => {
+            setGoals(goals.filter((g) => g._id !== id));
+        });
     };
 
     const totalTarget = goals.reduce((acc, goal) => acc + goal.target, 0);
@@ -55,7 +59,7 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoal
                         }`}>
                         {goals.map((goal, index) => (
                             <div
-                                key={goal.id}
+                                key={goal._id}
                                 className='space-y-2'>
                                 <div className='flex items-center justify-between'>
                                     <div className='flex flex-col gap-y-0.5'>
@@ -73,7 +77,7 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoal
                                             <DeleteWarning
                                                 icon={Trash2}
                                                 message='Are you sure you want to delete this goal? This action cannot be undone.'
-                                                onConfirm={() => handleDelete(goal.id)}>
+                                                onConfirm={() => handleDelete(goal._id)}>
                                                 <Button
                                                     variant='ghost'
                                                     size='xl'
@@ -96,7 +100,7 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoal
                                 </div>
                                 <div className='flex justify-between text-xs pt-0.5 text-muted-foreground'>
                                     <span className='text-xs font-medium text-muted-foreground'>
-                                        Target date: {goal.targetDate}
+                                        Target date: {formatDateString(fromUnixTimestamp(goal.targetDate))}
                                     </span>
                                     <span>{currencyNotation(goal.target - goal.current)} remaining</span>
                                 </div>

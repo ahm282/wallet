@@ -1,49 +1,42 @@
 import { useState, useEffect } from "react";
 import { NoGoals } from "@/components/goals/NoGoals";
 import { GoalsDataExists } from "@/components/goals/GoalsDataExists";
+import { instantiateAPI } from "@/lib/api_utils";
+import { useAuthStore } from "@/store/authStore";
 import type { Goal } from "@/types/goals.types";
 
-export const GoalsPage = () => {
-    // Sample data
-    const sampleGoals = [
-        {
-            id: "1",
-            name: "Emergency fund",
-            target: 1000,
-            current: 500,
-            targetDate: "2022-12-31",
-        },
-        {
-            id: "2",
-            name: "Vacation",
-            target: 2000,
-            current: 1000,
-            targetDate: "2023-06-30",
-        },
-        {
-            id: "3",
-            name: "New car",
-            target: 15000,
-            current: 5000,
-            targetDate: "2024-12-31",
-        },
-        {
-            id: "4",
-            name: "New house",
-            target: 200000,
-            current: 20000,
-            targetDate: "2026-12-31",
-        },
-        {
-            id: "5",
-            name: "New computer",
-            target: 2000,
-            current: 200,
-            targetDate: "2023-12-31",
-        },
-    ];
+function getGoalsDataByUserId(): Promise<Goal[]> {
+    const { user, token } = useAuthStore.getState();
+    const api = instantiateAPI("http://localhost:3000/api");
+    return api.get<Goal[]>("/finance/goal?id=" + user?.id, token);
+}
 
-    const [goals, setGoals] = useState<Goal[]>(sampleGoals);
+function createGoalFromResponse(goalResponse: any): Goal {
+    return {
+        _id: goalResponse._id,
+        name: goalResponse.name,
+        target: goalResponse.totalAmount,
+        current: goalResponse.currentAmount,
+        status: goalResponse.status,
+        targetDate: goalResponse.targetDate,
+    };
+}
+
+export const GoalsPage = () => {
+    const [goals, setGoals] = useState<Goal[]>([]);
+
+    useEffect(() => {
+        getGoalsDataByUserId()
+            .then((goals) => {
+                goals = goals.map(createGoalFromResponse);
+                console.log("Goals data fetched:", goals);
+                setGoals(goals);
+            })
+            .catch((error) => {
+                console.error("Error fetching goals data:", error);
+            });
+    }, []);
+
     const hasGoalData = goals.length > 0;
 
     /*

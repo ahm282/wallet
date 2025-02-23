@@ -25,8 +25,8 @@ async function postGoalData(payload: object): Promise<GoalResponse> {
         ...payload,
         userId: user?.id,
     };
-    const api = import.meta.env.VITE_ENV_NAME === "dev" ? new ApiUtil("http://localhost:8080/api") : new ApiUtil();
-    return api.post<GoalResponse>("/goal", data, token ?? "");
+    const api = new ApiUtil("http://localhost:3000/api");
+    return api.post<GoalResponse>("/finance/goal", data, token ?? "");
 }
 
 export const AddGoalDialog: React.FC<AddGoalDialogProps> = ({ goals, setGoals }) => {
@@ -53,23 +53,20 @@ export const AddGoalDialog: React.FC<AddGoalDialogProps> = ({ goals, setGoals })
         if (isValid) {
             const payload = {
                 name: newGoal.name,
-                target: Number(newGoal.target),
-                current: newGoal.current ? Number(newGoal.current) : 0,
+                totalAmount: Number(newGoal.target),
+                currentAmount: newGoal.current ? Number(newGoal.current) : 0,
                 targetDate: newGoal.targetDate,
             };
 
             const goalResponse = await postGoalData(payload);
 
-            console.log("Goal Response:", goalResponse);
-            console.log("New Goal:", newGoal);
-
             setGoals([
                 ...goals,
                 {
-                    id: goalResponse.id,
+                    _id: goalResponse._id,
                     name: goalResponse.name,
-                    target: goalResponse.target,
-                    current: goalResponse.current,
+                    target: goalResponse.totalAmount,
+                    current: goalResponse.currentAmount,
                     targetDate: goalResponse.targetDate,
                 },
             ]);
