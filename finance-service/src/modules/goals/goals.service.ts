@@ -47,7 +47,7 @@ export class GoalsService {
     }
 
     async update(id: string, updateGoalDto: UpdateGoalDto) {
-        // updateGoalDto.updatedAt = Math.floor(Date.now() / 1000);
+        updateGoalDto.updatedAt = Math.floor(Date.now() / 1000);
         return this.goalModel.findByIdAndUpdate(id, updateGoalDto, { new: true, runValidators: true });
     }
 
