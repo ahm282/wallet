@@ -9,7 +9,7 @@ export class AccountsController {
 
     @Post()
     create(@Body() createAccountDto: CreateAccountDto) {
-        return this.accountsService.createAccount(createAccountDto);
+        return this.accountsService.create(createAccountDto);
     }
 
     @Get(":accountId")
@@ -24,12 +24,12 @@ export class AccountsController {
 
     @Patch()
     async update(@Query("id") id: string, @Body() updateAccountDto: UpdateAccountDto) {
-        return this.accountsService.updateAccount(id, updateAccountDto);
+        return this.accountsService.update(id, updateAccountDto);
     }
 
     @Delete()
     @HttpCode(HttpStatus.NO_CONTENT)
     async remove(@Query("id") id: string) {
-        return this.accountsService.deleteAccount(id);
+        return this.accountsService.delete(id);
     }
 }
