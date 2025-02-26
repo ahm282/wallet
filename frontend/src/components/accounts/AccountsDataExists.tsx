@@ -23,7 +23,7 @@ export const AccountsDataExists: React.FC<AccountsDataExistsProps> = ({ accounts
         setEditingAccount(null);
     };
 
-    const handleDelete = (id: number) => {
+    const handleDelete = (id: string) => {
         setAccounts(accounts.filter((a) => a.id !== id));
     };
 
@@ -50,7 +50,7 @@ export const AccountsDataExists: React.FC<AccountsDataExistsProps> = ({ accounts
                 </CardHeader>
                 <CardContent>
                     <div className='overflow-x-auto'>
-                        <Table>
+                        <Table className='whitespace-nowrap'>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Name</TableHead>
