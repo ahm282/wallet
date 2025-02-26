@@ -1,15 +1,37 @@
-import { Controller, Get, Post, Body, Patch, Delete, NotFoundException, Query } from "@nestjs/common";
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    Patch,
+    Delete,
+    NotFoundException,
+    Query,
+    HttpCode,
+    HttpStatus,
+} from "@nestjs/common";
 import { GoalsService } from "./goals.service";
 import { CreateGoalDto } from "../../dto/goal/create-goal.dto";
 import { UpdateGoalDto } from "../../dto/goal/update-goal.dto";
 
-@Controller("/goal")
+@Controller("goal")
 export class GoalsController {
     constructor(private readonly goalsService: GoalsService) {}
 
     @Post()
     create(@Body() createGoalDto: CreateGoalDto) {
         return this.goalsService.create(createGoalDto);
+    }
+
+    @Get(":goalId")
+    findOne(@Query("id") id: string) {
+        const goal = this.goalsService.findOne(id);
+
+        if (!goal) {
+            throw new NotFoundException("Goal not found");
+        }
+
+        return goal;
     }
 
     @Get()
@@ -23,11 +45,8 @@ export class GoalsController {
     }
 
     @Delete()
+    @HttpCode(HttpStatus.NO_CONTENT)
     async remove(@Query("id") id: string) {
-        const result = await this.goalsService.remove(id);
-        if (!result) {
-            throw new NotFoundException(`Goal with id ${id} not found`);
-        }
-        return { code: 200, msg: "Goal deleted successfully!" };
+        return this.goalsService.delete(id);
     }
 }

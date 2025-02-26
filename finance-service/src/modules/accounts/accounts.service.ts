@@ -11,7 +11,7 @@ export class AccountsService {
         return await this.accountRepo.create(createAccountDto);
     }
 
-    async findById(id: string) {
+    async findOne(id: string) {
         return await this.accountRepo.findById(id);
     }
 
