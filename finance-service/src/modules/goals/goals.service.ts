@@ -2,10 +2,9 @@ import { Injectable } from "@nestjs/common";
 import { CreateGoalDto } from "../../dto/goal/create-goal.dto";
 import { UpdateGoalDto } from "../../dto/goal/update-goal.dto";
 import { Goal } from "../../schemas/goal.schema";
-import { Model } from "mongoose";
-import { InjectModel } from "@nestjs/mongoose";
-import { InjectConnection } from "@nestjs/mongoose";
-import { Connection } from "mongoose";
+import { Model, Connection } from "mongoose";
+import { InjectConnection, InjectModel } from "@nestjs/mongoose";
+import { toUnixTimestamp } from "@/lib/utils";
 
 @Injectable()
 export class GoalsService {
@@ -23,6 +22,9 @@ export class GoalsService {
         createdGoal.createdAt = now;
         createdGoal.updatedAt = now;
 
+        // Change the date to a Unix timestamp
+        createdGoal.targetDate = toUnixTimestamp(createdGoal.targetDate);
+
         await createdGoal.save();
         await session.commitTransaction();
         session.endSession();
@@ -31,21 +33,25 @@ export class GoalsService {
     }
 
     async findAll(): Promise<Goal[]> {
-        console.log("Request received to find all goals!");
         let all_goals = await this.goalModel.find().exec();
-        await console.log(all_goals);
         return all_goals;
     }
 
-    findOne(id: string) {
+    async findAllByUserId(userId: string): Promise<Goal[]> {
+        let all_goals = await this.goalModel.find({ userId: userId }).exec();
+        return all_goals;
+    }
+
+    async findOne(id: string) {
         return this.goalModel.findById(id);
     }
 
-    update(id: string, updateGoalDto: UpdateGoalDto) {
-        return this.goalModel.findByIdAndUpdate(id, updateGoalDto);
+    async update(id: string, updateGoalDto: UpdateGoalDto) {
+        // updateGoalDto.updatedAt = Math.floor(Date.now() / 1000);
+        return this.goalModel.findByIdAndUpdate(id, updateGoalDto, { new: true, runValidators: true });
     }
 
-    remove(id: string) {
+    async remove(id: string) {
         return this.goalModel.findByIdAndDelete(id);
     }
 }

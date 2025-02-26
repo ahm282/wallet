@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory, Virtual } from "@nestjs/mongoose";
 import { HydratedDocument } from "mongoose";
+import { toUnixTimestamp } from "@/lib/utils";
 
 export type GoalDocument = HydratedDocument<Goal>;
 
@@ -9,10 +10,7 @@ export type GoalDocument = HydratedDocument<Goal>;
 })
 export class Goal {
     @Prop({ required: true })
-    title: string;
-
-    @Prop()
-    description: string;
+    name: string;
 
     @Prop({ required: true })
     totalAmount: number;
@@ -33,7 +31,7 @@ export class Goal {
         set: toUnixTimestamp,
         get: (value: number): number => value,
     })
-    dueDate: number;
+    targetDate: number;
 
     @Prop({ required: true })
     userId: string;
@@ -53,12 +51,6 @@ export class Goal {
         get: (value: number): number => value,
     })
     updatedAt: number;
-}
-
-function toUnixTimestamp(value: Date | string | number): number {
-    if (typeof value === "number") return value;
-    if (value instanceof Date) return Math.floor(value.getTime() / 1000);
-    return Math.floor(new Date(value).getTime() / 1000);
 }
 
 export const GoalSchema = SchemaFactory.createForClass(Goal);

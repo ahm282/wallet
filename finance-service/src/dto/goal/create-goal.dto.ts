@@ -1,8 +1,7 @@
 export class CreateGoalDto {
-  title: string;
-  description: string;
-  totalAmount: number;
-  currentAmount: number;
-  dueDate?: number;
-  userId: string;
+    name: string;
+    totalAmount: number;
+    currentAmount: number;
+    targetDate?: string | number;
+    userId: string;
 }
