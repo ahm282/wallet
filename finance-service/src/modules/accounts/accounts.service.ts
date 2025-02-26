@@ -11,11 +11,11 @@ export class AccountsService {
         return await this.accountRepo.create(createAccountDto);
     }
 
-    async getAccountById(id: string) {
+    async findById(id: string) {
         return await this.accountRepo.findById(id);
     }
 
-    async getAccountsByUserId(userId: string) {
+    async findAllByUserId(userId: string) {
         return await this.accountRepo.findByUserId(userId);
     }
 
