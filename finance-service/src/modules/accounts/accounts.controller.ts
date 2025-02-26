@@ -12,14 +12,14 @@ export class AccountsController {
         return this.accountsService.createAccount(createAccountDto);
     }
 
-    @Get()
-    findAllByUserId(@Query("id") id: string) {
-        return this.accountsService.getAccountsByUserId(id);
-    }
-
     @Get(":accountId")
     findOne(@Param("accountId") id: string) {
-        return this.accountsService.getAccountById(id);
+        return this.accountsService.findById(id);
+    }
+
+    @Get()
+    findAllByUserId(@Query("id") id: string) {
+        return this.accountsService.findAllByUserId(id);
     }
 
     @Patch()
