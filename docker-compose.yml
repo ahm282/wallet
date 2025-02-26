@@ -41,21 +41,46 @@ services:
         depends_on:
             - user-service
         environment:
-            - USER_SERVICE_BASEURL=user-service:8081
             - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
             - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+            - USER_SERVICE_BASEURL=user-service:8081
+            - FINANCE_SERVICE_BASEURL=finance-service:3000
         ports:
             - "${API_GATEWAY_PORT}:8080"
         restart: always
 
-    frontend:
+    # frontend:
+    #     build:
+    #         context: ./frontend/
+    #         dockerfile: Dockerfile
+    #     image: ahm282/frontend:latest
+    #     restart: always
+    #     ports:
+    #         - "80:80"
+
+    finance-service:
         build:
-            context: ./frontend/
+            context: ./finance-service/
             dockerfile: Dockerfile
-        image: ahm282/frontend:latest
-        restart: always
+        image: ahm282/finance-service:latest
+        depends_on:
+            - finance-db
+        environment:
+            - MONGO_URI=mongodb://finance-db:27017/wallet
+            - NESTJS_PORT=${NESTJS_PORT}
+            - FINANCE_DB_HOST=mongodb
         ports:
-            - "80:80"
+            - "${NESTJS_PORT}:3000"
+        restart: always
+
+    finance-db:
+        image: mongo:latest
+        volumes:
+            - mongodb_data:/data/db
+        ports:
+            - "27017:27017"
+        restart: always
 
 volumes:
     user_db_data:
+    mongodb_data:
