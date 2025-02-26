@@ -7,7 +7,7 @@ import { UpdateAccountDto } from "@/dto/account/update-account.dto";
 export class AccountsService {
     constructor(private readonly accountRepo: AccountRepository) {}
 
-    async createAccount(createAccountDto: CreateAccountDto) {
+    async create(createAccountDto: CreateAccountDto) {
         return await this.accountRepo.create(createAccountDto);
     }
 
@@ -19,11 +19,11 @@ export class AccountsService {
         return await this.accountRepo.findByUserId(userId);
     }
 
-    async updateAccount(id: string, updateAccountDto: UpdateAccountDto) {
+    async update(id: string, updateAccountDto: UpdateAccountDto) {
         return await this.accountRepo.update(id, updateAccountDto);
     }
 
-    async deleteAccount(id: string) {
+    async delete(id: string) {
         return await this.accountRepo.delete(id);
     }
 }
