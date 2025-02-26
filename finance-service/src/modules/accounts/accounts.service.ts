@@ -2,29 +2,28 @@ import { Injectable } from "@nestjs/common";
 import { AccountRepository } from "@/repositories/account.repository";
 import { CreateAccountDto } from "@/dto/account/create-account.dto";
 import { UpdateAccountDto } from "@/dto/account/update-account.dto";
-import { Account } from "@/schemas/account.schema";
 
 @Injectable()
 export class AccountsService {
     constructor(private readonly accountRepo: AccountRepository) {}
 
-    async createAccount(dto: CreateAccountDto, userId: string): Promise<Account> {
-        return this.accountRepo.create({ ...dto, userId });
+    async createAccount(createAccountDto: CreateAccountDto) {
+        return await this.accountRepo.create(createAccountDto);
     }
 
-    async getAccountById(id: string): Promise<Account | null> {
-        return this.accountRepo.findById(id);
+    async getAccountById(id: string) {
+        return await this.accountRepo.findById(id);
     }
 
-    async getAccountsForUser(userId: string): Promise<Account[]> {
-        return this.accountRepo.findByUserId(userId);
+    async getAccountsByUserId(userId: string) {
+        return await this.accountRepo.findByUserId(userId);
     }
 
-    async updateAccount(id: string, dto: UpdateAccountDto): Promise<Account | null> {
-        return this.accountRepo.update(id, dto);
+    async updateAccount(id: string, updateAccountDto: UpdateAccountDto) {
+        return await this.accountRepo.update(id, updateAccountDto);
     }
 
-    async deleteAccount(id: string): Promise<boolean | null> {
-        return !!this.accountRepo.delete(id);
+    async deleteAccount(id: string) {
+        return await this.accountRepo.delete(id);
     }
 }

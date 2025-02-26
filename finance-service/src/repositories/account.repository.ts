@@ -12,6 +12,6 @@ export class AccountRepository extends GenericRepository<AccountDocument> implem
     }
 
     async findByUserId(userId: string): Promise<AccountDocument[]> {
-        return this.model.find({ userId }).exec();
+        return this.accountModel.find({ userId }).exec();
     }
 }

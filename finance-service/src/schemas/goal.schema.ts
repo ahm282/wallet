@@ -51,6 +51,9 @@ export class Goal {
         get: (value: number): number => value,
     })
     updatedAt: number;
+
+    @Prop({ type: Object, default: {} })
+    metadata: Record<string, any>;
 }
 
 export const GoalSchema = SchemaFactory.createForClass(Goal);

@@ -1,5 +1,6 @@
 import { Model, FilterQuery } from "mongoose";
 import { IRepository } from "@/interfaces/generic.interface";
+import { NotFoundException } from "@nestjs/common";
 
 export abstract class GenericRepository<T> implements IRepository<T> {
     constructor(protected readonly model: Model<T>) {}
@@ -25,8 +26,15 @@ export abstract class GenericRepository<T> implements IRepository<T> {
         return this.model.findByIdAndUpdate(id, updateData, { new: true }).exec();
     }
 
-    async delete(id: string): Promise<boolean | null> {
+    async delete(id: string): Promise<void> {
         const result = await this.model.findByIdAndDelete(id).exec();
-        return result ? true : null;
+
+        if (!result) {
+            throw new NotFoundException("Document not found!");
+        }
+    }
+
+    async findAllByUserId(userId: string): Promise<T[]> {
+        return this.model.find({ userId }).exec();
     }
 }
