@@ -36,7 +36,7 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoal
     const totalSaved = goals.reduce((acc, goal) => acc + goal.current, 0);
 
     return (
-        <div className='w-11/12 md:w-10/12 lg:max-w-4xl 2xl:max-w-5xl my-8 mx-auto flex flex-col space-y-5'>
+        <div className='w-11/12 md:w-10/12 lg:w-10/12 lg:max-w-4xl 2xl:max-w-5xl my-8 mx-auto flex flex-col space-y-7'>
             <Card>
                 <CardHeader className='pb-4'>
                     <CardTitle className='text-2xl font-bold flex flex-row items-center justify-between'>
