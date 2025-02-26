@@ -3,5 +3,5 @@ export interface IRepository<T> {
     findOne(id: string): Promise<T | null>;
     findAll(filter?: Partial<T>): Promise<T[]>;
     update(id: string, updateData: Partial<T>): Promise<T | null>;
-    delete(id: string): Promise<boolean | null>;
+    delete(id: string): Promise<void>;
 }

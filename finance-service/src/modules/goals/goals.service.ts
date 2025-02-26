@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
-import { CreateGoalDto } from "../../dto/goal/create-goal.dto";
-import { UpdateGoalDto } from "../../dto/goal/update-goal.dto";
-import { Goal } from "../../schemas/goal.schema";
 import { Model, Connection } from "mongoose";
 import { InjectConnection, InjectModel } from "@nestjs/mongoose";
 import { toUnixTimestamp } from "@/lib/utils";
+import { CreateGoalDto } from "../../dto/goal/create-goal.dto";
+import { UpdateGoalDto } from "../../dto/goal/update-goal.dto";
+import { Goal } from "../../schemas/goal.schema";
 
 @Injectable()
 export class GoalsService {
