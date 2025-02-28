@@ -64,14 +64,14 @@ export const BillsPage = () => {
 
     // Loading state
     if (isLoading) {
-        return <div className='flex justify-center font-primary items-center h-64'>Loading bills...</div>;
+        return <div className='flex justify-center items-center font-primary text-center h-64'>Loading bills...</div>;
     }
 
     // Error state
     if (isError) {
         return (
-            <div className='flex justify-center font-primary items-center h-64'>
-                {error.message}
+            <div className='w-6/12 mx-auto p-4 mt-10 bg-red-100 text-red-600 font-primary text-center rounded-md'>
+                Error fetching bills: {error.message}
             </div>
         );
     }

@@ -59,7 +59,7 @@ export const GoalsPage = () => {
 
     // Loading state
     if (isLoading) {
-        return <div className='flex justify-center items-center h-64'>Loading goals...</div>;
+        return <div className='flex justify-center items-center font-primary text-center h-64'>Loading goals...</div>;
     }
 
     // Error state
