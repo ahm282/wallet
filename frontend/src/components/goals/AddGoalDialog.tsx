@@ -14,32 +14,20 @@ import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
 import { format } from "date-fns";
 import { Plus, PiggyBank } from "lucide-react";
-import { ApiUtil } from "@/lib/api_utils";
-import { useAuthStore } from "@/store/authStore";
 import { validateGoalForm } from "@/lib/validations/validate_goal_form";
-import type { AddGoalDialogProps, GoalForm, GoalResponse } from "@/types/goals.types";
+import type { AddGoalDialogProps, GoalForm } from "@/types/goals.types";
 
-async function postGoalData(payload: object): Promise<GoalResponse> {
-    const { token, user } = useAuthStore.getState();
-    const data = {
-        ...payload,
-        userId: user?.id,
-    };
-    const api = import.meta.env.VITE_ENV_NAME === "dev" ? new ApiUtil("http://localhost:8080/api") : new ApiUtil();
-    return api.post<GoalResponse>("/goal", data, token ?? "");
-}
-
-export const AddGoalDialog: React.FC<AddGoalDialogProps> = ({ goals, setGoals }) => {
+export const AddGoalDialog: React.FC<AddGoalDialogProps> = ({ createGoalMutation }) => {
     const [newGoal, setNewGoal] = useState<GoalForm>({
         name: "",
-        target: "",
-        current: "",
+        targetAmount: "",
+        currentAmount: "",
         targetDate: "",
     });
     const [errors, setErrors] = useState({
         name: "",
-        target: "",
-        current: "",
+        targetAmount: "",
+        currentAmount: "",
         targetDate: "",
     });
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -53,30 +41,16 @@ export const AddGoalDialog: React.FC<AddGoalDialogProps> = ({ goals, setGoals })
         if (isValid) {
             const payload = {
                 name: newGoal.name,
-                target: Number(newGoal.target),
-                current: newGoal.current ? Number(newGoal.current) : 0,
+                targetAmount: Number(newGoal.targetAmount),
+                currentAmount: newGoal.currentAmount ? Number(newGoal.currentAmount) : 0,
                 targetDate: newGoal.targetDate,
             };
 
-            const goalResponse = await postGoalData(payload);
-
-            console.log("Goal Response:", goalResponse);
-            console.log("New Goal:", newGoal);
-
-            setGoals([
-                ...goals,
-                {
-                    id: goalResponse.id,
-                    name: goalResponse.name,
-                    target: goalResponse.target,
-                    current: goalResponse.current,
-                    targetDate: goalResponse.targetDate,
-                },
-            ]);
+            createGoalMutation?.mutate(payload);
 
             // Reset the form and errors
-            setNewGoal({ name: "", target: "", current: "", targetDate: "" });
-            setErrors({ name: "", target: "", current: "", targetDate: "" });
+            setNewGoal({ name: "", targetAmount: "", currentAmount: "", targetDate: "" });
+            setErrors({ name: "", targetAmount: "", currentAmount: "", targetDate: "" });
             setIsAddDialogOpen(false);
         }
     };
@@ -120,35 +94,39 @@ export const AddGoalDialog: React.FC<AddGoalDialogProps> = ({ goals, setGoals })
                             {/* Target Field */}
                             <div className='grid grid-cols-4 items-center gap-4'>
                                 <Label
-                                    htmlFor='target'
+                                    htmlFor='targetAmount'
                                     className='text-right'>
                                     Target
                                 </Label>
                                 <div className='col-span-3'>
                                     <Input
-                                        id='target'
+                                        id='targetAmount'
                                         type='text'
-                                        value={newGoal.target}
-                                        onChange={(e) => setNewGoal({ ...newGoal, target: e.target.value })}
+                                        value={newGoal.targetAmount}
+                                        onChange={(e) => setNewGoal({ ...newGoal, targetAmount: e.target.value })}
                                     />
-                                    {errors.target && <p className='text-xs text-red-500'>{errors.target}</p>}
+                                    {errors.targetAmount && (
+                                        <p className='text-xs text-red-500'>{errors.targetAmount}</p>
+                                    )}
                                 </div>
                             </div>
                             {/* Current Field */}
                             <div className='grid grid-cols-4 items-center gap-4'>
                                 <Label
-                                    htmlFor='current'
+                                    htmlFor='currentAmount'
                                     className='text-right'>
                                     Current
                                 </Label>
                                 <div className='col-span-3'>
                                     <Input
-                                        id='current'
+                                        id='currentAmount'
                                         type='text'
-                                        value={newGoal.current}
-                                        onChange={(e) => setNewGoal({ ...newGoal, current: e.target.value })}
+                                        value={newGoal.currentAmount}
+                                        onChange={(e) => setNewGoal({ ...newGoal, currentAmount: e.target.value })}
                                     />
-                                    {errors.current && <p className='text-xs text-red-500'>{errors.current}</p>}
+                                    {errors.currentAmount && (
+                                        <p className='text-xs text-red-500'>{errors.currentAmount}</p>
+                                    )}
                                 </div>
                             </div>
                             {/* Target Date Field */}

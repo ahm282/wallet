@@ -1,50 +1,54 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { NoGoals } from "@/components/goals/NoGoals";
 import { GoalsDataExists } from "@/components/goals/GoalsDataExists";
+import { getUserId } from "@/lib/utils";
+import { fetchGoals, createGoal, updateGoal, deleteGoal } from "@/api/goals";
 import type { Goal } from "@/types/goals.types";
 
 export const GoalsPage = () => {
-    // Sample data
-    const sampleGoals = [
-        {
-            id: "1",
-            name: "Emergency fund",
-            target: 1000,
-            current: 500,
-            targetDate: "2022-12-31",
-        },
-        {
-            id: "2",
-            name: "Vacation",
-            target: 2000,
-            current: 1000,
-            targetDate: "2023-06-30",
-        },
-        {
-            id: "3",
-            name: "New car",
-            target: 15000,
-            current: 5000,
-            targetDate: "2024-12-31",
-        },
-        {
-            id: "4",
-            name: "New house",
-            target: 200000,
-            current: 20000,
-            targetDate: "2026-12-31",
-        },
-        {
-            id: "5",
-            name: "New computer",
-            target: 2000,
-            current: 200,
-            targetDate: "2023-12-31",
-        },
-    ];
+    const queryClient = useQueryClient();
 
-    const [goals, setGoals] = useState<Goal[]>(sampleGoals);
-    const hasGoalData = goals.length > 0;
+    // Fetch goals
+    const {
+        data: goals = [],
+        isLoading,
+        isError,
+        error,
+    } = useQuery<Goal[], Error>({
+        queryKey: ["goals", getUserId()],
+        queryFn: fetchGoals,
+    });
+
+    // Mutation for creating goals
+    const createGoalMutation = useMutation({
+        mutationFn: (newGoal: Omit<Goal, "id">) => {
+            return createGoal(newGoal);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["goals"] });
+        },
+    });
+
+    // Mutation for updating goals
+    const updateGoalMutation = useMutation({
+        mutationFn: (updatedGoal: Goal) => {
+            return updateGoal(updatedGoal);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["goals"] });
+        },
+    });
+
+    // Mutation for deleting goals
+    const deleteGoalMutation = useMutation({
+        mutationFn: (goalId: string) => {
+            return deleteGoal(goalId);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["goals"] });
+        },
+    });
 
     /*
      * Sets the title of the page to "Goals | Wallet" when the component mounts
@@ -53,15 +57,31 @@ export const GoalsPage = () => {
         document.title = "Goals | Wallet";
     }, []);
 
-    return hasGoalData ? (
+    // Loading state
+    if (isLoading) {
+        return <div className='flex justify-center items-center font-primary text-center h-64'>Loading goals...</div>;
+    }
+
+    // Error state
+    if (isError) {
+        return (
+            <div className='w-6/12 mx-auto p-4 mt-10 bg-red-100 text-red-600 font-primary text-center rounded-md'>
+                Error fetching goals: {error.message}
+            </div>
+        );
+    }
+
+    return goals.length > 0 ? (
         <GoalsDataExists
             goals={goals}
-            setGoals={setGoals}
+            createGoalMutation={createGoalMutation}
+            updateGoalMutation={updateGoalMutation}
+            deleteGoalMutation={deleteGoalMutation}
         />
     ) : (
         <NoGoals
             goals={goals}
-            setGoals={setGoals}
+            createGoalMutation={createGoalMutation}
         />
     );
 };

@@ -1,0 +1,25 @@
+export enum Category {
+    Food = "Food",
+    Groceries = "Groceries",
+    Utilities = "Utilities",
+    Entertainment = "Entertainment",
+    Travel = "Travel",
+    Health = "Health",
+    Education = "Education",
+    Shopping = "Shopping",
+    Transportation = "Transportation",
+    Rent = "Rent",
+    Mortgage = "Mortgage",
+    Insurance = "Insurance",
+    Bills = "Bills",
+    Savings = "Savings",
+    PersonalCare = "Personal Care",
+    Income = "Income",
+    Housing = "Housing",
+    DiningOut = "Dining Out",
+    Subscriptions = "Subscriptions",
+    Gifts = "Gifts",
+    Other = "Other",
+}
+
+export default Category;

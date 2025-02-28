@@ -3,21 +3,19 @@ import { useAuthStore } from "@/store/authStore";
 import { useNavigate } from "react-router-dom";
 
 export const useLogout = () => {
-  const logout = useAuthStore((state) => state.clearAuth);
-  const navigate = useNavigate();
+    const logout = useAuthStore((state) => state.clearAuth);
+    const navigate = useNavigate();
 
-  const handleLogout = () => {
-    // Optional: Log out of Google
-    googleLogout();
+    const handleLogout = () => {
+        googleLogout();
 
-    // Clear zustand auth state
-    logout();
+        // Clear zustand auth state
+        logout();
 
-    // Optional: Navigate to the login page
-    navigate("/");
-  };
+        navigate("/");
+    };
 
-  return { handleLogout };
+    return { handleLogout };
 };
 
 export default useLogout;

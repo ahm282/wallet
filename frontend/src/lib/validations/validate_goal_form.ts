@@ -4,8 +4,8 @@ export const validateGoalForm = (form: GoalForm): { isValid: boolean; errors: Go
     let isValid = true;
     const errors: GoalFormErrors = {
         name: "",
-        target: "",
-        current: "",
+        targetAmount: "",
+        currentAmount: "",
         targetDate: "",
     };
 
@@ -14,27 +14,27 @@ export const validateGoalForm = (form: GoalForm): { isValid: boolean; errors: Go
         isValid = false;
     }
 
-    if (!form.target) {
-        errors.target = "Target is required";
+    if (!form.targetAmount) {
+        errors.targetAmount = "Target is required";
         isValid = false;
-    } else if (isNaN(Number(form.target))) {
-        errors.target = "Target must be a valid number";
+    } else if (isNaN(Number(form.targetAmount))) {
+        errors.targetAmount = "Target must be a valid number";
         isValid = false;
-    } else if (Number(form.target) < 0) {
-        errors.target = "Target cannot be negative";
+    } else if (Number(form.targetAmount) < 0) {
+        errors.targetAmount = "Target cannot be negative";
         isValid = false;
     }
 
-    // 'Current' is optional; if provided, it must be a valid, non-negative number
-    if (form.current) {
-        if (isNaN(Number(form.current))) {
-            errors.current = "Current progress must be a valid number";
+    // 'currentAmount' is optional; if provided, it must be a valid, non-negative number
+    if (form.currentAmount) {
+        if (isNaN(Number(form.currentAmount))) {
+            errors.currentAmount = "currentAmount progress must be a valid number";
             isValid = false;
-        } else if (Number(form.current) < 0) {
-            errors.current = "Current progress cannot be negative";
+        } else if (Number(form.currentAmount) < 0) {
+            errors.currentAmount = "currentAmount progress cannot be negative";
             isValid = false;
-        } else if (Number(form.current) > Number(form.target)) {
-            errors.current = "Current progress cannot exceed the target";
+        } else if (Number(form.currentAmount) > Number(form.targetAmount)) {
+            errors.currentAmount = "currentAmount progress cannot exceed the target";
             isValid = false;
         }
     }

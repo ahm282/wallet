@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
     Credenza,
     CredenzaClose,
@@ -10,10 +11,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState, useEffect } from "react";
-import type { Account, EditAccountDialogProps } from "@/types/accounts.types";
-import validateAccountForm from "@/lib/validations/validate_account_form";
 import { Wallet } from "lucide-react";
+import validateAccountForm from "@/lib/validations/validate_account_form";
+import type { Account, EditAccountDialogProps } from "@/types/accounts.types";
 
 export const EditAccountDialog: React.FC<EditAccountDialogProps> = ({ account, isOpen, setIsOpen, onSave }) => {
     const [editedAccount, setEditedAccount] = useState<Account | null>(null);
@@ -36,7 +36,6 @@ export const EditAccountDialog: React.FC<EditAccountDialogProps> = ({ account, i
         if (!editedAccount) return;
 
         const { isValid, errors } = validateAccountForm(editedAccount);
-
         setErrors(errors);
 
         if (isValid) {
@@ -109,7 +108,7 @@ export const EditAccountDialog: React.FC<EditAccountDialogProps> = ({ account, i
                                 <Input
                                     id='balance'
                                     type='number'
-                                    value={editedAccount.balance}
+                                    value={editedAccount.balance?.toString()}
                                     onChange={(e) =>
                                         setEditedAccount({
                                             ...editedAccount,

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { PiggyBank, Edit2, Trash2, Target } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -5,12 +6,16 @@ import { AddGoalDialog } from "@/components/goals/AddGoalDialog";
 import { EditGoalDialog } from "@/components/goals/EditGoalDialog";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { currencyNotation } from "@/lib/utils";
 import { DeleteWarning } from "@/components/ui/delete-warning";
+import { fromUnixTimestamp, currencyNotation, formatDateString } from "@/lib/utils";
 import type { GoalsDataExistsProps, Goal } from "@/types/goals.types";
 
-export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoals }) => {
+export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({
+    goals,
+    createGoalMutation,
+    updateGoalMutation,
+    deleteGoalMutation,
+}) => {
     const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -20,19 +25,19 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoal
     };
 
     const handleSaveEdit = (updatedGoal: Goal) => {
-        setGoals(goals.map((g) => (g.id === updatedGoal.id ? updatedGoal : g)));
+        updateGoalMutation?.mutate(updatedGoal);
         setEditingGoal(null);
     };
 
     const handleDelete = (id: string) => {
-        setGoals(goals.filter((g) => g.id !== id));
+        deleteGoalMutation?.mutate(id);
     };
 
-    const totalTarget = goals.reduce((acc, goal) => acc + goal.target, 0);
-    const totalSaved = goals.reduce((acc, goal) => acc + goal.current, 0);
+    const totalTarget = goals.reduce((acc, goal) => acc + goal.targetAmount, 0);
+    const totalSaved = goals.reduce((acc, goal) => acc + goal.currentAmount, 0);
 
     return (
-        <div className='w-11/12 md:w-10/12 lg:max-w-4xl 2xl:max-w-5xl my-8 mx-auto flex flex-col space-y-5'>
+        <div className='w-11/12 md:w-10/12 lg:w-10/12 lg:max-w-4xl 2xl:max-w-5xl my-8 mx-auto flex flex-col space-y-7'>
             <Card>
                 <CardHeader className='pb-4'>
                     <CardTitle className='text-2xl font-bold flex flex-row items-center justify-between'>
@@ -40,10 +45,7 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoal
                             <PiggyBank className='inline size-7 me-3' />
                             <span>Goals</span>
                         </div>
-                        <AddGoalDialog
-                            goals={goals}
-                            setGoals={setGoals}
-                        />
+                        <AddGoalDialog createGoalMutation={createGoalMutation} />
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -85,20 +87,20 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoal
                                     </div>
                                 </div>
                                 <Progress
-                                    value={(goal.current / goal.target) * 100}
+                                    value={(goal.currentAmount / goal.targetAmount) * 100}
                                     className='h-2'
                                 />
                                 <div className='flex justify-between text-sm pt-0.5'>
                                     <span>
-                                        {currencyNotation(goal.current)} / {currencyNotation(goal.target)}
+                                        {currencyNotation(goal.currentAmount)} / {currencyNotation(goal.targetAmount)}
                                     </span>
-                                    <span>{((goal.current / goal.target) * 100).toFixed(0)}% achieved</span>
+                                    <span>{((goal.currentAmount / goal.targetAmount) * 100).toFixed(0)}% achieved</span>
                                 </div>
                                 <div className='flex justify-between text-xs pt-0.5 text-muted-foreground'>
                                     <span className='text-xs font-medium text-muted-foreground'>
-                                        Target date: {goal.targetDate}
+                                        Target date: {formatDateString(fromUnixTimestamp(goal.targetDate))}
                                     </span>
-                                    <span>{currencyNotation(goal.target - goal.current)} remaining</span>
+                                    <span>{currencyNotation(goal.targetAmount - goal.currentAmount)} remaining</span>
                                 </div>
                                 {index !== goals.length - 1 && (
                                     <Separator className='w-10/12 lg:w-11/12 mx-auto !mt-4' />

@@ -1,26 +1,29 @@
+import { UseMutationResult } from "@tanstack/react-query";
+
 // Goals definitions
 export interface Goal {
     id: string;
     name: string;
-    target: number;
-    current: number;
-    targetDate: string | null;
+    targetAmount: number;
+    currentAmount: number;
+    status?: boolean | null;
+    targetDate: string | number;
 }
 
 export interface NoGoalsProps {
     goals: Goal[];
-    setGoals: React.Dispatch<React.SetStateAction<Goal[]>>;
+    createGoalMutation?: UseMutationResult<any, Error, Omit<Goal, "id">>;
 }
 
 export interface GoalsDataExistsProps {
     goals: Goal[];
-    setGoals: React.Dispatch<React.SetStateAction<Goal[]>>;
+    createGoalMutation?: UseMutationResult<any, Error, Omit<Goal, "id">, unknown>;
+    updateGoalMutation?: UseMutationResult<any, Error, Goal>;
+    deleteGoalMutation?: UseMutationResult<any, Error, string>;
 }
 
 export interface AddGoalDialogProps {
-    goals: Goal[];
-    setGoals: React.Dispatch<React.SetStateAction<Goal[]>>;
-    children?: React.ReactNode;
+    createGoalMutation?: UseMutationResult<any, Error, Omit<Goal, "id">>;
 }
 
 export interface EditGoalDialogProps {
@@ -32,23 +35,29 @@ export interface EditGoalDialogProps {
 
 export interface GoalForm {
     name: string;
-    target: string;
-    current: string;
-    targetDate: string | undefined;
-}
-
-export interface GoalFormErrors {
-    name: string;
-    target: string;
-    current: string;
-    targetDate: string;
+    targetAmount: string;
+    currentAmount: string;
+    targetDate: string | number;
 }
 
 export interface EditedGoalForm extends GoalForm {
     id: string;
 }
 
+export interface GoalFormErrors {
+    name: string;
+    targetAmount: string;
+    currentAmount: string;
+    targetDate: string;
+}
+
 // Define backend's user response.
-export interface GoalResponse extends Goal {
+export interface GoalResponse {
+    id: string;
+    name: string;
+    targetAmount: number;
+    currentAmount: number;
+    status: string;
+    targetDate: string;
     userId: string;
 }

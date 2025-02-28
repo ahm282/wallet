@@ -108,8 +108,8 @@ export const EditTransactionDialog: React.FC<EditTransactionDialogProps> = ({
                             </Label>
                             <div className='col-span-3'>
                                 <DatePicker
-                                    date={editedTransaction.date}
-                                    onSelect={(selectedDate) => handleFieldChange("date", selectedDate)}
+                                    date={editedTransaction.date ? new Date(editedTransaction.date) : undefined}
+                                    onSelect={(selectedDate) => handleFieldChange("date", selectedDate ? selectedDate.getTime() : undefined)}
                                     className='col-span-3'
                                 />
                                 {errors.date && <p className='text-red-500 text-xs'>{errors.date}</p>}

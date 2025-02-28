@@ -13,7 +13,15 @@ import { Category } from "@/types/transactions.types";
 import type { Transaction, TransactionForm } from "@/types/transactions.types";
 
 export const TransactionsPage = () => {
-    const { transactions, addTransaction, editTransaction, deleteTransaction } = useTransactions();
+    const {
+        transactions,
+        createTranasactionMutation,
+        updateTransactionMutation,
+        deleteTransactionMutation,
+        isLoading,
+        isError,
+        error,
+    } = useTransactions();
     const {
         searchTerm,
         setSearchTerm,
@@ -45,6 +53,43 @@ export const TransactionsPage = () => {
         setEditingTransaction(transaction);
         setIsEditDialogOpen(true);
     };
+
+    const handleDelete = (id: string) => {
+        deleteTransactionMutation.mutate(id);
+    };
+
+    const handleSaveEdit = (updatedTransaction: Transaction) => {
+        updateTransactionMutation.mutate(updatedTransaction);
+        setEditingTransaction(null);
+    };
+
+    const handleSaveAdd = (newTransaction: TransactionForm) => {
+        createTranasactionMutation.mutate(newTransaction);
+        setNewTransaction({
+            date: undefined,
+            description: "",
+            amount: 0,
+            category: null,
+        });
+    };
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className='flex justify-center items-center font-primary text-center h-64'>
+                Loading transactions...
+            </div>
+        );
+    }
+
+    // Error state
+    if (isError) {
+        return (
+            <div className='w-6/12 mx-auto p-4 mt-10 bg-red-100 text-red-600 font-primary text-center rounded-md'>
+                Error fetching transactions: {error?.message}
+            </div>
+        );
+    }
 
     return (
         <div className='w-11/12 md:w-10/12 lg:max-w-6xl 2xl:max-w-7xl my-8 mx-auto flex flex-col space-y-5'>
@@ -84,7 +129,7 @@ export const TransactionsPage = () => {
                         transactions={transactions}
                         filteredTransactions={filteredTransactions}
                         onEdit={handleEditClick}
-                        onDelete={deleteTransaction}
+                        onDelete={handleDelete}
                     />
                 </CardContent>
             </Card>
@@ -92,7 +137,7 @@ export const TransactionsPage = () => {
             <AddTransactionDialog
                 isOpen={isAddDialogOpen}
                 setIsOpen={setIsAddDialogOpen}
-                onAdd={addTransaction}
+                onAdd={handleSaveAdd}
                 newTransaction={newTransaction}
                 setNewTransaction={setNewTransaction}
                 categories={Object.values(Category)}
@@ -102,7 +147,7 @@ export const TransactionsPage = () => {
                 isOpen={isEditDialogOpen}
                 setIsOpen={setIsEditDialogOpen}
                 transaction={editingTransaction}
-                onSave={editTransaction}
+                onSave={handleSaveEdit}
                 categories={Object.values(Category)}
             />
         </div>

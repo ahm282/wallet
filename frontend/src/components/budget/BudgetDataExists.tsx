@@ -10,7 +10,12 @@ import { currencyNotation } from "@/lib/utils";
 import { DeleteWarning } from "@/components/ui/delete-warning";
 import type { BudgetDataExistsProps, Budget } from "@/types/budget.types";
 
-export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({ budgets, setBudgets }) => {
+export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({
+    budgets,
+    createBudgetMutation,
+    updateBudgetMutation,
+    deleteBudgetMutation,
+}) => {
     const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -20,16 +25,17 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({ budgets, set
     };
 
     const handleSaveEdit = (updatedBudget: Budget) => {
-        setBudgets(budgets.map((b) => (b.id === updatedBudget.id ? updatedBudget : b)));
+        updateBudgetMutation?.mutate(updatedBudget);
         setEditingBudget(null);
     };
 
-    const handleDelete = (budget: Budget) => {
-        setBudgets(budgets.filter((b) => b.id !== budget.id));
+    const handleDelete = (id: string) => {
+        console.log("Deleting budget with id:", id);
+        deleteBudgetMutation?.mutate(id);
     };
 
-    const totalBudgeted = budgets.reduce((acc, budget) => acc + budget.budgeted, 0);
-    const totalSpent = budgets.reduce((acc, budget) => acc + budget.spent, 0);
+    const totalBudgeted = budgets.reduce((acc, budget) => acc + (budget.budgeted ? Number(budget.budgeted) : 0), 0);
+    const totalSpent = budgets.reduce((acc, budget) => acc + (budget.spent ? Number(budget.spent) : 0), 0);
 
     return (
         <div className='w-11/12 md:w-10/12 lg:max-w-4xl 2xl:max-w-5xl my-8 mx-auto flex flex-col space-y-5'>
@@ -40,10 +46,7 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({ budgets, set
                             <EuroIcon className='size-7 me-3' />
                             Monthly Budgets
                         </div>
-                        <AddBudgetDialog
-                            budgets={budgets}
-                            setBudgets={setBudgets}
-                        />
+                        <AddBudgetDialog createBudgetMutation={createBudgetMutation} />
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -61,7 +64,8 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({ budgets, set
                                     <span className='text-sm font-medium'>{budget.name}</span>
                                     <div className='flex item-center lg:gap-4'>
                                         <span className='flex items-center me-2 text-xs font-medium lg:text-sm'>
-                                            {currencyNotation(budget.spent)} / {currencyNotation(budget.budgeted)}
+                                            {currencyNotation(Number(budget.spent))} /{" "}
+                                            {currencyNotation(Number(budget.budgeted))}
                                         </span>
                                         <div className='flex justify-center items-center gap-y-1 gap-x-0.5'>
                                             <Separator
@@ -78,7 +82,7 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({ budgets, set
                                             <DeleteWarning
                                                 icon={Trash2}
                                                 message='Are you sure you want to delete this budget? This action cannot be undone.'
-                                                onConfirm={() => handleDelete(budget)}>
+                                                onConfirm={() => handleDelete(budget.id)}>
                                                 <Button
                                                     variant='ghost'
                                                     size='xl'
@@ -90,12 +94,14 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({ budgets, set
                                     </div>
                                 </div>
                                 <Progress
-                                    value={(budget.spent / budget.budgeted) * 100}
+                                    value={(Number(budget.spent) / Number(budget.budgeted)) * 100}
                                     className='h-2'
                                 />
                                 <div className='flex justify-between text-xs text-muted-foreground pt-0.5'>
-                                    <span>{((budget.spent / budget.budgeted) * 100).toFixed(0)}% spent</span>
-                                    <span>€{budget.budgeted - budget.spent} remaining</span>
+                                    <span>
+                                        {((Number(budget.spent) / Number(budget.budgeted)) * 100).toFixed(0)}% spent
+                                    </span>
+                                    <span>€{Number(budget.budgeted) - Number(budget.spent)} remaining</span>
                                 </div>
                                 {index !== budgets.length - 1 && (
                                     <Separator className='w-10/12 lg:w-11/12 mx-auto !mt-4' />
@@ -112,6 +118,7 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({ budgets, set
                 setIsOpen={setIsEditDialogOpen}
                 onSave={handleSaveEdit}
             />
+
             <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
                 <Card>
                     <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
