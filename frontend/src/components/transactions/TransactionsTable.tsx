@@ -3,7 +3,7 @@ import { ArrowUpRight, ArrowDownRight, Edit2, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { DeleteWarning } from "@/components/ui/delete-warning";
-import { currencyNotation } from "@/lib/utils";
+import { currencyNotation, fromUnixTimestamp, formatDateString } from "@/lib/utils";
 import type { TransactionsTableProps } from "@/types/transactions.types";
 
 export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactions, onEdit, onDelete }) => {
@@ -27,7 +27,9 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactio
                 <TableBody>
                     {transactions.map((transaction) => (
                         <TableRow key={transaction.id}>
-                            <TableCell className='px-2'>{transaction.date?.toLocaleDateString("nl-BE")}</TableCell>
+                            <TableCell className='px-2'>
+                                {transaction.date ? formatDateString(fromUnixTimestamp(transaction.date)) : "N/A"}
+                            </TableCell>
                             <TableCell className='px-2'>{transaction.description}</TableCell>
                             <TableCell className='px-2'>{transaction.category}</TableCell>
                             <TableCell className='px-2'>
@@ -50,7 +52,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactio
                                 <DeleteWarning
                                     icon={Trash2}
                                     message='Are you sure you want to delete this transaction? This action cannot be undone.'
-                                    onConfirm={() => onDelete(Number(transaction.id))}>
+                                    onConfirm={() => onDelete(transaction.id)}>
                                     <Button
                                         variant='ghost'
                                         size='xl'
