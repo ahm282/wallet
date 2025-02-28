@@ -16,14 +16,14 @@ import {
     CredenzaHeader,
     CredenzaTitle,
 } from "@/components/ui/credenza";
-import type { Bill, BillForm, AddBillDialogProps } from "@/types/bills.types";
+import type { BillForm, AddBillDialogProps } from "@/types/bills.types";
 
 export const AddBillDialog: React.FC<AddBillDialogProps> = ({ createBillMutation }) => {
     const [newBill, setNewBill] = useState<BillForm>({
         payee: "",
         amount: 0,
         dueDate: "",
-        paidOn: null,
+        paidOn: undefined,
         paid: false,
         description: "",
     });
@@ -46,7 +46,7 @@ export const AddBillDialog: React.FC<AddBillDialogProps> = ({ createBillMutation
                 payee: "",
                 amount: 0,
                 dueDate: "",
-                paidOn: null,
+                paidOn: undefined,
                 paid: false,
                 description: "",
             });

@@ -3,7 +3,7 @@ import { CreditCard, Wallet, PiggyBank, DollarSign, BarChart, Target } from "luc
 import { AddAccountDialog } from "@/components/accounts/AddAccountDialog";
 import type { NoAccountsProps } from "@/types/accounts.types";
 
-export const NoAccounts: React.FC<NoAccountsProps> = ({ accounts, createAccountMutation }) => {
+export const NoAccounts: React.FC<NoAccountsProps> = ({ createAccountMutation }) => {
     return (
         <div className='md:w-10/12 lg:w-10/12 lg:max-w-4xl 2xl:max-w-5xl my-8 mx-auto flex flex-col space-y-3'>
             <Card>
@@ -18,10 +18,7 @@ export const NoAccounts: React.FC<NoAccountsProps> = ({ accounts, createAccountM
                             accounts.&nbsp;&nbsp;💳
                         </p>
                     </div>
-                    <AddAccountDialog
-                        accounts={accounts}
-                        createAccountMutation={createAccountMutation}
-                    />
+                    <AddAccountDialog createAccountMutation={createAccountMutation} />
                 </CardContent>
             </Card>
             <div className='flex flex-col items-center justify-center lg:flex-row lg:justify-evenly lg:space-x-4 space-y-3 lg:space-y-0'>

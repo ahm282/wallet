@@ -45,10 +45,7 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({
                             <PiggyBank className='inline size-7 me-3' />
                             <span>Goals</span>
                         </div>
-                        <AddGoalDialog
-                            goals={goals}
-                            createGoalMutation={createGoalMutation}
-                        />
+                        <AddGoalDialog createGoalMutation={createGoalMutation} />
                     </CardTitle>
                 </CardHeader>
                 <CardContent>

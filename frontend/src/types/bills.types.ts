@@ -6,8 +6,8 @@ export interface Bill {
     payee: string;
     description: string;
     amount: number;
-    dueDate: string | number | null;
-    paidOn?: string | number | null;
+    dueDate: string | number;
+    paidOn?: string | number;
     paid: boolean;
 }
 

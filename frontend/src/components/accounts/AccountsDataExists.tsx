@@ -54,10 +54,7 @@ export const AccountsDataExists: React.FC<AccountsDataExistsProps> = ({
                             <LucideWallet className='size-7 me-3' />
                             <CardTitle className='text-2xl font-bold'>Accounts</CardTitle>
                         </div>
-                        <AddAccountDialog
-                            accounts={accounts}
-                            createAccountMutation={createAccountMutation}
-                        />
+                        <AddAccountDialog createAccountMutation={createAccountMutation} />
                     </CardTitle>
                 </CardHeader>
                 <CardContent>

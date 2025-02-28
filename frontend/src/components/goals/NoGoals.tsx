@@ -6,7 +6,7 @@ import { AddGoalDialog } from "@/components/goals/AddGoalDialog";
 import type { NoGoalsProps } from "@/types/goals.types";
 import GoalSettingGuide from "./GoalSettingGuide";
 
-export const NoGoals: React.FC<NoGoalsProps> = ({ goals, createGoalMutation }) => {
+export const NoGoals: React.FC<NoGoalsProps> = ({ createGoalMutation }) => {
     const [isGoalsGuideOpen, setIsGoalsGuideOpen] = useState(false);
 
     return (
@@ -23,10 +23,7 @@ export const NoGoals: React.FC<NoGoalsProps> = ({ goals, createGoalMutation }) =
                             milestones.&nbsp;&nbsp;🚀
                         </p>
                     </div>
-                    <AddGoalDialog
-                        goals={goals}
-                        createGoalMutation={createGoalMutation}
-                    />
+                    <AddGoalDialog createGoalMutation={createGoalMutation} />
                 </CardContent>
             </Card>
             <div className='flex flex-col items-center justify-center lg:flex-row lg:justify-evenly lg:space-x-4 space-y-3 lg:space-y-0'>
