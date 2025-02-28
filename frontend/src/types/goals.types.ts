@@ -23,7 +23,6 @@ export interface GoalsDataExistsProps {
 }
 
 export interface AddGoalDialogProps {
-    goals: Goal[];
     createGoalMutation?: UseMutationResult<any, Error, Omit<Goal, "id">>;
 }
 

@@ -1,47 +1,59 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { NoBills } from "@/components/bills/NoBills";
-import BillsDataExists from "@/components/bills/BillsDataExists";
+import { BillsDataExists } from "@/components/bills/BillsDataExists";
+import { fetchBills, createBill, updateBill, deleteBill, payBill } from "@/api/bills";
 import type { Bill } from "@/types/bills.types";
 
 export const BillsPage = () => {
-    // Sample data
-    const sampleBills: Bill[] = [
-        {
-            id: 1,
-            payee: "Electricity",
-            amount: 100,
-            dueDate: "2025-10-25",
-            paidOn: "2025-06-10",
-            paid: true,
-            description: "Monthly electricity bill",
+    const queryClient = useQueryClient();
+
+    const {
+        data: bills = [],
+        isLoading,
+        isError,
+        error,
+    } = useQuery<Bill[], Error>({ queryKey: ["bills"], queryFn: fetchBills });
+
+    // Mutation for adding a bill
+    const createBillMutation = useMutation({
+        mutationFn: async (newBill: Omit<Bill, "id">) => {
+            createBill(newBill);
         },
-        {
-            id: 2,
-            payee: "Water",
-            amount: 50,
-            dueDate: "2025-08-17",
-            paid: false,
-            description: "Monthly water bill",
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["bills"] });
         },
-        {
-            id: 3,
-            payee: "Internet",
-            amount: 80,
-            dueDate: "2025-12-10",
-            paidOn: null,
-            paid: false,
-            description: "Monthly internet bill",
+    });
+
+    // Mutation for updating a bill
+    const updateBillMutation = useMutation({
+        mutationFn: async (updatedBill: Bill) => {
+            updateBill(updatedBill);
         },
-        {
-            id: 4,
-            payee: "Phone",
-            amount: 30,
-            dueDate: "2025-09-10",
-            paidOn: "2025-09-01",
-            paid: true,
-            description: "Monthly phone bill",
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["bills"] });
         },
-    ];
+    });
+
+    // Mutation for deleting a bill
+    const deleteBillMutation = useMutation({
+        mutationFn: async (billId: string) => {
+            deleteBill(billId);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["bills"] });
+        },
+    });
+
+    // Mutation for marking a bill as paid
+    const markBillAsPaidMutation = useMutation({
+        mutationFn: async (billId: string) => {
+            payBill(billId);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["bills"] });
+        },
+    });
 
     /*
      * Sets the title of the page to "Bills | Wallet" when the component mounts
@@ -50,18 +62,32 @@ export const BillsPage = () => {
         document.title = "Bills | Wallet";
     }, []);
 
-    const [bills, setBills] = useState<Bill[]>(sampleBills);
-    const hasBillsData = bills.length > 0;
+    // Loading state
+    if (isLoading) {
+        return <div className='flex justify-center font-primary items-center h-64'>Loading bills...</div>;
+    }
 
-    return hasBillsData ? (
+    // Error state
+    if (isError) {
+        return (
+            <div className='flex justify-center font-primary items-center h-64'>
+                {error.message}
+            </div>
+        );
+    }
+
+    return bills.length > 0 ? (
         <BillsDataExists
             bills={bills}
-            setBills={setBills}
+            createBillMutation={createBillMutation}
+            updateBillMutation={updateBillMutation}
+            deleteBillMutation={deleteBillMutation}
+            markBillAsPaidMutation={markBillAsPaidMutation}
         />
     ) : (
         <NoBills
             bills={bills}
-            setBills={setBills}
+            createBillMutation={createBillMutation}
         />
     );
 };

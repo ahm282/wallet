@@ -6,12 +6,18 @@ import { Edit2, Trash2, LucideCalendar } from "lucide-react";
 import { AddBillDialog } from "@/components/bills/AddBillDialog";
 import { EditBillDialog } from "@/components/bills/EditBillDialog";
 import { DeleteWarning } from "@/components/ui/delete-warning";
-import { currencyNotation } from "@/lib/utils";
-import { format } from "date-fns";
+import { currencyNotation, fromUnixTimestamp, formatDateString } from "@/lib/utils";
+
 import type { Bill, BillsDataExistsProps } from "@/types/bills.types";
 import BillsDashboard from "./BillsDashboard";
 
-export const BillsDataExists: React.FC<BillsDataExistsProps> = ({ bills, setBills }) => {
+export const BillsDataExists: React.FC<BillsDataExistsProps> = ({
+    bills,
+    createBillMutation,
+    updateBillMutation,
+    deleteBillMutation,
+    markBillAsPaidMutation,
+}) => {
     const [editingBill, setEditingBill] = useState<Bill | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -21,26 +27,16 @@ export const BillsDataExists: React.FC<BillsDataExistsProps> = ({ bills, setBill
     };
 
     const handleSaveEdit = (updatedBill: Bill) => {
-        setBills(bills.map((b) => (b.id === updatedBill.id ? updatedBill : b)));
+        updateBillMutation?.mutate(updatedBill);
         setEditingBill(null);
     };
 
-    const handleDelete = (id: number) => {
-        setBills(bills.filter((b) => b.id !== id));
+    const handleDelete = (id: string) => {
+        deleteBillMutation?.mutate(id);
     };
 
-    const payBill = (id: number) => {
-        setBills(
-            bills.map((b) =>
-                b.id === id
-                    ? {
-                          ...b,
-                          paid: true,
-                          paidOn: format(new Date(), "yyyy-MM-dd"),
-                      }
-                    : b
-            )
-        );
+    const payBill = (id: string) => {
+        markBillAsPaidMutation?.mutate(id);
     };
 
     return (
@@ -52,10 +48,7 @@ export const BillsDataExists: React.FC<BillsDataExistsProps> = ({ bills, setBill
                             <LucideCalendar className='size-7 me-3' />
                             <CardTitle className='text-2xl font-bold'>Bills</CardTitle>
                         </div>
-                        <AddBillDialog
-                            bills={bills}
-                            setBills={setBills}
-                        />
+                        <AddBillDialog createBillMutation={createBillMutation} />
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -76,8 +69,10 @@ export const BillsDataExists: React.FC<BillsDataExistsProps> = ({ bills, setBill
                                     <TableRow key={bill.id}>
                                         <TableCell>{bill.payee}</TableCell>
                                         <TableCell>{currencyNotation(bill.amount)}</TableCell>
-                                        <TableCell>{bill.dueDate}</TableCell>
-                                        <TableCell>{bill.paidOn ? bill.paidOn : ""}</TableCell>
+                                        <TableCell>{formatDateString(fromUnixTimestamp(bill.dueDate))}</TableCell>
+                                        <TableCell>
+                                            {bill.paidOn ? formatDateString(fromUnixTimestamp(bill.paidOn)) : ""}
+                                        </TableCell>
                                         <TableCell className='text-center'>
                                             {bill.paid ? (
                                                 <div>

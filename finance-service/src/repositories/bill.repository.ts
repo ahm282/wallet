@@ -24,4 +24,9 @@ export class BillRepository extends GenericRepository<BillDocument> implements I
             })
             .exec();
     }
+
+    async pay(id: string): Promise<BillDocument | null> {
+        const paidOn = new Date().getTime();
+        return this.model.findByIdAndUpdate(id, { paid: true, paidOn: paidOn }, { new: true }).exec();
+    }
 }

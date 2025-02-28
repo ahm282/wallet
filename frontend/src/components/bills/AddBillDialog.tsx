@@ -5,10 +5,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
-import { format } from "date-fns";
-import validateBillForm from "@/lib/validations/validate_bill_form";
 import { LucideCalendarDays } from "lucide-react";
-import type { Bill, BillForm, AddBillDialogProps } from "@/types/bills.types";
+import validateBillForm from "@/lib/validations/validate_bill_form";
 import {
     Credenza,
     CredenzaClose,
@@ -18,8 +16,9 @@ import {
     CredenzaHeader,
     CredenzaTitle,
 } from "@/components/ui/credenza";
+import type { Bill, BillForm, AddBillDialogProps } from "@/types/bills.types";
 
-export const AddBillDialog: React.FC<AddBillDialogProps> = ({ bills, setBills }) => {
+export const AddBillDialog: React.FC<AddBillDialogProps> = ({ createBillMutation }) => {
     const [newBill, setNewBill] = useState<BillForm>({
         payee: "",
         amount: 0,
@@ -38,12 +37,11 @@ export const AddBillDialog: React.FC<AddBillDialogProps> = ({ bills, setBills })
 
     const handleAddBill = async (e: React.FormEvent) => {
         e.preventDefault();
-        const { isValid, errors } = validateBillForm(newBill as Bill);
+        const { isValid, errors } = validateBillForm(newBill);
+
         if (isValid) {
-            // Simulate API behavior by adding a temporary id.
-            // In production, we call the API and use the returned bill with its id.
-            const createdBill: Bill = { ...newBill, id: bills.length + 1 };
-            setBills([...bills, createdBill]);
+            createBillMutation?.mutate(newBill);
+
             setNewBill({
                 payee: "",
                 amount: 0,
@@ -52,6 +50,7 @@ export const AddBillDialog: React.FC<AddBillDialogProps> = ({ bills, setBills })
                 paid: false,
                 description: "",
             });
+
             clearErrors();
             setIsAddDialogOpen(false);
         } else {
@@ -132,8 +131,7 @@ export const AddBillDialog: React.FC<AddBillDialogProps> = ({ bills, setBills })
                                         onSelect={(date) =>
                                             setNewBill({
                                                 ...newBill,
-                                                dueDate: date ? format(date, "yyyy-MM-dd") : "",
-                                                paid: !!date,
+                                                dueDate: date ? date.getTime() : "",
                                             })
                                         }
                                     />
@@ -153,7 +151,7 @@ export const AddBillDialog: React.FC<AddBillDialogProps> = ({ bills, setBills })
                                         onSelect={(date) =>
                                             setNewBill({
                                                 ...newBill,
-                                                paidOn: date ? format(date, "yyyy-MM-dd") : "",
+                                                paidOn: date ? date.getTime() : "",
                                                 paid: !!date,
                                             })
                                         }

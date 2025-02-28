@@ -22,7 +22,6 @@ export interface AccountsDataExistsProps {
 }
 
 export interface AddAccountDialogProps {
-    accounts: Account[];
     createAccountMutation?: UseMutationResult<any, Error, Omit<Account, "id">>;
 }
 

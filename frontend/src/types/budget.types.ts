@@ -21,7 +21,6 @@ export interface BudgetDataExistsProps {
 }
 
 export interface AddBudgetDialogProps {
-    budgets: Budget[];
     createBudgetMutation?: UseMutationResult<any, Error, Omit<Budget, "id">>;
 }
 
@@ -43,11 +42,3 @@ export interface BudgetFormErrors {
     budgeted: string;
     spent: string;
 }
-
-// export interface DeleteWarningProps {
-//     icon: React.ComponentType<{ className?: string }>;
-//     message: string;
-//     children: React.ReactNode;
-//     onConfirm?: () => void;
-//     onCancel?: () => void;
-// }
