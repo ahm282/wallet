@@ -20,10 +20,10 @@ export class Transaction {
     userId: string;
 
     @Prop({ required: true })
-    date: Date;
+    description: string;
 
     @Prop({ required: true })
-    description: string;
+    date: number;
 
     @Prop({ required: true })
     amount: number;

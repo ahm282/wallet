@@ -11,9 +11,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { List, PlusCircle } from "lucide-react";
 import { CategorySelect } from "@/components/transactions/CategoriesDropdown";
 import { DatePicker } from "@/components/ui/date-picker";
+import { List, PlusCircle } from "lucide-react";
 import { validateTransactionForm } from "@/lib/validations/validate_transaction_form";
 import type { AddTransactionDialogProps, TransactionFormErrors, Category } from "@/types/transactions.types";
 
@@ -113,8 +113,8 @@ export const AddTransactionDialog: React.FC<AddTransactionDialogProps> = ({
                             </Label>
                             <div className='col-span-3'>
                                 <DatePicker
-                                    date={newTransaction.date}
-                                    onSelect={(selectedDate) => handleFieldChange("date", selectedDate)}
+                                    date={newTransaction.date ? new Date(newTransaction.date) : undefined}
+                                    onSelect={(selectedDate) => handleFieldChange("date", selectedDate?.getTime())}
                                     className='col-span-3'
                                 />
                                 {errors.date && <p className='text-red-500 text-xs'>{errors.date}</p>}

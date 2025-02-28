@@ -13,7 +13,8 @@ import { Category } from "@/types/transactions.types";
 import type { Transaction, TransactionForm } from "@/types/transactions.types";
 
 export const TransactionsPage = () => {
-    const { transactions, addTransaction, editTransaction, deleteTransaction } = useTransactions();
+    const { transactions, createTranasactionMutation, updateTransactionMutation, deleteTransactionMutation } =
+        useTransactions();
     const {
         searchTerm,
         setSearchTerm,
@@ -44,6 +45,25 @@ export const TransactionsPage = () => {
     const handleEditClick = (transaction: Transaction) => {
         setEditingTransaction(transaction);
         setIsEditDialogOpen(true);
+    };
+
+    const handleDelete = (id: string) => {
+        deleteTransactionMutation.mutate(id);
+    };
+
+    const handleSaveEdit = (updatedTransaction: Transaction) => {
+        updateTransactionMutation.mutate(updatedTransaction);
+        setEditingTransaction(null);
+    };
+
+    const handleSaveAdd = (newTransaction: TransactionForm) => {
+        createTranasactionMutation.mutate(newTransaction);
+        setNewTransaction({
+            date: undefined,
+            description: "",
+            amount: 0,
+            category: null,
+        });
     };
 
     return (
@@ -84,7 +104,7 @@ export const TransactionsPage = () => {
                         transactions={transactions}
                         filteredTransactions={filteredTransactions}
                         onEdit={handleEditClick}
-                        onDelete={deleteTransaction}
+                        onDelete={handleDelete}
                     />
                 </CardContent>
             </Card>
@@ -92,7 +112,7 @@ export const TransactionsPage = () => {
             <AddTransactionDialog
                 isOpen={isAddDialogOpen}
                 setIsOpen={setIsAddDialogOpen}
-                onAdd={addTransaction}
+                onAdd={handleSaveAdd}
                 newTransaction={newTransaction}
                 setNewTransaction={setNewTransaction}
                 categories={Object.values(Category)}
@@ -102,7 +122,7 @@ export const TransactionsPage = () => {
                 isOpen={isEditDialogOpen}
                 setIsOpen={setIsEditDialogOpen}
                 transaction={editingTransaction}
-                onSave={editTransaction}
+                onSave={handleSaveEdit}
                 categories={Object.values(Category)}
             />
         </div>

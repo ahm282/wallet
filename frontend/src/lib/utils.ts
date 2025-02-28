@@ -22,10 +22,12 @@ export function currencyNotation(value: number) {
 
 // Date utils
 export function fromUnixTimestamp(timestamp: string | number): Date {
-    if (typeof timestamp === "string") {
-        return new Date(parseInt(timestamp) * 1000);
+    let ts = typeof timestamp === "string" ? parseInt(timestamp, 10) : timestamp;
+    // If ts is in seconds (10 digits) then convert to milliseconds, otherwise assume it's already in ms
+    if (ts < 1e12) {
+        ts *= 1000;
     }
-    return new Date(timestamp * 1000);
+    return new Date(ts);
 }
 
 export function formatDateString(date: Date): string {
