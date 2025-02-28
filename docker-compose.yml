@@ -49,14 +49,14 @@ services:
             - "${API_GATEWAY_PORT}:8080"
         restart: always
 
-    # frontend:
-    #     build:
-    #         context: ./frontend/
-    #         dockerfile: Dockerfile
-    #     image: ahm282/frontend:latest
-    #     restart: always
-    #     ports:
-    #         - "80:80"
+    frontend:
+        build:
+            context: ./frontend/
+            dockerfile: Dockerfile
+        image: ahm282/frontend:latest
+        restart: always
+        ports:
+            - "80:80"
 
     finance-service:
         build:
@@ -68,7 +68,7 @@ services:
         environment:
             - MONGO_URI=mongodb://finance-db:27017/wallet
             - NESTJS_PORT=${NESTJS_PORT}
-            - FINANCE_DB_HOST=mongodb
+            - NODE_ENV=${NEST_ENV}
         ports:
             - "${NESTJS_PORT}:3000"
         restart: always
