@@ -7,9 +7,11 @@ export const useLogout = () => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
+        googleLogout();
+
         // Clear zustand auth state
         logout();
-        googleLogout();
+
         navigate("/");
     };
 
