@@ -6,21 +6,27 @@ import { currencyNotation, formatDateString, fromUnixTimestamp } from "@/lib/uti
 import type { BillsDashboardProps } from "@/types/bills.types";
 
 export const BillsDashboard: React.FC<BillsDashboardProps> = ({ bills }) => {
-    const now = new Date();
+    const now = Math.floor(Date.now() / 1000);
     const totalBills = bills.length;
     const totalAmount = bills.reduce((acc, bill) => acc + bill.amount, 0);
     const totalPaid = bills.filter((bill) => bill.paid).reduce((acc, bill) => acc + bill.amount, 0);
     const totalUnpaid = bills.filter((bill) => !bill.paid).reduce((acc, bill) => acc + bill.amount, 0);
     const totalOverdue = bills
-        .filter((bill) => !bill.paid && new Date(bill.dueDate) < now)
+        .filter((bill) => !bill.paid && bill.dueDate !== null && typeof bill.dueDate === "number" && bill.dueDate < now)
         .reduce((acc, bill) => acc + bill.amount, 0);
 
     const totalUpcoming = bills
-        .filter((bill) => !bill.paid && new Date(bill.dueDate) >= now)
+        .filter(
+            (bill) => !bill.paid && bill.dueDate !== null && typeof bill.dueDate === "number" && bill.dueDate >= now
+        )
         .reduce((acc, bill) => acc + bill.amount, 0);
 
-    const upcomingBills = bills.filter((bill) => new Date(bill.dueDate) >= now && !bill.paid);
-    const overdueBills = bills.filter((bill) => new Date(bill.dueDate) < now && !bill.paid);
+    const upcomingBills = bills.filter(
+        (bill) => !bill.paid && bill.dueDate !== null && typeof bill.dueDate === "number" && bill.dueDate >= now
+    );
+    const overdueBills = bills.filter(
+        (bill) => !bill.paid && bill.dueDate !== null && typeof bill.dueDate === "number" && bill.dueDate < now
+    );
 
     return (
         <div className='space-y-6'>

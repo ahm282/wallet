@@ -181,7 +181,7 @@ export const EditBillDialog: React.FC<EditBillDialogProps> = ({ bill, isOpen, se
                                             paid: Boolean(checked),
                                             paidOn: checked
                                                 ? editedBill.paidOn || format(new Date(), "yyyy-MM-dd")
-                                                : null,
+                                                : undefined,
                                         })
                                     }
                                 />

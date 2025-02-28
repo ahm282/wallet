@@ -6,7 +6,7 @@ import { AddBudgetDialog } from "@/components/budget/AddBudgetDialog";
 import { useState } from "react";
 import type { NoBudgetProps } from "@/types/budget.types";
 
-export const NoBudget: React.FC<NoBudgetProps> = ({ budgets, createBudgetMutation }) => {
+export const NoBudget: React.FC<NoBudgetProps> = ({ createBudgetMutation }) => {
     const [isBudgetGuideOpen, setisBudgetGuideOpen] = useState(false);
 
     return (
@@ -25,10 +25,7 @@ export const NoBudget: React.FC<NoBudgetProps> = ({ budgets, createBudgetMutatio
                             financial decisions.
                         </p>
                     </div>
-                    <AddBudgetDialog
-                        budgets={budgets}
-                        createBudgetMutation={createBudgetMutation}
-                    />
+                    <AddBudgetDialog createBudgetMutation={createBudgetMutation} />
                 </CardContent>
             </Card>
             <Card>
