@@ -12,44 +12,37 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
-import { format } from "date-fns";
 import { PiggyBank } from "lucide-react";
-import type { EditGoalDialogProps, EditedGoalForm, GoalResponse } from "@/types/goals.types";
 import { validateGoalForm } from "@/lib/validations/validate_goal_form";
-import { ApiUtil } from "@/lib/api_utils";
-import { useAuthStore } from "@/store/authStore";
-
-// Update a goal via a PUT request.
-async function updateGoalData(goalId: string, payload: object): Promise<GoalResponse> {
-    const { token, user } = useAuthStore.getState();
-    const data = {
-        ...payload,
-        userId: user?.id,
-    };
-    const api = import.meta.env.VITE_ENV_NAME === "dev" ? new ApiUtil("http://localhost:8080/api") : new ApiUtil();
-    return api.put<GoalResponse>(`/goal/${goalId}`, data, token ?? "");
-}
+import { fromUnixTimestamp } from "@/lib/utils";
+import type { EditGoalDialogProps, EditedGoalForm } from "@/types/goals.types";
 
 export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, setIsOpen, onSave }) => {
-    const [editedGoal, setEditedGoal] = useState<EditedGoalForm>();
+    const [editedGoal, setEditedGoal] = useState<EditedGoalForm>({
+        id: "",
+        name: "",
+        targetAmount: "",
+        currentAmount: "",
+        targetDate: 0,
+    });
+
     const [errors, setErrors] = useState({
         name: "",
-        target: "",
-        current: "",
+        targetAmount: "",
+        currentAmount: "",
         targetDate: "",
     });
 
     useEffect(() => {
         if (goal) {
             setEditedGoal({
-                id: goal.id, // ensure id type matches your backend (e.g. string)
+                id: goal.id,
                 name: goal.name,
-                target: goal.target.toString(),
-                current: goal.current.toString(),
-                targetDate: goal.targetDate ?? "",
+                targetAmount: goal.targetAmount.toString(),
+                currentAmount: goal.currentAmount.toString(),
+                targetDate: goal.targetDate.toString(),
             });
-            // Reset errors when a new goal is loaded.
-            setErrors({ name: "", target: "", current: "", targetDate: "" });
+            setErrors({ name: "", targetAmount: "", currentAmount: "", targetDate: "" });
         }
     }, [goal]);
 
@@ -61,27 +54,22 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
         setErrors(errors);
 
         if (isValid) {
-            const payload = {
-                name: editedGoal.name,
-                target: Number(editedGoal.target),
-                current: Number(editedGoal.current),
-                targetDate: editedGoal.targetDate,
-            };
-
             try {
-                // Call the API to update the goal.
-                const updatedGoal = await updateGoalData(editedGoal.id, payload);
+                const updatedGoal = {
+                    id: editedGoal.id,
+                    name: editedGoal.name,
+                    targetAmount: Number(editedGoal.targetAmount),
+                    currentAmount: Number(editedGoal.currentAmount),
+                    targetDate: Number(editedGoal.targetDate),
+                };
+
                 onSave(updatedGoal);
+                setIsOpen(false);
             } catch (error) {
                 console.error("Error updating goal:", error);
-                // Optionally, set an error message here to notify the user.
             }
-
-            setIsOpen(false);
         }
     };
-
-    if (!editedGoal) return null;
 
     return (
         <Credenza
@@ -114,6 +102,7 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
                                 {errors.name && <p className='text-xs text-red-500'>{errors.name}</p>}
                             </div>
                         </div>
+
                         {/* Target Field */}
                         <div className='grid grid-cols-4 items-center gap-4'>
                             <Label
@@ -124,13 +113,14 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
                             <div className='col-span-3'>
                                 <Input
                                     id='target'
-                                    type='text'
-                                    value={editedGoal.target}
-                                    onChange={(e) => setEditedGoal({ ...editedGoal, target: e.target.value })}
+                                    type='number'
+                                    value={editedGoal.targetAmount}
+                                    onChange={(e) => setEditedGoal({ ...editedGoal, targetAmount: e.target.value })}
                                 />
-                                {errors.target && <p className='text-xs text-red-500'>{errors.target}</p>}
+                                {errors.targetAmount && <p className='text-xs text-red-500'>{errors.targetAmount}</p>}
                             </div>
                         </div>
+
                         {/* Current Field */}
                         <div className='grid grid-cols-4 items-center gap-4'>
                             <Label
@@ -141,13 +131,14 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
                             <div className='col-span-3'>
                                 <Input
                                     id='current'
-                                    type='text'
-                                    value={editedGoal.current}
-                                    onChange={(e) => setEditedGoal({ ...editedGoal, current: e.target.value })}
+                                    type='number'
+                                    value={editedGoal.currentAmount}
+                                    onChange={(e) => setEditedGoal({ ...editedGoal, currentAmount: e.target.value })}
                                 />
-                                {errors.current && <p className='text-xs text-red-500'>{errors.current}</p>}
+                                {errors.currentAmount && <p className='text-xs text-red-500'>{errors.currentAmount}</p>}
                             </div>
                         </div>
+
                         {/* Target Date Field */}
                         <div className='grid grid-cols-4 items-center gap-4'>
                             <Label
@@ -157,11 +148,11 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
                             </Label>
                             <div className='col-span-3'>
                                 <DatePicker
-                                    date={editedGoal.targetDate ? new Date(editedGoal.targetDate) : undefined}
+                                    date={fromUnixTimestamp(Number(editedGoal.targetDate))}
                                     onSelect={(selectedDate) =>
                                         setEditedGoal({
                                             ...editedGoal,
-                                            targetDate: selectedDate ? format(selectedDate, "yyyy-MM-dd") : "",
+                                            targetDate: selectedDate ? Math.floor(selectedDate.getTime() / 1000) : "",
                                         })
                                     }
                                 />
@@ -169,6 +160,7 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
                             </div>
                         </div>
                     </div>
+
                     <CredenzaFooter className='w-11/12 mx-auto'>
                         <Button type='submit'>Save Changes</Button>
                         <CredenzaClose asChild>

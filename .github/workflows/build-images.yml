@@ -21,6 +21,9 @@ jobs:
             GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
             DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
             DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+            FINANCE_DB_HOST: ${{ secrets.FINANCE_DB_HOST }}
+            NESTJS_PORT: ${{ secrets.NESTJS_PORT }}
+            NEST_ENV: ${{ secrets.NEST_ENV }}
 
         steps:
             - name: Checkout repository

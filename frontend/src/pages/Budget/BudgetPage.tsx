@@ -1,20 +1,51 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { NoBudget } from "@/components/budget/NoBudget";
 import { BudgetDataExists } from "@/components/budget/BudgetDataExists";
+import { fetchBudgets, createBudget, updateBudget, deleteBudget } from "@/api/budgets";
+import { getUserId } from "@/lib/utils";
 import type { Budget } from "@/types/budget.types";
 
 export const BudgetPage = () => {
-    // Sample budgets data
-    const sampleBudgets = [
-        { id: 1, name: "Healthcare", budgeted: 400, spent: 85 },
-        { id: 2, name: "Food", budgeted: 600, spent: 450 },
-        { id: 3, name: "Transportation", budgeted: 400, spent: 350 },
-        { id: 4, name: "Utilities", budgeted: 300, spent: 280 },
-        { id: 5, name: "Entertainment", budgeted: 200, spent: 180 },
-    ];
+    const queryClient = useQueryClient();
 
-    const [budgets, setBudgets] = useState<Budget[]>(sampleBudgets);
-    const hasBudgetData = budgets.length > 0;
+    const {
+        data: budgets = [],
+        isLoading,
+        isError,
+        error,
+    } = useQuery<Budget[], Error>({ queryKey: ["budgets", getUserId()], queryFn: fetchBudgets });
+
+    // Mutation for adding a budget
+    const createBudgetMutation = useMutation({
+        mutationFn: async (newBudget: Omit<Budget, "id">) => {
+            createBudget(newBudget);
+        },
+        onSuccess: () => {
+            // Invalidate budgets query to refetch data
+            queryClient.invalidateQueries({ queryKey: ["budgets"] });
+        },
+    });
+
+    // Mutation for updating a budget
+    const updateBudgetMutation = useMutation({
+        mutationFn: async (updatedBudget: Budget) => {
+            updateBudget(updatedBudget);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["budgets"] });
+        },
+    });
+
+    // Mutation for deleting a budget
+    const deleteBudgetMutation = useMutation({
+        mutationFn: async (budgetId: string) => {
+            deleteBudget(budgetId);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["budgets"] });
+        },
+    });
 
     /*
      * Sets the title of the page to "Budgets | Wallet" when the component mounts
@@ -23,15 +54,31 @@ export const BudgetPage = () => {
         document.title = "Monthly Budgets | Wallet";
     }, []);
 
-    return hasBudgetData ? (
+    // Loading state
+    if (isLoading) {
+        return <div className='flex justify-center items-center font-primary text-center h-64'>Loading budgets...</div>;
+    }
+
+    // Error state
+    if (isError) {
+        return (
+            <div className='w-6/12 mx-auto p-4 mt-10 bg-red-100 text-red-600 font-primary text-center rounded-md'>
+                Error fetching budgets: {error.message}
+            </div>
+        );
+    }
+
+    return budgets.length > 0 ? (
         <BudgetDataExists
             budgets={budgets}
-            setBudgets={setBudgets}
+            createBudgetMutation={createBudgetMutation}
+            updateBudgetMutation={updateBudgetMutation}
+            deleteBudgetMutation={deleteBudgetMutation}
         />
     ) : (
         <NoBudget
             budgets={budgets}
-            setBudgets={setBudgets}
+            createBudgetMutation={createBudgetMutation}
         />
     );
 };

@@ -39,6 +39,8 @@ public class SecurityConfig {
                     .permitAll()
                     .pathMatchers(HttpMethod.GET, "/")
                     .permitAll()
+                    .pathMatchers(HttpMethod.GET, "/api/finance")
+                    .permitAll()
                     .anyExchange()
                     .authenticated())
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()));

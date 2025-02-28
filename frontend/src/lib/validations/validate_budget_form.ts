@@ -1,6 +1,6 @@
-import type { BudgetFormErrors, NewBudget } from "@/types/budget.types";
+import type { BudgetForm, BudgetFormErrors } from "@/types/budget.types";
 
-export const validateBudgetForm = (newBudget: NewBudget): { isValid: boolean; errors: BudgetFormErrors } => {
+export const validateBudgetForm = (newBudget: BudgetForm): { isValid: boolean; errors: BudgetFormErrors } => {
     let isValid = true;
     const errors: BudgetFormErrors = {
         name: "",

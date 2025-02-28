@@ -1,47 +1,33 @@
-import { Account } from "@/types/accounts.types";
+import { AccountForm, AccountFormErrors } from "@/types/accounts.types";
 
-interface AccountErrors {
-  name: string;
-  balance: string;
-  institution: string;
-  currency: string;
-}
+const validateAccountForm = (newAccount: AccountForm): { isValid: boolean; errors: AccountFormErrors } => {
+    let isValid = true;
+    const errors: AccountFormErrors = {
+        name: "",
+        balance: "",
+        institution: "",
+        currency: "",
+    };
 
-const validateAccountForm = (
-  newAccount: Account,
-): { isValid: boolean; errors: AccountErrors } => {
-  let isValid = true;
-  let errorsObj: AccountErrors = {
-    name: "",
-    balance: "",
-    institution: "",
-    currency: "",
-  };
+    if (!newAccount.name.trim()) {
+        errors.name = "Name is required";
+        isValid = false;
+    }
 
-  if (!newAccount.name.trim()) {
-    errorsObj.name = "Name is required";
-    isValid = false;
-  }
+    if (newAccount.balance === undefined || newAccount.balance === null) {
+        errors.balance = "Initial balance is required";
+        isValid = false;
+    } else if (isNaN(Number(newAccount.balance))) {
+        errors.balance = "Balance must be a valid number";
+        isValid = false;
+    }
 
-  if (newAccount.balance === undefined || newAccount.balance === null) {
-    errorsObj.balance = "Initial balance is required";
-    isValid = false;
-  } else if (isNaN(Number(newAccount.balance))) {
-    errorsObj.balance = "Balance must be a valid number";
-    isValid = false;
-  }
+    if (!newAccount.institution.trim()) {
+        errors.institution = "Institution is required";
+        isValid = false;
+    }
 
-  if (!newAccount.institution.trim()) {
-    errorsObj.institution = "Institution is required";
-    isValid = false;
-  }
-
-  if (!newAccount.currency.trim()) {
-    errorsObj.currency = "Currency is required";
-    isValid = false;
-  }
-
-  return { isValid, errors: errorsObj };
+    return { isValid, errors };
 };
 
 export default validateAccountForm;
