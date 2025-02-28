@@ -1,26 +1,29 @@
+import { UseMutationResult } from "@tanstack/react-query";
+
 // Accounts definitions
 export interface Account {
     id: string;
     name: string;
     institution: string;
-    balance: number;
+    balance: number | string | null;
     currency: string;
 }
 
 export interface NoAccountsProps {
     accounts: Account[];
-    setAccounts: React.Dispatch<React.SetStateAction<Account[]>> | (() => void);
+    createAccountMutation?: UseMutationResult<any, Error, Omit<Account, "id">, unknown>;
 }
 
 export interface AccountsDataExistsProps {
     accounts: Account[];
-    setAccounts: React.Dispatch<React.SetStateAction<Account[]>> | (() => void);
+    createAccountMutation?: UseMutationResult<any, Error, Omit<Account, "id">, unknown>;
+    updateAccountMutation?: UseMutationResult<any, Error, Account>;
+    deleteAccountMutation?: UseMutationResult<any, Error, string>;
 }
 
 export interface AddAccountDialogProps {
     accounts: Account[];
-    setAccounts: React.Dispatch<React.SetStateAction<Account[]>> | (() => void);
-    children?: React.ReactNode;
+    createAccountMutation?: UseMutationResult<any, Error, Omit<Account, "id">>;
 }
 
 export interface EditAccountDialogProps {
@@ -49,7 +52,7 @@ export interface AccountsTableProps {
     handleDelete: (id: string) => void;
 }
 
-export interface AccountErrors {
+export interface AccountFormErrors {
     name: string;
     balance: string;
     institution: string;

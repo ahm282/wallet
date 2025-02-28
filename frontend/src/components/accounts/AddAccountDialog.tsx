@@ -13,14 +13,14 @@ import {
     CredenzaTitle,
 } from "@/components/ui/credenza";
 import validateAccountForm from "@/lib/validations/validate_account_form";
-import type { Account, AccountForm, AddAccountDialogProps } from "@/types/accounts.types";
+import type { AddAccountDialogProps, AccountForm } from "@/types/accounts.types";
 
-export const AddAccountDialog: React.FC<AddAccountDialogProps> = ({ accounts, setAccounts }) => {
+export const AddAccountDialog: React.FC<AddAccountDialogProps> = ({ createAccountMutation }) => {
     const [newAccount, setNewAccount] = useState<AccountForm>({
         name: "",
-        balance: 0,
+        balance: null,
         institution: "",
-        currency: "",
+        currency: "EUR",
     });
     const [errors, setErrors] = useState({
         name: "",
@@ -32,15 +32,11 @@ export const AddAccountDialog: React.FC<AddAccountDialogProps> = ({ accounts, se
 
     const handleAddAccount = async (e: React.FormEvent) => {
         e.preventDefault();
-        const { isValid, errors } = validateAccountForm(newAccount as Account);
+        const { isValid, errors } = validateAccountForm(newAccount);
+
         if (isValid) {
-            // Simulate API behavior by adding a temporary id.
-            // In production, we call the API and use the returned account with its id.
-            const createdAccount: Account = {
-                ...newAccount,
-                id: accounts.length + 1,
-            };
-            setAccounts([...accounts, createdAccount]);
+            createAccountMutation?.mutate(newAccount);
+
             setNewAccount({ name: "", balance: 0, institution: "", currency: "" });
             clearErrors();
             setIsAddDialogOpen(false);
@@ -98,10 +94,11 @@ export const AddAccountDialog: React.FC<AddAccountDialogProps> = ({ accounts, se
                                     <Input
                                         id='balance'
                                         type='text'
+                                        value={newAccount.balance != 0 ? newAccount.balance?.toString() : undefined}
                                         onChange={(e) =>
                                             setNewAccount({
                                                 ...newAccount,
-                                                balance: parseFloat(e.target.value) || 0,
+                                                balance: e.target.value,
                                             })
                                         }
                                     />

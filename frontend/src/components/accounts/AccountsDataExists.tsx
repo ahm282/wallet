@@ -9,7 +9,12 @@ import { EditAccountDialog } from "@/components/accounts/EditAccountDialog";
 import { DeleteWarning } from "@/components/ui/delete-warning";
 import { Account, AccountsDataExistsProps } from "@/types/accounts.types";
 
-export const AccountsDataExists: React.FC<AccountsDataExistsProps> = ({ accounts, setAccounts }) => {
+export const AccountsDataExists: React.FC<AccountsDataExistsProps> = ({
+    accounts,
+    createAccountMutation,
+    updateAccountMutation,
+    deleteAccountMutation,
+}) => {
     const [editingAccount, setEditingAccount] = useState<Account | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -19,12 +24,12 @@ export const AccountsDataExists: React.FC<AccountsDataExistsProps> = ({ accounts
     };
 
     const handleSaveEdit = (updatedAccount: Account) => {
-        setAccounts(accounts.map((a) => (a.id === updatedAccount.id ? updatedAccount : a)));
+        updateAccountMutation?.mutate(updatedAccount);
         setEditingAccount(null);
     };
 
     const handleDelete = (id: string) => {
-        setAccounts(accounts.filter((a) => a.id !== id));
+        deleteAccountMutation?.mutate(id);
     };
 
     const totalDebt = Math.abs(
@@ -44,7 +49,7 @@ export const AccountsDataExists: React.FC<AccountsDataExistsProps> = ({ accounts
                         </div>
                         <AddAccountDialog
                             accounts={accounts}
-                            setAccounts={setAccounts}
+                            createAccountMutation={createAccountMutation}
                         />
                     </CardTitle>
                 </CardHeader>

@@ -1,8 +1,8 @@
-import { AccountForm, AccountErrors } from "@/types/accounts.types";
+import { AccountForm, AccountFormErrors } from "@/types/accounts.types";
 
-const validateAccountForm = (newAccount: AccountForm): { isValid: boolean; errors: AccountErrors } => {
+const validateAccountForm = (newAccount: AccountForm): { isValid: boolean; errors: AccountFormErrors } => {
     let isValid = true;
-    let errorsObj: AccountErrors = {
+    let errorsObj: AccountFormErrors = {
         name: "",
         balance: "",
         institution: "",
@@ -27,10 +27,10 @@ const validateAccountForm = (newAccount: AccountForm): { isValid: boolean; error
         isValid = false;
     }
 
-    if (!newAccount.currency.trim()) {
-        errorsObj.currency = "Currency is required";
-        isValid = false;
-    }
+    // if (!newAccount.currency.trim()) {
+    //     errorsObj.currency = "Currency is required";
+    //     isValid = false;
+    // }
 
     return { isValid, errors: errorsObj };
 };
