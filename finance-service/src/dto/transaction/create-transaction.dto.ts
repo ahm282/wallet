@@ -1,3 +1,4 @@
+import Category from "@/enums/category.enum";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateTransactionDto {
@@ -14,7 +15,7 @@ export class CreateTransactionDto {
     description?: string;
 
     @ApiProperty()
-    category: string;
+    category: Category | string;
 
     @ApiProperty()
     userId: string;
