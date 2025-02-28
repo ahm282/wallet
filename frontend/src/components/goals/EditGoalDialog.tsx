@@ -14,36 +14,35 @@ import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
 import { PiggyBank } from "lucide-react";
 import { validateGoalForm } from "@/lib/validations/validate_goal_form";
-import { fromUnixTimestamp, getToken } from "@/lib/utils";
-import { instantiateAPI } from "@/lib/api_utils";
-import type { EditGoalDialogProps, EditedGoalForm, GoalResponse } from "@/types/goals.types";
+import { fromUnixTimestamp } from "@/lib/utils";
+import type { EditGoalDialogProps, EditedGoalForm } from "@/types/goals.types";
 
 export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, setIsOpen, onSave }) => {
     const [editedGoal, setEditedGoal] = useState<EditedGoalForm>({
-        _id: "",
+        id: "",
         name: "",
-        target: "",
-        current: "",
-        targetDate: "",
+        targetAmount: "",
+        currentAmount: "",
+        targetDate: 0,
     });
 
     const [errors, setErrors] = useState({
         name: "",
-        target: "",
-        current: "",
+        targetAmount: "",
+        currentAmount: "",
         targetDate: "",
     });
 
     useEffect(() => {
         if (goal) {
             setEditedGoal({
-                _id: goal._id,
+                id: goal.id,
                 name: goal.name,
-                target: goal.target.toString(),
-                current: goal.current.toString(),
+                targetAmount: goal.targetAmount.toString(),
+                currentAmount: goal.currentAmount.toString(),
                 targetDate: goal.targetDate.toString(),
             });
-            setErrors({ name: "", target: "", current: "", targetDate: "" });
+            setErrors({ name: "", targetAmount: "", currentAmount: "", targetDate: "" });
         }
     }, [goal]);
 
@@ -56,33 +55,15 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
 
         if (isValid) {
             try {
-                const payload = {
+                const updatedGoal = {
+                    id: editedGoal.id,
                     name: editedGoal.name,
-                    totalAmount: Number(editedGoal.target),
-                    currentAmount: Number(editedGoal.current),
+                    targetAmount: Number(editedGoal.targetAmount),
+                    currentAmount: Number(editedGoal.currentAmount),
                     targetDate: Number(editedGoal.targetDate),
                 };
 
-                const api = instantiateAPI("http://localhost:3000/api");
-                const token = getToken();
-
-                // Make the PUT request directly here
-                const updatedGoal = await api.patch<GoalResponse>(
-                    `/finance/goal?id=${editedGoal._id}`,
-                    payload,
-                    token ?? ""
-                );
-
-                const formattedGoal = {
-                    _id: updatedGoal._id,
-                    name: updatedGoal.name,
-                    target: Number(updatedGoal.totalAmount),
-                    current: Number(updatedGoal.currentAmount),
-                    targetDate: updatedGoal.targetDate,
-                    status: Boolean(updatedGoal.status),
-                };
-
-                onSave(formattedGoal);
+                onSave(updatedGoal);
                 setIsOpen(false);
             } catch (error) {
                 console.error("Error updating goal:", error);
@@ -133,10 +114,10 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
                                 <Input
                                     id='target'
                                     type='number'
-                                    value={editedGoal.target}
-                                    onChange={(e) => setEditedGoal({ ...editedGoal, target: e.target.value })}
+                                    value={editedGoal.targetAmount}
+                                    onChange={(e) => setEditedGoal({ ...editedGoal, targetAmount: e.target.value })}
                                 />
-                                {errors.target && <p className='text-xs text-red-500'>{errors.target}</p>}
+                                {errors.targetAmount && <p className='text-xs text-red-500'>{errors.targetAmount}</p>}
                             </div>
                         </div>
 
@@ -151,10 +132,10 @@ export const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, isOpen, se
                                 <Input
                                     id='current'
                                     type='number'
-                                    value={editedGoal.current}
-                                    onChange={(e) => setEditedGoal({ ...editedGoal, current: e.target.value })}
+                                    value={editedGoal.currentAmount}
+                                    onChange={(e) => setEditedGoal({ ...editedGoal, currentAmount: e.target.value })}
                                 />
-                                {errors.current && <p className='text-xs text-red-500'>{errors.current}</p>}
+                                {errors.currentAmount && <p className='text-xs text-red-500'>{errors.currentAmount}</p>}
                             </div>
                         </div>
 

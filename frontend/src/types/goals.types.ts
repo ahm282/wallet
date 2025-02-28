@@ -1,27 +1,30 @@
+import { UseMutationResult } from "@tanstack/react-query";
+
 // Goals definitions
 export interface Goal {
-    _id: string;
+    id: string;
     name: string;
-    target: number;
-    current: number;
+    targetAmount: number;
+    currentAmount: number;
     status?: boolean | null;
     targetDate: string | number;
 }
 
 export interface NoGoalsProps {
     goals: Goal[];
-    setGoals: React.Dispatch<React.SetStateAction<Goal[]>>;
+    createGoalMutation?: UseMutationResult<any, Error, Omit<Goal, "id">>;
 }
 
 export interface GoalsDataExistsProps {
     goals: Goal[];
-    setGoals: React.Dispatch<React.SetStateAction<Goal[]>>;
+    createGoalMutation?: UseMutationResult<any, Error, Omit<Goal, "id">, unknown>;
+    updateGoalMutation?: UseMutationResult<any, Error, Goal>;
+    deleteGoalMutation?: UseMutationResult<any, Error, string>;
 }
 
 export interface AddGoalDialogProps {
     goals: Goal[];
-    setGoals: React.Dispatch<React.SetStateAction<Goal[]>>;
-    children?: React.ReactNode;
+    createGoalMutation?: UseMutationResult<any, Error, Omit<Goal, "id">>;
 }
 
 export interface EditGoalDialogProps {
@@ -33,27 +36,27 @@ export interface EditGoalDialogProps {
 
 export interface GoalForm {
     name: string;
-    target: string;
-    current: string;
+    targetAmount: string;
+    currentAmount: string;
     targetDate: string | number;
 }
 
 export interface EditedGoalForm extends GoalForm {
-    _id: string;
+    id: string;
 }
 
 export interface GoalFormErrors {
     name: string;
-    target: string;
-    current: string;
+    targetAmount: string;
+    currentAmount: string;
     targetDate: string;
 }
 
 // Define backend's user response.
 export interface GoalResponse {
-    _id: string;
+    id: string;
     name: string;
-    totalAmount: number;
+    targetAmount: number;
     currentAmount: number;
     status: string;
     targetDate: string;

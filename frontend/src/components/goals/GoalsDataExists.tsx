@@ -7,11 +7,15 @@ import { EditGoalDialog } from "@/components/goals/EditGoalDialog";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { DeleteWarning } from "@/components/ui/delete-warning";
-import { instantiateAPI } from "@/lib/api_utils";
-import { getToken, fromUnixTimestamp, currencyNotation, formatDateString } from "@/lib/utils";
+import { fromUnixTimestamp, currencyNotation, formatDateString } from "@/lib/utils";
 import type { GoalsDataExistsProps, Goal } from "@/types/goals.types";
 
-export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoals }) => {
+export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({
+    goals,
+    createGoalMutation,
+    updateGoalMutation,
+    deleteGoalMutation,
+}) => {
     const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -21,19 +25,16 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoal
     };
 
     const handleSaveEdit = (updatedGoal: Goal) => {
-        setGoals(goals.map((g) => (g._id === updatedGoal._id ? updatedGoal : g)));
+        updateGoalMutation?.mutate(updatedGoal);
         setEditingGoal(null);
     };
 
     const handleDelete = (id: string) => {
-        const api = instantiateAPI("http://localhost:3000/api");
-        api.delete("/finance/goal?id=" + id, getToken()).then(() => {
-            setGoals(goals.filter((g) => g._id !== id));
-        });
+        deleteGoalMutation?.mutate(id);
     };
 
-    const totalTarget = goals.reduce((acc, goal) => acc + goal.target, 0);
-    const totalSaved = goals.reduce((acc, goal) => acc + goal.current, 0);
+    const totalTarget = goals.reduce((acc, goal) => acc + goal.targetAmount, 0);
+    const totalSaved = goals.reduce((acc, goal) => acc + goal.currentAmount, 0);
 
     return (
         <div className='w-11/12 md:w-10/12 lg:w-10/12 lg:max-w-4xl 2xl:max-w-5xl my-8 mx-auto flex flex-col space-y-7'>
@@ -46,7 +47,7 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoal
                         </div>
                         <AddGoalDialog
                             goals={goals}
-                            setGoals={setGoals}
+                            createGoalMutation={createGoalMutation}
                         />
                     </CardTitle>
                 </CardHeader>
@@ -59,7 +60,7 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoal
                         }`}>
                         {goals.map((goal, index) => (
                             <div
-                                key={goal._id}
+                                key={goal.id}
                                 className='space-y-2'>
                                 <div className='flex items-center justify-between'>
                                     <div className='flex flex-col gap-y-0.5'>
@@ -77,7 +78,7 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoal
                                             <DeleteWarning
                                                 icon={Trash2}
                                                 message='Are you sure you want to delete this goal? This action cannot be undone.'
-                                                onConfirm={() => handleDelete(goal._id)}>
+                                                onConfirm={() => handleDelete(goal.id)}>
                                                 <Button
                                                     variant='ghost'
                                                     size='xl'
@@ -89,20 +90,20 @@ export const GoalsDataExists: React.FC<GoalsDataExistsProps> = ({ goals, setGoal
                                     </div>
                                 </div>
                                 <Progress
-                                    value={(goal.current / goal.target) * 100}
+                                    value={(goal.currentAmount / goal.targetAmount) * 100}
                                     className='h-2'
                                 />
                                 <div className='flex justify-between text-sm pt-0.5'>
                                     <span>
-                                        {currencyNotation(goal.current)} / {currencyNotation(goal.target)}
+                                        {currencyNotation(goal.currentAmount)} / {currencyNotation(goal.targetAmount)}
                                     </span>
-                                    <span>{((goal.current / goal.target) * 100).toFixed(0)}% achieved</span>
+                                    <span>{((goal.currentAmount / goal.targetAmount) * 100).toFixed(0)}% achieved</span>
                                 </div>
                                 <div className='flex justify-between text-xs pt-0.5 text-muted-foreground'>
                                     <span className='text-xs font-medium text-muted-foreground'>
                                         Target date: {formatDateString(fromUnixTimestamp(goal.targetDate))}
                                     </span>
-                                    <span>{currencyNotation(goal.target - goal.current)} remaining</span>
+                                    <span>{currencyNotation(goal.targetAmount - goal.currentAmount)} remaining</span>
                                 </div>
                                 {index !== goals.length - 1 && (
                                     <Separator className='w-10/12 lg:w-11/12 mx-auto !mt-4' />

@@ -6,7 +6,7 @@ import { AddGoalDialog } from "@/components/goals/AddGoalDialog";
 import type { NoGoalsProps } from "@/types/goals.types";
 import GoalSettingGuide from "./GoalSettingGuide";
 
-export const NoGoals: React.FC<NoGoalsProps> = ({ goals, setGoals }) => {
+export const NoGoals: React.FC<NoGoalsProps> = ({ goals, createGoalMutation }) => {
     const [isGoalsGuideOpen, setIsGoalsGuideOpen] = useState(false);
 
     return (
@@ -25,7 +25,8 @@ export const NoGoals: React.FC<NoGoalsProps> = ({ goals, setGoals }) => {
                     </div>
                     <AddGoalDialog
                         goals={goals}
-                        setGoals={setGoals}></AddGoalDialog>
+                        createGoalMutation={createGoalMutation}
+                    />
                 </CardContent>
             </Card>
             <div className='flex flex-col items-center justify-center lg:flex-row lg:justify-evenly lg:space-x-4 space-y-3 lg:space-y-0'>

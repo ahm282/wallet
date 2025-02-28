@@ -41,13 +41,18 @@ export function getUser() {
     return useAuthStore.getState().user;
 }
 
+export function getUserId(): string | undefined {
+    const { user } = useAuthStore.getState();
+    return user?.id;
+}
+
 // Goal utils
 export function createGoalFromResponse(goalResponse: any): Goal {
     return {
-        _id: goalResponse._id,
+        id: goalResponse.id,
         name: goalResponse.name,
-        target: goalResponse.totalAmount,
-        current: goalResponse.currentAmount,
+        targetAmount: goalResponse.targetAmount,
+        currentAmount: goalResponse.currentAmount,
         status: goalResponse.status,
         targetDate: goalResponse.targetDate,
     };
