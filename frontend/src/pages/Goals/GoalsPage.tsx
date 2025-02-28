@@ -1,22 +1,15 @@
 import { useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { NoGoals } from "@/components/goals/NoGoals";
 import { GoalsDataExists } from "@/components/goals/GoalsDataExists";
-import { instantiateAPI } from "@/lib/api_utils";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createGoalFromResponse, getUserId } from "@/lib/utils";
-import type { Goal, GoalResponse } from "@/types/goals.types";
-
-// Function to fetch goals
-async function getGoalsDataByUserId(): Promise<Goal[]> {
-    const userId = getUserId();
-    const api = instantiateAPI("http://localhost:3000/api");
-    return api.get<GoalResponse[]>("/finance/goal?id=" + userId).then((goals) => goals.map(createGoalFromResponse));
-}
+import { getUserId } from "@/lib/utils";
+import { fetchGoals, createGoal, updateGoal, deleteGoal } from "@/api/goals";
+import type { Goal } from "@/types/goals.types";
 
 export const GoalsPage = () => {
     const queryClient = useQueryClient();
 
-    // Query for fetching goals
+    // Fetch goals
     const {
         data: goals = [],
         isLoading,
@@ -24,17 +17,15 @@ export const GoalsPage = () => {
         error,
     } = useQuery<Goal[], Error>({
         queryKey: ["goals", getUserId()],
-        queryFn: getGoalsDataByUserId,
+        queryFn: fetchGoals,
     });
 
-    // Mutation for deleting goals
-    const deleteGoalMutation = useMutation({
-        mutationFn: (goalId: string) => {
-            const api = instantiateAPI("http://localhost:3000/api");
-            return api.delete(`/finance/goal?id=${goalId}`);
+    // Mutation for creating goals
+    const createGoalMutation = useMutation({
+        mutationFn: (newGoal: Omit<Goal, "id">) => {
+            return createGoal(newGoal);
         },
         onSuccess: () => {
-            // Invalidate and refetch goals query after deletion
             queryClient.invalidateQueries({ queryKey: ["goals"] });
         },
     });
@@ -42,40 +33,29 @@ export const GoalsPage = () => {
     // Mutation for updating goals
     const updateGoalMutation = useMutation({
         mutationFn: (updatedGoal: Goal) => {
-            const api = instantiateAPI("http://localhost:3000/api");
-            return api.patch(`/finance/goal?id=${updatedGoal.id}`, updatedGoal);
-        },
-        onSuccess: () => {
-            // Invalidate and refetch goals query after update
-            queryClient.invalidateQueries({ queryKey: ["goals"] });
-        },
-    });
-
-    // Mutation for creating goals
-    const createGoalMutation = useMutation({
-        mutationFn: (newGoal: Omit<Goal, "id">) => {
-            const api = instantiateAPI("http://localhost:3000/api");
-            return api.post("/finance/goal", {
-                ...newGoal,
-                userId: getUserId(),
-            });
+            return updateGoal(updatedGoal);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["goals"] });
         },
     });
 
-    // Set page title
-    useEffect(() => {
-        document.title = "Goals | Wallet";
-    }, []);
+    // Mutation for deleting goals
+    const deleteGoalMutation = useMutation({
+        mutationFn: (goalId: string) => {
+            return deleteGoal(goalId);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["goals"] });
+        },
+    });
 
-    // Handle loading state
+    // Loading state
     if (isLoading) {
         return <div className='flex justify-center items-center h-64'>Loading goals...</div>;
     }
 
-    // Handle error state
+    // Error state
     if (isError) {
         return (
             <div className='w-6/12 mx-auto p-4 mt-10 bg-red-100 text-red-600 font-primary text-center rounded-md'>
@@ -83,6 +63,11 @@ export const GoalsPage = () => {
             </div>
         );
     }
+
+    // Set page title
+    useEffect(() => {
+        document.title = "Goals | Wallet";
+    }, []);
 
     return goals.length > 0 ? (
         <GoalsDataExists
