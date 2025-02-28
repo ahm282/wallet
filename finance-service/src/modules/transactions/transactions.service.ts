@@ -1,26 +1,29 @@
 import { Injectable } from "@nestjs/common";
 import { CreateTransactionDto } from "../../dto/transaction/create-transaction.dto";
 import { UpdateTransactionDto } from "../../dto/transaction/update-transaction.dto";
+import { TransactionRepository } from "@/repositories/transaction.repository";
 
 @Injectable()
 export class TransactionsService {
-    create(createTransactionDto: CreateTransactionDto) {
-        return "This action adds a new transaction";
+    constructor(private readonly transactionRepo: TransactionRepository) {}
+
+    async create(createTransactionDto: CreateTransactionDto) {
+        return await this.transactionRepo.create(createTransactionDto);
     }
 
-    findAll() {
-        return `This action returns all transactions`;
+    async findById(id: string) {
+        return this.transactionRepo.findById(id);
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} transaction`;
+    async findAllByUserId(userId: string) {
+        return this.transactionRepo.findByUserId(userId);
     }
 
-    update(id: number, updateTransactionDto: UpdateTransactionDto) {
-        return `This action updates a #${id} transaction`;
+    async update(id: string, updateTransactionDto: UpdateTransactionDto) {
+        return this.transactionRepo.update(id, updateTransactionDto);
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} transaction`;
+    async delete(id: string) {
+        return this.transactionRepo.delete(id);
     }
 }
