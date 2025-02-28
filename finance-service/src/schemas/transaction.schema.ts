@@ -29,7 +29,7 @@ export class Transaction {
     amount: number;
 
     @Prop({ type: String, enum: Category, default: null })
-    category: Category | null;
+    category: Category | string | null;
 
     @Prop({ type: Number })
     createdAt: number;
