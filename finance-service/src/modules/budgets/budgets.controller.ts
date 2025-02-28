@@ -8,17 +8,17 @@ export class BudgetsController {
     constructor(private readonly budgetsService: BudgetsService) {}
 
     @Post()
-    create(@Body() createBudgetDto: CreateBudgetDto) {
+    async create(@Body() createBudgetDto: CreateBudgetDto) {
         return this.budgetsService.create(createBudgetDto);
     }
 
     @Get(":budgetId")
-    findById(@Param("budgetId") id: string) {
+    async findById(@Param("budgetId") id: string) {
         return this.budgetsService.findById(id);
     }
 
     @Get()
-    findAllByUserId(@Query("id") id: string) {
+    async findAllByUserId(@Query("id") id: string) {
         return this.budgetsService.findAllByUserId(id);
     }
 
