@@ -53,7 +53,7 @@ export class Bill {
     @Prop({ default: false })
     paid: boolean;
 
-    @Prop({ required: true })
+    @Prop({ required: false })
     description?: string;
 
     @Prop({ required: false, default: false })
