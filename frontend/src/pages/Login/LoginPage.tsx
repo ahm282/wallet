@@ -4,7 +4,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { GiWallet } from "react-icons/gi";
 import { useAuthStore } from "@/store/authStore";
 import { jwtDecode } from "jwt-decode";
-import { ApiUtil } from "@/lib/api_utils";
+import { ApiUtil, instantiateAPI } from "@/lib/api_utils";
 import { ScaleLoader } from "react-spinners";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogIn } from "lucide-react";
@@ -35,8 +35,8 @@ const createUserPayload = (googleUser: GoogleUser) => {
  * Posts the user payload to the backend and returns the response.
  */
 const postUserData = async (payload: object, token: string): Promise<UserResponse> => {
-    const api = import.meta.env.VITE_ENV_NAME === "dev" ? new ApiUtil("http://localhost:8080/api") : new ApiUtil();
-    const user = api.post<UserResponse>("/user", payload, token);
+    const api = instantiateAPI("http://localhost:8080/api");
+    const user = api.login<UserResponse>("/user", token, payload);
     return user;
 };
 

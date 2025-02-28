@@ -52,6 +52,16 @@ export class ApiUtil {
         const response = await this.api.delete<T>(path, this.getConfig());
         return response.data;
     }
+
+    async login<T>(path: string = "", token: string, data?: unknown): Promise<T> {
+        const response = await this.api.post<T>(path, data, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+        return response.data;
+    }
 }
 
 export const instantiateAPI = (baseURL?: string) => new ApiUtil(baseURL);
