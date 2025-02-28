@@ -4,7 +4,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { GiWallet } from "react-icons/gi";
 import { useAuthStore } from "@/store/authStore";
 import { jwtDecode } from "jwt-decode";
-import { ApiUtil, instantiateAPI } from "@/lib/api_utils";
+import { instantiateAPI } from "@/lib/api_utils";
 import { ScaleLoader } from "react-spinners";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogIn } from "lucide-react";
