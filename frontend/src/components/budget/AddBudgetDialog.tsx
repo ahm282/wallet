@@ -13,13 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EuroIcon, Plus } from "lucide-react";
 import { validateBudgetForm } from "@/lib/validations/validate_budget_form";
-import type { AddBudgetDialogProps, NewBudget } from "@/types/budget.types";
+import type { AddBudgetDialogProps, BudgetForm } from "@/types/budget.types";
 
-export const AddBudgetDialog: React.FC<AddBudgetDialogProps> = ({ budgets, setBudgets }) => {
-    const [newBudget, setNewBudget] = useState<NewBudget>({
+export const AddBudgetDialog: React.FC<AddBudgetDialogProps> = ({ createBudgetMutation }) => {
+    const [newBudget, setNewBudget] = useState<BudgetForm>({
         name: "",
-        budgeted: "",
-        spent: "",
+        budgeted: null,
+        spent: null,
     });
     const [errors, setErrors] = useState({
         name: "",
@@ -32,17 +32,11 @@ export const AddBudgetDialog: React.FC<AddBudgetDialogProps> = ({ budgets, setBu
         e.preventDefault();
         const { isValid, errors: validationErrors } = validateBudgetForm(newBudget);
         if (isValid) {
-            setBudgets([
-                ...budgets,
-                {
-                    id: "",
-                    name: newBudget.name,
-                    budgeted: Number.parseFloat(newBudget.budgeted),
-                    spent: Number.parseFloat(newBudget.spent) || 0,
-                },
-            ]);
+            console.log("Adding budget", newBudget);
+            createBudgetMutation?.mutate(newBudget);
+
             // Reset the form and errors
-            setNewBudget({ name: "", budgeted: "", spent: "" });
+            setNewBudget({ name: "", budgeted: 0, spent: 0 });
             setErrors({ name: "", budgeted: "", spent: "" });
             setIsAddDialogOpen(false);
         } else {
@@ -93,8 +87,13 @@ export const AddBudgetDialog: React.FC<AddBudgetDialogProps> = ({ budgets, setBu
                                     <Input
                                         id='budgeted'
                                         type='text'
-                                        value={newBudget.budgeted}
-                                        onChange={(e) => setNewBudget({ ...newBudget, budgeted: e.target.value })}
+                                        value={newBudget.budgeted !== null ? newBudget.budgeted.toString() : ""}
+                                        onChange={(e) =>
+                                            setNewBudget({
+                                                ...newBudget,
+                                                budgeted: parseFloat(e.target.value) || e.target.value,
+                                            })
+                                        }
                                     />
                                     {errors.budgeted && <p className='text-xs text-red-500'>{errors.budgeted}</p>}
                                 </div>
@@ -109,8 +108,13 @@ export const AddBudgetDialog: React.FC<AddBudgetDialogProps> = ({ budgets, setBu
                                     <Input
                                         id='spent'
                                         type='text'
-                                        value={newBudget.spent}
-                                        onChange={(e) => setNewBudget({ ...newBudget, spent: e.target.value })}
+                                        value={newBudget.spent !== null ? newBudget.spent.toString() : ""}
+                                        onChange={(e) =>
+                                            setNewBudget({
+                                                ...newBudget,
+                                                spent: parseFloat(e.target.value) || e.target.value,
+                                            })
+                                        }
                                     />
                                     {errors.spent && <p className='text-xs text-red-500'>{errors.spent}</p>}
                                 </div>

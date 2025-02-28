@@ -1,8 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { toUnixTimestamp } from "@/lib/utils";
 import { CreateGoalDto } from "../../dto/goal/create-goal.dto";
 import { UpdateGoalDto } from "../../dto/goal/update-goal.dto";
-import { Goal } from "../../schemas/goal.schema";
 import { GoalRepository } from "@/repositories/goal.repository";
 
 @Injectable()
@@ -13,7 +11,7 @@ export class GoalsService {
         return await this.goalRepo.create(createGoalDto);
     }
 
-    async findOne(id: string) {
+    async findById(id: string) {
         return this.goalRepo.findById(id);
     }
 

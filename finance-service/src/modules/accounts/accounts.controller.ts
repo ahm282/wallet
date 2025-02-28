@@ -13,8 +13,8 @@ export class AccountsController {
     }
 
     @Get(":accountId")
-    findOne(@Param("accountId") id: string) {
-        return this.accountsService.findOne(id);
+    findById(@Param("accountId") id: string) {
+        return this.accountsService.findById(id);
     }
 
     @Get()

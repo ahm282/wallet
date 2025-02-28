@@ -1,33 +1,28 @@
+import { UseMutationResult } from "@tanstack/react-query";
+
 // Budget definitions
 export interface Budget {
-    id?: string | number;
+    id: string;
     name: string;
-    budgeted: number;
-    spent: number;
+    budgeted: number | string | null;
+    spent: number | string | null;
 }
 
 export interface NoBudgetProps {
     budgets: Budget[];
-    setBudgets: React.Dispatch<React.SetStateAction<Budget[]>>;
+    createBudgetMutation?: UseMutationResult<any, Error, Omit<Budget, "id">, unknown>;
 }
 
 export interface BudgetDataExistsProps {
     budgets: Budget[];
-    setBudgets: React.Dispatch<React.SetStateAction<Budget[]>>;
+    createBudgetMutation?: UseMutationResult<any, Error, Omit<Budget, "id">, unknown>;
+    updateBudgetMutation?: UseMutationResult<any, Error, Budget>;
+    deleteBudgetMutation?: UseMutationResult<any, Error, string>;
 }
 
 export interface AddBudgetDialogProps {
     budgets: Budget[];
-    setBudgets: React.Dispatch<React.SetStateAction<Budget[]>>;
-    children?: React.ReactNode;
-}
-
-export interface DeleteWarningProps {
-    icon: React.ComponentType<{ className?: string }>;
-    message: string;
-    children: React.ReactNode;
-    onConfirm?: () => void;
-    onCancel?: () => void;
+    createBudgetMutation?: UseMutationResult<any, Error, Omit<Budget, "id">>;
 }
 
 export interface EditBudgetDialogProps {
@@ -37,11 +32,10 @@ export interface EditBudgetDialogProps {
     onSave: (budget: Budget) => void;
 }
 
-export interface EditedBudgetForm {
-    id: string | number | undefined;
-    name: string;
-    budgeted: string;
-    spent: string;
+export type BudgetForm = Omit<Budget, "id">;
+
+export interface EditedBudgetForm extends BudgetForm {
+    id: string;
 }
 
 export interface BudgetFormErrors {
@@ -50,8 +44,10 @@ export interface BudgetFormErrors {
     spent: string;
 }
 
-export interface NewBudget {
-    name: string;
-    budgeted: string;
-    spent: string;
-}
+// export interface DeleteWarningProps {
+//     icon: React.ComponentType<{ className?: string }>;
+//     message: string;
+//     children: React.ReactNode;
+//     onConfirm?: () => void;
+//     onCancel?: () => void;
+// }

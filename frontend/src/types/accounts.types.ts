@@ -35,26 +35,19 @@ export interface EditAccountDialogProps {
 
 export type AccountForm = Omit<Account, "id">;
 
+export interface EditedAccountForm extends AccountForm {
+    id: number;
+}
+
 export interface AccountFormErrors {
     name: string;
     institution: string;
     balance: string;
     currency: string;
-}
-
-export interface EditedAccountForm extends AccountForm {
-    id: number;
 }
 
 export interface AccountsTableProps {
     accounts: Account[];
     handleEdit: (account: Account) => void;
     handleDelete: (id: string) => void;
-}
-
-export interface AccountFormErrors {
-    name: string;
-    balance: string;
-    institution: string;
-    currency: string;
 }
