@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import { useAuthStore } from "@/store/authStore";
 
 export class ApiUtil {
     private readonly api: AxiosInstance;
@@ -17,7 +18,9 @@ export class ApiUtil {
         });
     }
 
-    private getConfig(token?: string): AxiosRequestConfig {
+    private getConfig(): AxiosRequestConfig {
+        const { token } = useAuthStore.getState();
+
         return {
             headers: {
                 ...(token && { Authorization: `Bearer ${token}` }),
@@ -25,28 +28,28 @@ export class ApiUtil {
         };
     }
 
-    async get<T>(path: string = "", token?: string): Promise<T> {
-        const response = await this.api.get<T>(path, this.getConfig(token));
+    async get<T>(path: string = ""): Promise<T> {
+        const response = await this.api.get<T>(path, this.getConfig());
         return response.data;
     }
 
-    async put<T>(path: string = "", data?: unknown, token?: string): Promise<T> {
-        const response = await this.api.put<T>(path, data, this.getConfig(token));
+    async put<T>(path: string = "", data?: unknown): Promise<T> {
+        const response = await this.api.put<T>(path, data, this.getConfig());
         return response.data;
     }
 
-    async patch<T>(path: string = "", data?: unknown, token?: string): Promise<T> {
-        const response = await this.api.patch<T>(path, data, this.getConfig(token));
+    async patch<T>(path: string = "", data?: unknown): Promise<T> {
+        const response = await this.api.patch<T>(path, data, this.getConfig());
         return response.data;
     }
 
-    async post<T>(path: string = "", data?: unknown, token?: string): Promise<T> {
-        const response = await this.api.post<T>(path, data, this.getConfig(token));
+    async post<T>(path: string = "", data?: unknown): Promise<T> {
+        const response = await this.api.post<T>(path, data, this.getConfig());
         return response.data;
     }
 
-    async delete<T>(path: string, token?: string): Promise<T> {
-        const response = await this.api.delete<T>(path, this.getConfig(token));
+    async delete<T>(path: string): Promise<T> {
+        const response = await this.api.delete<T>(path, this.getConfig());
         return response.data;
     }
 }

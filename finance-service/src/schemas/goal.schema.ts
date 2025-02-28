@@ -19,14 +19,14 @@ export class Goal {
     name: string;
 
     @Prop({ required: true })
-    totalAmount: number;
+    targetAmount: number;
 
     @Prop({ required: true })
     currentAmount: number;
 
     @Virtual({
         get: function (this: Goal) {
-            return this.totalAmount === this.currentAmount ? 1 : 0;
+            return this.targetAmount === this.currentAmount ? 1 : 0;
         },
     })
     status: number;
