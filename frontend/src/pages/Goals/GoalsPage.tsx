@@ -50,6 +50,13 @@ export const GoalsPage = () => {
         },
     });
 
+    /*
+     * Sets the title of the page to "Goals | Wallet" when the component mounts
+     */
+    useEffect(() => {
+        document.title = "Goals | Wallet";
+    }, []);
+
     // Loading state
     if (isLoading) {
         return <div className='flex justify-center items-center h-64'>Loading goals...</div>;
@@ -63,11 +70,6 @@ export const GoalsPage = () => {
             </div>
         );
     }
-
-    // Set page title
-    useEffect(() => {
-        document.title = "Goals | Wallet";
-    }, []);
 
     return goals.length > 0 ? (
         <GoalsDataExists

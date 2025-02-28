@@ -36,7 +36,6 @@ export const EditAccountDialog: React.FC<EditAccountDialogProps> = ({ account, i
         if (!editedAccount) return;
 
         const { isValid, errors } = validateAccountForm(editedAccount);
-
         setErrors(errors);
 
         if (isValid) {

@@ -47,10 +47,19 @@ export const AccountsPage = () => {
         },
     });
 
+    /*
+     * Sets the title of the page to "Accounts | Wallet" when the component mounts
+     */
+    useEffect(() => {
+        document.title = "Accounts | Wallet";
+    }, []);
+
+    // Loading state
     if (isLoading) {
-        return <div className='flex justify-center items-center h-64'>Loading accounts...</div>;
+        return <div className='flex justify-center font-primary items-center h-64'>Loading accounts...</div>;
     }
 
+    // Error state
     if (isError) {
         return (
             <div className='w-6/12 mx-auto p-4 mt-10 bg-red-100 text-red-600 font-primary text-center rounded-md'>
@@ -58,13 +67,6 @@ export const AccountsPage = () => {
             </div>
         );
     }
-
-    /*
-     * Sets the title of the page to "Accounts | Wallet" when the component mounts
-     */
-    useEffect(() => {
-        document.title = "Accounts | Wallet";
-    }, []);
 
     return accounts.length > 0 ? (
         <AccountsDataExists

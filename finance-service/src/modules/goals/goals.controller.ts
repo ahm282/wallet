@@ -24,14 +24,8 @@ export class GoalsController {
     }
 
     @Get(":goalId")
-    findOne(@Query("id") id: string) {
-        const goal = this.goalsService.findOne(id);
-
-        if (!goal) {
-            throw new NotFoundException("Goal not found");
-        }
-
-        return goal;
+    findById(@Query("id") id: string) {
+        return this.goalsService.findById(id);
     }
 
     @Get()

@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Wallet, CreditCard, Landmark, Edit2, Trash2, LucideWallet } from "lucide-react";
-import { currencyNotation } from "@/lib/utils";
 import { AddAccountDialog } from "@/components/accounts/AddAccountDialog";
 import { EditAccountDialog } from "@/components/accounts/EditAccountDialog";
 import { DeleteWarning } from "@/components/ui/delete-warning";
+import { Wallet, CreditCard, Landmark, Edit2, Trash2, LucideWallet } from "lucide-react";
+import { currencyNotation } from "@/lib/utils";
 import { Account, AccountsDataExistsProps } from "@/types/accounts.types";
 
 export const AccountsDataExists: React.FC<AccountsDataExistsProps> = ({
@@ -33,9 +33,16 @@ export const AccountsDataExists: React.FC<AccountsDataExistsProps> = ({
     };
 
     const totalDebt = Math.abs(
-        accounts.filter((a) => a.balance < 0).reduce((sum, account) => sum + account.balance, 0)
+        accounts
+            .filter((a) => a.balance != null && Number(a.balance) < 0)
+            .reduce((sum, account) => sum + Number(account.balance), 0)
     );
-    const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
+
+    const totalBalance = accounts.reduce(
+        (sum, account) => sum + (account.balance != null ? Number(account.balance) : 0),
+        0
+    );
+
     const netWorth = totalBalance - totalDebt;
 
     return (
@@ -72,8 +79,11 @@ export const AccountsDataExists: React.FC<AccountsDataExistsProps> = ({
                                         </TableCell>
                                         <TableCell>{account.institution}</TableCell>
                                         <TableCell>
-                                            <span className={account.balance >= 0 ? "text-green-600" : "text-red-600"}>
-                                                {currencyNotation(account.balance)}
+                                            <span
+                                                className={
+                                                    Number(account.balance) >= 0 ? "text-green-600" : "text-red-600"
+                                                }>
+                                                {currencyNotation(Number(account.balance))}
                                             </span>
                                         </TableCell>
                                         <TableCell className='text-center flex items-center justify-center space-x-2'>

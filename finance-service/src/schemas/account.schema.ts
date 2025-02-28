@@ -24,7 +24,7 @@ export class Account {
     @Prop({ required: true })
     balance: number;
 
-    @Prop({ required: true, default: "EUR" })
+    @Prop({ required: false, default: "EUR" })
     currency: string;
 
     @Prop({ required: true })

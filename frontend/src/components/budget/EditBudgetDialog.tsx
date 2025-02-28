@@ -11,17 +11,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { validateBudgetForm } from "@/lib/validations/validate_budget_form";
 import { EuroIcon } from "lucide-react";
-import type { EditBudgetDialogProps, EditedBudgetForm } from "@/types/budget.types";
+import { validateBudgetForm } from "@/lib/validations/validate_budget_form";
+import type { Budget, EditBudgetDialogProps } from "@/types/budget.types";
 
 export const EditBudgetDialog: React.FC<EditBudgetDialogProps> = ({ budget, isOpen, setIsOpen, onSave }) => {
-    const [editedBudget, setEditedBudget] = useState<EditedBudgetForm>({
-        id: "",
-        name: "",
-        budgeted: "",
-        spent: "",
-    });
+    const [editedBudget, setEditedBudget] = useState<Budget | null>(null);
     const [errors, setErrors] = useState({
         name: "",
         budgeted: "",
@@ -30,34 +25,25 @@ export const EditBudgetDialog: React.FC<EditBudgetDialogProps> = ({ budget, isOp
 
     useEffect(() => {
         if (budget) {
-            setEditedBudget({
-                id: budget.id,
-                name: budget.name,
-                budgeted: budget.budgeted.toString(),
-                spent: budget.spent.toString(),
-            });
-
+            setEditedBudget(budget);
             setErrors({ name: "", budgeted: "", spent: "" });
         }
     }, [budget]);
 
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
-        // Validate the form using the current state.
-        const { isValid, errors: validationErrors } = validateBudgetForm(editedBudget);
+        if (!editedBudget) return;
+
+        const { isValid, errors } = validateBudgetForm(editedBudget);
+        setErrors(errors);
+
         if (isValid) {
-            onSave({
-                id: editedBudget.id,
-                name: editedBudget.name,
-                budgeted: Number(editedBudget.budgeted),
-                spent: Number(editedBudget.spent),
-            });
+            onSave(editedBudget);
             setIsOpen(false);
-            setErrors({ name: "", budgeted: "", spent: "" });
-        } else {
-            setErrors(validationErrors);
         }
     };
+
+    if (!editedBudget) return null;
 
     return (
         <Credenza
@@ -101,8 +87,10 @@ export const EditBudgetDialog: React.FC<EditBudgetDialogProps> = ({ budget, isOp
                                 <Input
                                     id='budgeted'
                                     type='text'
-                                    value={editedBudget.budgeted}
-                                    onChange={(e) => setEditedBudget({ ...editedBudget, budgeted: e.target.value })}
+                                    value={editedBudget.budgeted?.toString()}
+                                    onChange={(e) =>
+                                        setEditedBudget({ ...editedBudget, budgeted: e.target.value || 0 })
+                                    }
                                 />
                                 {errors.budgeted && <p className='text-xs text-red-500'>{errors.budgeted}</p>}
                             </div>
@@ -118,8 +106,8 @@ export const EditBudgetDialog: React.FC<EditBudgetDialogProps> = ({ budget, isOp
                                 <Input
                                     id='spent'
                                     type='text'
-                                    value={editedBudget.spent}
-                                    onChange={(e) => setEditedBudget({ ...editedBudget, spent: e.target.value })}
+                                    value={editedBudget.spent?.toString()}
+                                    onChange={(e) => setEditedBudget({ ...editedBudget, spent: e.target.value || 0 })}
                                 />
                                 {errors.spent && <p className='text-xs text-red-500'>{errors.spent}</p>}
                             </div>
