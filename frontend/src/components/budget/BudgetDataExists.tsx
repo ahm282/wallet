@@ -46,10 +46,7 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({
                             <EuroIcon className='size-7 me-3' />
                             Monthly Budgets
                         </div>
-                        <AddBudgetDialog
-                            budgets={budgets}
-                            createBudgetMutation={createBudgetMutation}
-                        />
+                        <AddBudgetDialog createBudgetMutation={createBudgetMutation} />
                     </CardTitle>
                 </CardHeader>
                 <CardContent>

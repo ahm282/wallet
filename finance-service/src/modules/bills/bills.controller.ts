@@ -1,34 +1,40 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from "@nestjs/common";
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Query } from "@nestjs/common";
 import { BillsService } from "./bills.service";
 import { CreateBillDto } from "../../dto/bill/create-bill.dto";
 import { UpdateBillDto } from "../../dto/bill/update-bill.dto";
 
-@Controller("bills")
+@Controller("bill")
 export class BillsController {
     constructor(private readonly billsService: BillsService) {}
 
     @Post()
-    create(@Body() createBillDto: CreateBillDto) {
+    async create(@Body() createBillDto: CreateBillDto) {
         return this.billsService.create(createBillDto);
     }
 
-    @Get()
-    findAll() {
-        return this.billsService.findAll();
-    }
-
     @Get(":id")
-    findOne(@Param("id") id: string) {
-        return this.billsService.findOne(+id);
+    async findById(@Param("id") id: string) {
+        return this.billsService.findById(id);
     }
 
-    @Patch(":id")
-    update(@Param("id") id: string, @Body() updateBillDto: UpdateBillDto) {
-        return this.billsService.update(+id, updateBillDto);
+    @Get()
+    async findAllByUserId(@Query("id") id: string) {
+        return this.billsService.findAllByUserId(id);
     }
 
-    @Delete(":id")
-    remove(@Param("id") id: string) {
-        return this.billsService.remove(+id);
+    @Patch()
+    async update(@Query("id") id: string, @Body() updateBillDto: UpdateBillDto) {
+        return this.billsService.update(id, updateBillDto);
+    }
+
+    @Delete()
+    @HttpCode(HttpStatus.NO_CONTENT)
+    async delete(@Query("id") id: string) {
+        return this.billsService.delete(id);
+    }
+
+    @Patch("pay")
+    async pay(@Query("id") id: string) {
+        return this.billsService.pay(id);
     }
 }

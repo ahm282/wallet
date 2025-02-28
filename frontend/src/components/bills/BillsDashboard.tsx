@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { LucideCalendarDays, CheckCircle, XCircle, AlertCircle, Clock, FileText, CreditCard } from "lucide-react";
-import { currencyNotation } from "@/lib/utils";
+import { currencyNotation, formatDateString, fromUnixTimestamp } from "@/lib/utils";
 import type { BillsDashboardProps } from "@/types/bills.types";
 
 export const BillsDashboard: React.FC<BillsDashboardProps> = ({ bills }) => {
@@ -104,7 +104,7 @@ export const BillsDashboard: React.FC<BillsDashboardProps> = ({ bills }) => {
                                     <TableRow key={bill.id}>
                                         <TableCell>{bill.payee}</TableCell>
                                         <TableCell>{currencyNotation(bill.amount)}</TableCell>
-                                        <TableCell>{bill.dueDate}</TableCell>
+                                        <TableCell>{formatDateString(fromUnixTimestamp(bill.dueDate))}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -136,7 +136,7 @@ export const BillsDashboard: React.FC<BillsDashboardProps> = ({ bills }) => {
                                     <TableRow key={bill.id}>
                                         <TableCell>{bill.payee}</TableCell>
                                         <TableCell>{currencyNotation(bill.amount)}</TableCell>
-                                        <TableCell>{bill.dueDate}</TableCell>
+                                        <TableCell>{formatDateString(fromUnixTimestamp(bill.dueDate))}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
