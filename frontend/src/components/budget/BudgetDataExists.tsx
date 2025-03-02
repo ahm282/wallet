@@ -101,7 +101,9 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({
                                     <span>
                                         {((Number(budget.spent) / Number(budget.budgeted)) * 100).toFixed(0)}% spent
                                     </span>
-                                    <span>€{Number(budget.budgeted) - Number(budget.spent)} remaining</span>
+                                    <span>
+                                        €{(Number(budget.budgeted) - Number(budget.spent)).toFixed(2)} remaining
+                                    </span>
                                 </div>
                                 {index !== budgets.length - 1 && (
                                     <Separator className='w-10/12 lg:w-11/12 mx-auto !mt-4' />
