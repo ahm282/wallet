@@ -5,7 +5,7 @@ import type { NoBillsProps } from "@/types/bills.types";
 
 export const NoBills: React.FC<NoBillsProps> = ({ createBillMutation }) => {
     return (
-        <div className='w-11/12 md:w-10/12 lg:w-7/12 2xl:w-6/12 my-8 mx-auto flex flex-col space-y-3'>
+        <div className='md:w-10/12 lg:w-10/12 lg:max-w-4xl 2xl:max-w-5xl my-8 mx-auto flex flex-col space-y-3'>
             <Card>
                 <CardHeader>
                     <CardTitle>Manage Your Bills</CardTitle>

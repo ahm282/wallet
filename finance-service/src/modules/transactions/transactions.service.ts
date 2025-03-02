@@ -10,7 +10,7 @@ export class TransactionsService {
 
     async create(createTransactionDto: CreateTransactionDto) {
         createTransactionDto.category = stringToCategory(
-            createTransactionDto.category ? createTransactionDto.category : "other"
+            createTransactionDto.category ? createTransactionDto.category : "Other"
         );
         return await this.transactionRepo.create(createTransactionDto);
     }
@@ -25,7 +25,7 @@ export class TransactionsService {
 
     async update(id: string, updateTransactionDto: UpdateTransactionDto) {
         updateTransactionDto.category = stringToCategory(
-            updateTransactionDto.category ? updateTransactionDto.category : "other"
+            updateTransactionDto.category ? updateTransactionDto.category : "Other"
         );
         return this.transactionRepo.update(id, updateTransactionDto);
     }

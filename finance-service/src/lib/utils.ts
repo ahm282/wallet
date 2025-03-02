@@ -11,5 +11,5 @@ export function stringToCategory(categoryString: string): Category {
         return categoryString as Category;
     }
 
-    throw new Error("Invalid category");
+    return Category.Other;
 }
