@@ -1,31 +1,30 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy import (
+    Column,
+    String,
+    Float,
+    Integer,
+    DateTime,
+    ForeignKey,
+)
 from datetime import datetime
+from sqlalchemy.orm import relationship
 from config.base import Base
 
 
 class BudgetAnalysis(Base):
-    __tablename__ = "budget_analyses"
+    __tablename__ = "budget_analysis"
 
-    id = Column(Integer, primary_key=True)
-    user_id = Column(String, ForeignKey("users.id"))
-
-    # Budget data
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, ForeignKey("users.id"), index=True)
+    budget_id = Column(String, index=True)
     name = Column(String)
-    budgeted = Column(Float)
-    spent = Column(Float)
-    remaining = Column(Float)
-    percentage_used = Column(Float)
-    status = Column(String)  # on_track, warning, overspent
-
-    # budget ID from MongoDB
-    budget_id = Column(String)
-
-    # Time period
+    budgeted = Column(Float, default=0)
+    spent = Column(Float, default=0)
+    remaining = Column(Float, default=0)
+    percentage_used = Column(Float, default=0)
+    status = Column(String)  # "on_track", "overspent", "at_risk"
     period_start = Column(DateTime)
     period_end = Column(DateTime)
-
-    # Timestamps
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 

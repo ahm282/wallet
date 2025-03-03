@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
-from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
+from util.helpers import getUnixTime
+from sqlalchemy.orm import Session, load_only
 from typing import Dict, List, Optional, Any
 from models.psql.dashboard_stat import DashboardStat
 from models.psql.user import User
@@ -12,10 +13,6 @@ from services.data_fetch import (
     fetch_budgets_for_user,
     fetch_goals_for_user,
 )
-from services.predictions import (
-    predict_cashflow_for_user,
-    detect_anomalous_transactions,
-)
 from config.database import (
     get_db,
     user_repository,
@@ -24,6 +21,46 @@ from config.database import (
     bill_forecast_repository,
     cash_flow_repository,
 )
+
+
+def get_dashboard_for_user(user_id: str, refresh: bool = False) -> Dict[str, Any]:
+    """
+    Get dashboard stats for a user from the database.
+    If refresh=True or no stats found, compute new stats.
+    """
+    try:
+        db = next(get_db())
+
+        # Try to get existing stats first if not forcing refresh
+        if not refresh:
+            try:
+                # Use a more targeted query with specific columns to avoid errors
+                latest_stat = dashboard_stats_repository.get_latest_by_user_id(db, user_id)
+
+                # Check if stats are recent (less than 24 hours old)
+                if (
+                    latest_stat
+                    and (datetime.now() - latest_stat.created_at).total_seconds()
+                    < 86400
+                ):
+                    try:
+                        # Get the basic dashboard structure from the database
+                        dashboard = format_dashboard_from_db(latest_stat)
+
+                        # Add a flag to indicate that the data is from the cache
+                        dashboard["from_cache"] = True
+
+                        return dashboard
+                    except Exception as e:
+                        print(f"Error enriching dashboard: {str(e)}")
+            except Exception as e:
+                print(f"Error retrieving dashboard from cache: {str(e)}")
+    except Exception as e:
+        print(f"Error retrieving dashboard from cache: {str(e)}")
+
+    # If we got here, either refresh=True, no recent stats, or enrichment failed
+    print("Computing fresh dashboard")
+    return compute_and_save_dashboard(user_id, db)
 
 
 def compute_dashboard_stats(user_id: str) -> Optional[Dict[str, Any]]:
@@ -73,21 +110,124 @@ def compute_dashboard_stats(user_id: str) -> Optional[Dict[str, Any]]:
         "budgets": _compute_budget_stats(budgets),
         "goals": _compute_goal_stats(goals),
         "recent_activity": _compute_recent_activity(df),
-        "alerts": _compute_alert_stats(user_id, df, accounts, bills, budgets),
-        "cashflow": _compute_cashflow_stats(df),
-        "generated_at": datetime.now().isoformat(),
+        "generated_at": getUnixTime(),
+        "from_cache": False,
     }
 
     return dashboard
 
 
+def compute_and_save_dashboard(user_id: str, db: Session) -> Dict[str, Any]:
+    """
+    Compute dashboard stats and save them to the database.
+    """
+    # Get or create user
+    try:
+        user = user_repository.get(db, user_id)
+        if not user:
+            try:
+                user = User(id=user_id)
+                user = user_repository.create(db, user)
+                print(f"Created user: {user.id}")
+            except Exception as e:
+                print(f"Failed to create user: {str(e)}")
+                db.rollback()  # Add explicit rollback
+                raise
+    except Exception as e:
+        print(f"Error checking/creating user: {str(e)}")
+        db.rollback()  # Add explicit rollback
+        # Still compute dashboard but don't save
+        return compute_dashboard_stats(user_id)
+
+    # Compute dashboard stats
+    dashboard = compute_dashboard_stats(user_id)
+
+    try:
+        # Save summary stats to dashboard_stats table
+        summary = dashboard.get("summary", {})
+        accounts = dashboard.get("accounts", {})
+
+        # Create dashboard_stat with ONLY the fields known to exist in the database
+        dashboard_stat = DashboardStat(
+            user_id=user_id,
+            total_balance=accounts.get("total_balance", 0),
+            month_income=float(summary.get("current_month", {}).get("income", 0)),
+            month_expenses=float(summary.get("current_month", {}).get("spending", 0)),
+            month_savings=float(summary.get("current_month", {}).get("net", 0)),
+            savings_rate=(
+                summary.get("current_month", {}).get("net", 0)
+                / max(1, summary.get("current_month", {}).get("income", 1))
+                * 100
+            ),
+            upcoming_bills_total=dashboard.get("bills", {}).get("total_due_amount", 0),
+            largest_expense_category=get_largest_expense_category(dashboard),
+            largest_expense_amount=get_largest_expense_amount(dashboard),
+            goals_on_track=count_goals_on_track(dashboard),
+            goals_at_risk=count_goals_at_risk(dashboard),
+            period_start=datetime.now().replace(
+                day=1, hour=0, minute=0, second=0, microsecond=0
+            ),
+            period_end=datetime.now(),
+        )
+
+        try:
+            dashboard_stat = dashboard_stats_repository.create(db, dashboard_stat)
+            db.commit()  # Commit after dashboard_stats creation
+        except Exception as e:
+            db.rollback()  # Explicitly rollback on error
+            print(f"Failed to save dashboard stats: {str(e)}")
+            # Continue with the rest of the function
+    except Exception as e:
+        db.rollback()  # Explicitly rollback on error
+        print(f"Failed during dashboard stats processing: {str(e)}")
+
+    try:
+        # Save budget analyses
+        save_budget_analyses(db, user_id, dashboard.get("budgets", {}))
+        db.commit()  # Commit after budget analyses
+    except Exception as e:
+        db.rollback()  # Explicitly rollback on error
+        print(f"Failed to save budget analyses: {str(e)}")
+
+    try:
+        # Save bill forecasts
+        save_bill_forecasts(db, user_id, dashboard.get("bills", {}))
+        db.commit()  # Commit after bill forecasts
+    except Exception as e:
+        db.rollback()  # Explicitly rollback on error
+        print(f"Failed to save bill forecasts: {str(e)}")
+
+    try:
+        # Save cash flows
+        save_cash_flows(db, user_id, dashboard)
+        db.commit()  # Commit after cash flows
+    except Exception as e:
+        db.rollback()  # Explicitly rollback on error
+        print(f"Failed to save cash flows: {str(e)}")
+
+    try:
+        # Update user's last analysis time
+        if user:
+            user.last_analysis = datetime.now()
+            user_repository.update(db, user, {"last_analysis": user.last_analysis})
+            db.commit()  # Final commit
+    except Exception as e:
+        db.rollback()  # Explicitly rollback on error
+        print(f"Failed to update user's last analysis time: {str(e)}")
+
+    return dashboard
+
+
+####################
+# Compute Stats
+####################
 def _compute_summary_stats(
     df: pd.DataFrame, current_month_df: pd.DataFrame, previous_month_df: pd.DataFrame
 ) -> Dict[str, Any]:
     """Compute summary financial statistics."""
     # All-time stats
     total_income = df[df["amount"] > 0]["amount"].sum()
-    total_spending = df[df["amount"] < 0]["amount"].abs().sum()
+    total_spending = abs(df[df["amount"] < 0]["amount"]).sum()
     net_flow = total_income - total_spending
 
     # Current month stats
@@ -117,17 +257,17 @@ def _compute_summary_stats(
         avg_daily_spending = 0
 
     return {
-        "total_income": round(total_income, 2),
-        "total_spending": round(total_spending, 2),
-        "net_flow": round(net_flow, 2),
+        "total_income": float(round(total_income, 2)),
+        "total_spending": float(round(total_spending, 2)),
+        "net_flow": float(round(net_flow, 2)),
         "current_month": {
-            "income": round(current_income, 2),
-            "spending": round(current_spending, 2),
-            "net": round(current_net, 2),
-            "income_change": round(income_change, 2),
-            "spending_change": round(spending_change, 2),
-            "net_change": round(net_change, 2),
-            "avg_daily_spending": round(avg_daily_spending, 2),
+            "income": float(round(current_income, 2)),
+            "spending": float(round(current_spending, 2)),
+            "net": float(round(current_net, 2)),
+            "income_change": float(round(income_change, 2)),
+            "spending_change": float(round(spending_change, 2)),
+            "net_change": float(round(net_change, 2)),
+            "avg_daily_spending": float(round(avg_daily_spending, 2)),
             "days_tracked": (
                 len(current_month_df["date"].dt.date.unique())
                 if not current_month_df.empty
@@ -152,7 +292,7 @@ def _compute_account_stats(accounts: List[Dict[str, Any]]) -> Dict[str, Any]:
 
         formatted_accounts.append(
             {
-                "id": account.get("_id", ""),
+                "id": str(account.get("_id", "")),
                 "name": account.get("name", ""),
                 "institution": account.get("institution", ""),
                 "balance": balance,
@@ -251,7 +391,11 @@ def _compute_spending_stats(
         largest_expenses = current_expenses_df.nlargest(5, "amount")
         largest_expense_list = [
             {
-                "date": row["date"].isoformat() if not pd.isna(row["date"]) else None,
+                "date": (
+                    int(row["date"].timestamp() * 1000)
+                    if not pd.isna(row["date"])
+                    else None
+                ),
                 "amount": round(row["amount"], 2),
                 "description": row.get("description", ""),
                 "category": row.get("category", "Unknown"),
@@ -334,7 +478,11 @@ def _compute_income_stats(
     largest_income = income_df.nlargest(5, "amount")
     largest_income_list = [
         {
-            "date": row["date"].isoformat() if not pd.isna(row["date"]) else None,
+            "date": (
+                int(row["date"].timestamp() * 1000)
+                if not pd.isna(row["date"])
+                else None
+            ),
             "amount": round(row["amount"], 2),
             "description": row.get("description", ""),
         }
@@ -382,10 +530,12 @@ def _compute_bill_stats(bills: List[Dict[str, Any]]) -> Dict[str, Any]:
         is_paid = bill.get("paid", False)
 
         bill_info = {
-            "id": bill.get("_id", ""),
+            "id": str(bill.get("_id", "")),
             "payee": bill.get("payee", ""),
             "amount": amount,
-            "due_date": due_date.isoformat(),
+            "due_date": (
+                int(due_date.timestamp() * 1000) if not pd.isna(due_date) else None
+            ),
             "days_until_due": days_until_due,
             "description": bill.get("description", ""),
             "paid": is_paid,
@@ -416,34 +566,14 @@ def _compute_budget_stats(budgets: List[Dict[str, Any]]) -> Dict[str, Any]:
     if not budgets:
         return {"total_budgets": 0, "active_budgets": []}
 
-    now = datetime.now()
     active_budgets = []
     total_budgets = 0
     total_spent = 0
     total_budgeted = 0
 
     for budget in budgets:
-        start_date = datetime.fromtimestamp(
-            budget["startDate"] / 1000
-        )  # Convert from milliseconds
-        end_date = datetime.fromtimestamp(
-            budget["endDate"] / 1000
-        )  # Convert from milliseconds
-        amount = budget.get("amount", 0)
+        amount = budget.get("budgeted", 0)
         spent = budget.get("spent", 0)
-
-        budget_info = {
-            "id": budget.get("_id", ""),
-            "category": budget.get("category", ""),
-            "amount": amount,
-            "start_date": start_date.isoformat(),
-            "end_date": end_date.isoformat(),
-            "spent": spent,
-            "progress": round((spent / amount) * 100, 2) if amount > 0 else 0,
-        }
-
-        if start_date <= now <= end_date:
-            active_budgets.append(budget_info)
 
         total_budgets += 1
         total_spent += spent
@@ -476,11 +606,15 @@ def _compute_goal_stats(goals: List[Dict[str, Any]]) -> Dict[str, Any]:
         current_amount = goal.get("currentAmount", 0)
 
         goal_info = {
-            "id": goal.get("_id", ""),
+            "id": str(goal.get("_id", "")),
             "name": goal.get("name", ""),
             "target_amount": target_amount,
             "current_amount": current_amount,
-            "target_date": target_date.isoformat(),
+            "target_date": (
+                int(target_date.timestamp() * 1000)
+                if not pd.isna(target_date)
+                else None
+            ),
             "progress": (
                 round((current_amount / target_amount) * 100, 2)
                 if target_amount > 0
@@ -511,7 +645,11 @@ def _compute_recent_activity(df: pd.DataFrame) -> Dict[str, Any]:
     recent_transactions = df.nlargest(5, "date")
     recent_transaction_list = [
         {
-            "date": row["date"].isoformat() if not pd.isna(row["date"]) else None,
+            "date": (
+                int(row["date"].timestamp() * 1000)
+                if not pd.isna(row["date"])
+                else None
+            ),
             "amount": round(row["amount"], 2),
             "description": row.get("description", ""),
             "category": row.get("category", "Unknown"),
@@ -519,87 +657,7 @@ def _compute_recent_activity(df: pd.DataFrame) -> Dict[str, Any]:
         for _, row in recent_transactions.iterrows()
     ]
 
-    return {
-        "total_transactions": len(df),
-        "recent_transactions": recent_transaction_list,
-    }
-
-
-def _compute_alert_stats(
-    user_id: str,
-    df: pd.DataFrame,
-    accounts: List[Dict[str, Any]],
-    bills: List[Dict[str, Any]],
-    budgets: List[Dict[str, Any]],
-) -> Dict[str, Any]:
-    """Compute financial alerts and anomalies."""
-    if df.empty:
-        return {"alerts": []}
-
-    # Detect anomalous transactions
-    anomalies = detect_anomalous_transactions(df)
-
-    # Check for low account balances
-    low_balance_alerts = []
-    for account in accounts:
-        balance = account.get("balance", 0)
-        if balance < 100:
-            low_balance_alerts.append(
-                {
-                    "account": account.get("name", ""),
-                    "balance": round(balance, 2),
-                    "currency": account.get("currency", "USD"),
-                }
-            )
-
-    # Check for upcoming bills
-    upcoming_bills_alerts = []
-    for bill in bills:
-        due_date = datetime.fromtimestamp(
-            bill["dueDate"] / 1000
-        )  # Convert from milliseconds
-        days_until_due = (due_date - datetime.now()).days
-        if days_until_due <= 7:
-            upcoming_bills_alerts.append(
-                {
-                    "payee": bill.get("payee", ""),
-                    "amount": round(bill.get("amount", 0), 2),
-                    "due_date": due_date.isoformat(),
-                    "days_until_due": days_until_due,
-                }
-            )
-
-    # Check for overspending on budgets
-    overspending_alerts = []
-    for budget in budgets:
-        amount = budget.get("amount", 0)
-        spent = budget.get("spent", 0)
-        if spent > amount:
-            overspending_alerts.append(
-                {
-                    "category": budget.get("category", ""),
-                    "amount": round(amount, 2),
-                    "spent": round(spent, 2),
-                }
-            )
-
-    return {
-        "alerts": {
-            "anomalies": anomalies,
-            "low_balances": low_balance_alerts,
-            "upcoming_bills": upcoming_bills_alerts,
-            "overspending": overspending_alerts,
-        }
-    }
-
-
-def _compute_cashflow_stats(df: pd.DataFrame) -> Dict[str, Any]:
-    """Compute cashflow statistics and predictions."""
-    if df.empty:
-        return {"predicted_cashflow": []}
-
-    predictions = predict_cashflow_for_user(df)
-    return {"predicted_cashflow": predictions}
+    return recent_transaction_list
 
 
 def _calculate_percentage_change(previous: float, current: float) -> float:
@@ -607,386 +665,94 @@ def _calculate_percentage_change(previous: float, current: float) -> float:
     return ((current - previous) / max(1, abs(previous))) * 100
 
 
-def predict_cashflow_for_user(df: pd.DataFrame) -> List[Dict[str, Any]]:
-    """
-    Predict future cashflow based on historical transaction data.
-
-    Args:
-        df: DataFrame containing transaction data with 'date' and 'amount' columns
-
-    Returns:
-        List of dictionaries with predicted cashflows for the next 30 days
-    """
-    if df.empty:
-        return []
-
-    # Ensure data is properly formatted
-    if "date" not in df.columns or "amount" not in df.columns:
-        return []
-
-    # Create daily time series
-    df = df.sort_values("date")
-    df_daily = df.set_index("date").resample("D").sum().reset_index()
-
-    # Fill missing dates with 0
-    date_range = pd.date_range(start=df_daily["date"].min(), end=df_daily["date"].max())
-    df_complete = (
-        df_daily.set_index("date").reindex(date_range, fill_value=0).reset_index()
-    )
-    df_complete = df_complete.rename(columns={"index": "date"})
-
-    # If we have less than 30 days of data, we can't make reliable predictions
-    if len(df_complete) < 30:
-        # Return simple projection based on average daily cashflow
-        avg_daily_cashflow = df["amount"].sum() / len(df_complete)
-
-        last_date = df["date"].max()
-        predictions = []
-
-        current_balance = df_complete["amount"].sum()
-
-        for i in range(1, 31):
-            pred_date = last_date + pd.Timedelta(days=i)
-            current_balance += avg_daily_cashflow
-            predictions.append(
-                {
-                    "date": pred_date.isoformat(),
-                    "amount": round(avg_daily_cashflow, 2),
-                    "balance": round(current_balance, 2),
-                    "confidence": 0.5,  # Low confidence due to limited data
-                }
-            )
-
-        return predictions
-
-    # For more sophisticated predictions when we have enough data:
-    # 1. Use time series decomposition to identify trend and seasonality
-    from statsmodels.tsa.seasonal import seasonal_decompose
-
-    # Resample to daily data and compute rolling statistics
-    df_complete["rolling_mean"] = df_complete["amount"].rolling(window=7).mean()
-    df_complete["rolling_std"] = df_complete["amount"].rolling(window=7).std()
-
-    # Fill NaN values with first valid value
-    df_complete = df_complete.fillna(method="bfill")
-
-    # Try to decompose the time series if we have enough data
-    try:
-        decomposition = seasonal_decompose(
-            df_complete["amount"],
-            model="additive",
-            period=7,  # Assuming weekly seasonality
-        )
-        trend = decomposition.trend
-        seasonal = decomposition.seasonal
-        residual = decomposition.resid
-
-        # Fill NaN values
-        trend = trend.fillna(method="bfill").fillna(method="ffill")
-        seasonal = seasonal.fillna(method="bfill").fillna(method="ffill")
-        residual = residual.fillna(method="bfill").fillna(method="ffill")
-
-        # Use last values to predict next 30 days
-        last_date = df_complete["date"].iloc[-1]
-        last_trend = trend.iloc[-1]
-        trend_change = (
-            trend.iloc[-1] - trend.iloc[-8]
-        ) / 7  # Average daily trend change
-
-        predictions = []
-        current_balance = df_complete["amount"].sum()
-
-        for i in range(1, 31):
-            pred_date = last_date + pd.Timedelta(days=i)
-            seasonal_component = seasonal.iloc[-(7 - (i % 7))]
-            pred_trend = last_trend + (trend_change * i)
-            pred_amount = pred_trend + seasonal_component
-
-            # Add some randomness based on residual standard deviation
-            residual_std = residual.std()
-            random_factor = np.random.normal(0, residual_std)
-            pred_amount += random_factor
-
-            current_balance += pred_amount
-
-            predictions.append(
-                {
-                    "date": pred_date.isoformat(),
-                    "amount": round(pred_amount, 2),
-                    "balance": round(current_balance, 2),
-                    "confidence": max(
-                        0.5, min(0.9, 0.9 - (i / 60))
-                    ),  # Decreasing confidence over time
-                }
-            )
-
-        return predictions
-
-    except:
-        # Fallback to simpler prediction if decomposition fails
-        avg_daily_cashflow = df_complete["amount"].mean()
-        std_daily_cashflow = df_complete["amount"].std()
-
-        last_date = df_complete["date"].iloc[-1]
-        predictions = []
-
-        current_balance = df_complete["amount"].sum()
-
-        for i in range(1, 31):
-            pred_date = last_date + pd.Timedelta(days=i)
-
-            # Add some randomness based on historical standard deviation
-            random_factor = np.random.normal(0, std_daily_cashflow / 2)
-            pred_amount = avg_daily_cashflow + random_factor
-
-            current_balance += pred_amount
-
-            predictions.append(
-                {
-                    "date": pred_date.isoformat(),
-                    "amount": round(pred_amount, 2),
-                    "balance": round(current_balance, 2),
-                    "confidence": 0.7,  # Moderate confidence
-                }
-            )
-
-        return predictions
-
-
-def detect_anomalous_transactions(df: pd.DataFrame) -> List[Dict[str, Any]]:
-    """
-    Detect anomalous transactions based on historical patterns.
-
-    Args:
-        df: DataFrame containing transaction data
-
-    Returns:
-        List of dictionaries with detected anomalies
-    """
-    if df.empty or len(df) < 5:
-        return []
-
-    # Make a copy to avoid modifying the original DataFrame
-    df = df.copy()
-
-    # Focus on spending (negative amounts)
-    spending_df = df[df["amount"] < 0].copy()
-
-    if spending_df.empty:
-        return []
-
-    # Calculate statistical thresholds for anomaly detection
-    # Converting to absolute values for easier comparison
-    spending_df["amount_abs"] = spending_df["amount"].abs()
-
-    # Get mean and standard deviation of absolute amounts
-    mean_amount = spending_df["amount_abs"].mean()
-    std_amount = spending_df["amount_abs"].std()
-
-    # Transactions with amount > mean + 2*std are potential anomalies
-    threshold = mean_amount + (2 * std_amount)
-    anomalies = spending_df[spending_df["amount_abs"] > threshold].copy()
-
-    # If we have category data, also look for unusual spending in categories
-    category_anomalies = []
-    if "category" in spending_df.columns:
-        # Calculate average spending by category
-        category_means = spending_df.groupby("category")["amount_abs"].mean()
-        category_stds = spending_df.groupby("category")["amount_abs"].std().fillna(0)
-
-        for _, row in spending_df.iterrows():
-            category = row.get("category")
-            if pd.isna(category) or category not in category_means:
-                continue
-
-            cat_mean = category_means[category]
-            cat_std = category_stds[category]
-            cat_threshold = cat_mean + (
-                2.5 * cat_std
-            )  # Slightly higher threshold for categories
-
-            if row["amount_abs"] > cat_threshold and row["amount_abs"] > mean_amount:
-                if row["date"].isoformat() not in [
-                    a.get("date") for a in category_anomalies
-                ]:
-                    category_anomalies.append(
-                        {
-                            "date": (
-                                row["date"].isoformat()
-                                if not pd.isna(row["date"])
-                                else None
-                            ),
-                            "amount": round(float(row["amount"]), 2),
-                            "description": row.get("description", ""),
-                            "category": category,
-                            "reason": f"Unusually large transaction for {category} category",
-                        }
-                    )
-
-    # Format the results
-    anomaly_list = []
-    for _, row in anomalies.iterrows():
-        anomaly_list.append(
-            {
-                "date": row["date"].isoformat() if not pd.isna(row["date"]) else None,
-                "amount": round(float(row["amount"]), 2),
-                "description": row.get("description", ""),
-                "category": row.get("category", "Unknown"),
-                "reason": "Unusually large transaction amount",
-            }
-        )
-
-    # Combine both types of anomalies and remove duplicates
-    all_anomalies = anomaly_list + category_anomalies
-    seen_descriptions = set()
-    unique_anomalies = []
-
-    for anomaly in all_anomalies:
-        key = (anomaly["date"], anomaly["amount"], anomaly["description"])
-        if key not in seen_descriptions:
-            seen_descriptions.add(key)
-            unique_anomalies.append(anomaly)
-
-    return unique_anomalies[:10]  # Limit to top 10 anomalies
-
-
-def get_dashboard_for_user(user_id: str, refresh: bool = False) -> Dict[str, Any]:
-    """
-    Get dashboard stats for a user from the database.
-    If refresh=True or no stats found, compute new stats.
-
-    Args:
-        user_id: The user ID
-        refresh: Whether to force recompute stats
-
-    Returns:
-        Dictionary containing dashboard data
-    """
-    db = next(get_db())
-
-    # Try to get existing stats first if not forcing refresh
-    if not refresh:
-        # Get most recent dashboard stats for user
-        latest_stat = (
-            db.query(DashboardStat)
-            .filter(DashboardStat.user_id == user_id)
-            .order_by(DashboardStat.created_at.desc())
-            .first()
-        )
-
-        # If we have recent stats (less than 24 hours old), return them
-        if (
-            latest_stat
-            and (datetime.now() - latest_stat.created_at).total_seconds() < 86400
-        ):
-            return format_dashboard_from_db(latest_stat)
-
-    # Compute new stats and save to database
-    return compute_and_save_dashboard(user_id, db)
-
-
-def compute_and_save_dashboard(user_id: str, db: Session) -> Dict[str, Any]:
-    """
-    Compute dashboard stats and save them to the database.
-
-    Args:
-        user_id: The user ID
-        db: Database session
-
-    Returns:
-        Dictionary containing dashboard data
-    """
-    # Get or create user
-    user = user_repository.get(db, user_id)
-    if not user:
-        try:
-            user = User(id=user_id)
-            user = user_repository.create(db, user)
-            print(f"Created user: {user.id}")
-        except Exception as e:
-            print(f"Failed to create user: {str(e)}")
-            raise
-
-    # Compute dashboard stats
-    dashboard = compute_dashboard_stats(user_id)
-
-    # Save summary stats to dashboard_stats table
-    summary = dashboard.get("summary", {})
-    accounts = dashboard.get("accounts", {})
-
-    dashboard_stat = DashboardStat(
-        user_id=user_id,
-        total_balance=accounts.get("total_balance", 0),
-        month_income=summary.get("current_month", {}).get("income", 0),
-        month_expenses=summary.get("current_month", {}).get("spending", 0),
-        month_savings=summary.get("current_month", {}).get("net", 0),
-        savings_rate=(
-            summary.get("current_month", {}).get("net", 0)
-            / max(1, summary.get("current_month", {}).get("income", 1))
-            * 100
-        ),
-        upcoming_bills_total=dashboard.get("bills", {}).get("total_due_amount", 0),
-        largest_expense_category=get_largest_expense_category(dashboard),
-        largest_expense_amount=get_largest_expense_amount(dashboard),
-        goals_on_track=count_goals_on_track(dashboard),
-        goals_at_risk=count_goals_at_risk(dashboard),
-        period_start=datetime.now().replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0
-        ),
-        period_end=datetime.now(),
-    )
-
-    dashboard_stat = dashboard_stats_repository.create(db, dashboard_stat)
-
-    # Save budget analyses
-    save_budget_analyses(db, user_id, dashboard.get("budgets", {}))
-
-    # Save bill forecasts
-    save_bill_forecasts(db, user_id, dashboard.get("bills", {}))
-
-    # Save cash flows
-    save_cash_flows(db, user_id, dashboard)
-
-    # Update user's last analysis time
-    user.last_analysis = datetime.now()
-    user_repository.update(db, user, {"last_analysis": user.last_analysis})
-
-    return dashboard
-
-
+####################
+# Retrieve Stats from DB and Format
+####################
 def format_dashboard_from_db(dashboard_stat: DashboardStat) -> Dict[str, Any]:
     """
     Format a dashboard stat entity from the database into the API response format.
+    Ensures the structure matches that of a freshly computed dashboard.
 
     Args:
         dashboard_stat: DashboardStat entity from database
 
     Returns:
-        Dictionary with formatted dashboard data
+        Dictionary with formatted dashboard data matching the compute_dashboard_stats format
     """
-    # Create basic structure
+    # Create full structure that matches compute_dashboard_stats output
     return {
         "summary": {
             "total_income": dashboard_stat.month_income,
             "total_spending": dashboard_stat.month_expenses,
             "net_flow": dashboard_stat.month_savings,
             "current_month": {
-                "income": dashboard_stat.month_income,
-                "spending": dashboard_stat.month_expenses,
+                "income": float(dashboard_stat.month_income),
+                "spending": float(dashboard_stat.month_expenses),
                 "net": dashboard_stat.month_savings,
+                "income_change": 0,  # Would need historical data for this
+                "spending_change": 0,  # Would need historical data for this
+                "net_change": 0,  # Would need historical data for this
+                "avg_daily_spending": dashboard_stat.month_expenses
+                / 30,  # Approximation
+                "days_tracked": 30,  # Approximation
             },
             "status": "positive" if dashboard_stat.month_savings >= 0 else "negative",
         },
         "accounts": {
             "total_balance": dashboard_stat.total_balance,
+            "account_count": 0,  # Not stored in DashboardStat
+            "accounts": [],  # Would need to fetch from account repository
+        },
+        "spending": {
+            "current_month_total": dashboard_stat.month_expenses,
+            "previous_month_total": 0,  # Not stored in DashboardStat
+            "monthly_average": dashboard_stat.month_expenses,  # Using current month as approximation
+            "top_categories": (
+                [
+                    {
+                        "category": dashboard_stat.largest_expense_category,
+                        "amount": dashboard_stat.largest_expense_amount,
+                    }
+                ]
+                if dashboard_stat.largest_expense_category != "Unknown"
+                else []
+            ),
+            "by_day_of_week": {},  # Not stored in DashboardStat
+            "monthly_trend": {},  # Not stored in DashboardStat
+            "largest_expenses": [],  # Would need to fetch from transaction repository
+        },
+        "income": {
+            "current_month_total": dashboard_stat.month_income,
+            "previous_month_total": 0,  # Not stored in DashboardStat
+            "monthly_average": dashboard_stat.month_income,  # Using current month as approximation
+            "stability_score": 0,  # Not stored in DashboardStat
+            "top_sources": [],  # Not stored in DashboardStat
+            "monthly_trend": {},  # Not stored in DashboardStat
+            "largest_transactions": [],  # Would need to fetch from transaction repository
         },
         "bills": {
+            "total_bills": 0,  # Not stored in DashboardStat
             "total_due_amount": dashboard_stat.upcoming_bills_total,
+            "total_paid_amount": 0,  # Not stored in DashboardStat
+            "upcoming_bills": [],  # Would need to fetch from bills repository
+            "paid_bills": [],  # Would need to fetch from bills repository
+            "overdue_bills": [],  # Would need to fetch from bills repository
         },
-        "generated_at": dashboard_stat.created_at.isoformat(),
+        "budgets": {
+            "total_budgets": 0,  # Not stored in DashboardStat
+            "total_spent": 0,  # Not stored in DashboardStat
+            "total_budgeted": 0,  # Not stored in DashboardStat
+            "active_budgets": [],  # Would need to fetch from budget repository
+        },
+        "goals": {
+            "total_goals": dashboard_stat.goals_on_track + dashboard_stat.goals_at_risk,
+            "total_completed": 0,  # Not stored in DashboardStat
+            "total_target": 0,  # Not stored in DashboardStat
+            "active_goals": [],  # Would need to fetch from goals repository
+        },
+        "recent_activity": [],  # Would need to fetch from transaction repository
+        "generated_at": int(dashboard_stat.created_at.timestamp() * 1000),
         "from_cache": True,
-        # Note: For a complete dashboard, you'd need to join with other tables
-        # This is just the summary data stored in dashboard_stats table
     }
 
 
@@ -1012,9 +778,13 @@ def count_goals_on_track(dashboard: Dict[str, Any]) -> int:
     on_track = 0
     for goal in active_goals:
         # Simple heuristic: if current progress >= expected progress based on time elapsed
-        target_date = datetime.fromisoformat(
-            goal.get("target_date", datetime.now().isoformat())
-        )
+        target_date_ms = goal.get("target_date")
+        if target_date_ms:
+            target_date = datetime.fromtimestamp(
+                target_date_ms / 1000
+            )  # Convert from milliseconds
+        else:
+            target_date = datetime.now()
         total_days = (target_date - datetime.now()).days
         progress = goal.get("progress", 0)
 
@@ -1030,9 +800,13 @@ def count_goals_at_risk(dashboard: Dict[str, Any]) -> int:
     at_risk = 0
     for goal in active_goals:
         # Simple heuristic: if current progress < expected progress based on time elapsed
-        target_date = datetime.fromisoformat(
-            goal.get("target_date", datetime.now().isoformat())
-        )
+        target_date_ms = goal.get("target_date")
+        if target_date_ms:
+            target_date = datetime.fromtimestamp(
+                target_date_ms / 1000
+            )  # Convert from milliseconds
+        else:
+            target_date = datetime.now()
         total_days = (target_date - datetime.now()).days
         progress = goal.get("progress", 0)
 
@@ -1042,6 +816,9 @@ def count_goals_at_risk(dashboard: Dict[str, Any]) -> int:
     return at_risk
 
 
+####################
+# Save to DB
+####################
 def save_budget_analyses(
     db: Session, user_id: str, budgets_data: Dict[str, Any]
 ) -> None:
@@ -1055,29 +832,38 @@ def save_budget_analyses(
         if not budget_id:
             continue
 
-        # Create budget analysis entry
-        budget_analysis = BudgetAnalysis(
-            user_id=user_id,
-            budget_id=budget_id,
-            name=budget.get("category", ""),
-            budgeted=budget.get("amount", 0),
-            spent=budget.get("spent", 0),
-            remaining=budget.get("amount", 0) - budget.get("spent", 0),
-            percentage_used=budget.get("progress", 0),
-            status=(
-                "on_track"
-                if budget.get("spent", 0) <= budget.get("amount", 0)
-                else "overspent"
-            ),
-            period_start=datetime.fromisoformat(
-                budget.get("start_date", datetime.now().isoformat())
-            ),
-            period_end=datetime.fromisoformat(
-                budget.get("end_date", datetime.now().isoformat())
-            ),
-        )
+        try:
+            # Create budget analysis entry
+            budget_analysis = BudgetAnalysis(
+                user_id=user_id,
+                budget_id=budget_id,
+                name=budget.get("category", ""),
+                budgeted=budget.get("amount", 0),
+                spent=budget.get("spent", 0),
+                remaining=budget.get("amount", 0) - budget.get("spent", 0),
+                percentage_used=budget.get("progress", 0),
+                status=(
+                    "on_track"
+                    if budget.get("spent", 0) <= budget.get("amount", 0)
+                    else "overspent"
+                ),
+                period_start=(
+                    datetime.fromtimestamp(budget.get("start_date") / 1000)
+                    if isinstance(budget.get("start_date"), (int, float))
+                    else datetime.now().replace(day=1)  # Default to first day of month
+                ),
+                period_end=(
+                    datetime.fromtimestamp(budget.get("end_date") / 1000)
+                    if isinstance(budget.get("end_date"), (int, float))
+                    else datetime.now().replace(day=28)
+                    + timedelta(days=4)  # Last day of month
+                ),
+            )
 
-        budget_analysis_repository.create(db, budget_analysis)
+            budget_analysis_repository.create(db, budget_analysis)
+        except Exception as e:
+            print(f"Failed to save budget analysis: {str(e)}")
+            raise
 
 
 def save_bill_forecasts(db: Session, user_id: str, bills_data: Dict[str, Any]) -> None:
@@ -1091,21 +877,27 @@ def save_bill_forecasts(db: Session, user_id: str, bills_data: Dict[str, Any]) -
         if not bill_id:
             continue
 
-        # Create bill forecast entry
-        bill_forecast = BillForecast(
-            user_id=user_id,
-            bill_id=bill_id,
-            payee=bill.get("payee", ""),
-            amount=bill.get("amount", 0),
-            due_date=datetime.fromisoformat(
-                bill.get("due_date", datetime.now().isoformat())
-            ),
-            days_remaining=bill.get("days_until_due", 0),
-            recurring=False,  # Would need additional data to determine this
-            forecast_date=datetime.now(),
-        )
+        try:
+            # Create bill forecast entry
+            bill_forecast = BillForecast(
+                user_id=user_id,
+                bill_id=bill_id,
+                payee=bill.get("payee", ""),
+                amount=bill.get("amount", 0),
+                due_date=(
+                    datetime.fromtimestamp(bill.get("due_date") / 1000)
+                    if isinstance(bill.get("due_date"), (int, float))
+                    else datetime.now()
+                ),
+                days_remaining=bill.get("days_until_due", 0),
+                recurring=False,  # Would need additional data to determine this
+                forecast_date=datetime.now(),
+            )
 
-        bill_forecast_repository.create(db, bill_forecast)
+            bill_forecast_repository.create(db, bill_forecast)
+        except Exception as e:
+            print(f"Failed to save bill forecast: {str(e)}")
+            raise
 
 
 def save_cash_flows(db: Session, user_id: str, dashboard: Dict[str, Any]) -> None:
@@ -1119,14 +911,18 @@ def save_cash_flows(db: Session, user_id: str, dashboard: Dict[str, Any]) -> Non
     now = datetime.now()
     month_id = f"{now.year}-{now.month:02d}"
 
-    cash_flow = CashFlow(
-        user_id=user_id,
-        date=now,
-        income=current_month.get("income", 0),
-        expenses=current_month.get("spending", 0),
-        net=current_month.get("net", 0),
-        period_type="month",
-        period_id=month_id,
-    )
+    try:
+        cash_flow = CashFlow(
+            user_id=user_id,
+            date=now,
+            income=current_month.get("income", 0),
+            expenses=current_month.get("spending", 0),
+            net=current_month.get("net", 0),
+            period_type="month",
+            period_id=month_id,
+        )
 
-    cash_flow_repository.create(db, cash_flow)
+        cash_flow_repository.create(db, cash_flow)
+    except Exception as e:
+        print(f"Failed to save cash flow: {str(e)}")
+        raise
