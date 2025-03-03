@@ -1,22 +1,30 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy import (
+    Column,
+    String,
+    Float,
+    Integer,
+    DateTime,
+    Boolean,
+    ForeignKey,
+)
 from datetime import datetime
+from sqlalchemy.orm import relationship
 from config.base import Base
 
 
 class BillForecast(Base):
-    __tablename__ = "bill_forecasts"
+    __tablename__ = "bill_forecast"
 
-    id = Column(Integer, primary_key=True)
-    user_id = Column(String, ForeignKey("users.id"))
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, ForeignKey("users.id"), index=True)
 
     # Bill data
-    bill_id = Column(String)  # bill ID from MongoDB
+    bill_id = Column(String, index=True)  # bill ID from MongoDB
     payee = Column(String)
-    amount = Column(Float)
+    amount = Column(Float, default=0)
     due_date = Column(DateTime)
-    days_remaining = Column(Integer)
-    recurring = Column(Boolean)
+    days_remaining = Column(Integer, default=0)
+    recurring = Column(Boolean, default=False)
 
     # Forecast period
     forecast_date = Column(DateTime)  # When the forecast was created

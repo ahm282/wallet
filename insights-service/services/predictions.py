@@ -526,8 +526,9 @@ def detect_anomalous_transactions(user_id: str) -> List[Dict[str, Any]]:
     Use Isolation Forest to detect unusual and anomalous transactions that might represent atypical spending.
     """
     transactions = fetch_transactions_for_user(user_id)
+    list_of_transactions = list(transactions)
     if (
-        not transactions or len(transactions) < 20
+        not transactions or len(list_of_transactions) < 20
     ):  # Require a reasonable amount of data
         return []
 

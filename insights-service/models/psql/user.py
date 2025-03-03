@@ -10,6 +10,7 @@ class User(Base):
     id = Column(String, primary_key=True)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    last_analysis = Column(DateTime, nullable=True)
 
     # Relationships
     insights = relationship(

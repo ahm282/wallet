@@ -32,7 +32,7 @@ async def get_user_dashboard(
         )
 
 
-@router.post("/{user_id}/refresh", response_model=Dict[str, Any])
+@router.post("/refresh", response_model=Dict[str, Any])
 async def refresh_user_dashboard(user_id: str, db: Session = Depends(get_db)):
     """
     Force refresh of dashboard data for a user.
