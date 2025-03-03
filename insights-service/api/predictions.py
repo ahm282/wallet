@@ -10,7 +10,6 @@ from services.predictions import (
     detect_anomalous_transactions,
     predict_account_balances,
     save_prediction_history,
-    evaluate_prediction_accuracy,
     calculate_and_store_all_predictions,
     get_stored_predictions_for_user,
 )
@@ -108,18 +107,6 @@ async def predict_account_balance(
         return predictions
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
-
-
-@router.get("/predict/accuracy/{user_id}", response_model=Dict[str, Any])
-async def get_prediction_accuracy(user_id: str, db: Session = Depends(get_db)):
-    """Evaluate the accuracy of previous predictions"""
-    try:
-        accuracy = evaluate_prediction_accuracy(user_id)
-        return accuracy
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Accuracy evaluation failed: {str(e)}"
-        )
 
 
 @router.get("/anomalies/transactions/{user_id}", response_model=List[Dict[str, Any]])
