@@ -523,17 +523,19 @@ def predict_account_balances(user_id: str, days_forward=30) -> Dict[str, Any]:
 ##################
 def detect_anomalous_transactions(user_id: str) -> List[Dict[str, Any]]:
     """
-    Use Isolation Forest to detect anomalous transactions that might be fraud or unusual spending.
+    Use Isolation Forest to detect unusual and anomalous transactions that might represent atypical spending.
     """
     transactions = fetch_transactions_for_user(user_id)
-    if not transactions or len(transactions) < 20:  # Need reasonable amount of data
+    if (
+        not transactions or len(transactions) < 20
+    ):  # Require a reasonable amount of data
         return []
 
     df = pd.DataFrame(transactions)
     df["amount"] = pd.to_numeric(df["amount"], errors="coerce")
     df["date"] = pd.to_datetime(df["date"], unit="ms", errors="coerce")
 
-    # We'll focus on expenses
+    # Focus on expenses
     expense_df = df[df["amount"] < 0].copy()
     expense_df["amount"] = abs(expense_df["amount"])  # Make positive for analysis
 
@@ -541,67 +543,115 @@ def detect_anomalous_transactions(user_id: str) -> List[Dict[str, Any]]:
         return []
 
     # Feature engineering for anomaly detection
-    # Day of week as cyclical features
     expense_df["day_of_week"] = expense_df["date"].dt.dayofweek
     expense_df["day_sin"] = np.sin(expense_df["day_of_week"] * (2 * np.pi / 7))
     expense_df["day_cos"] = np.cos(expense_df["day_of_week"] * (2 * np.pi / 7))
-
-    # Hour of day as cyclical features
     expense_df["hour"] = expense_df["date"].dt.hour
     expense_df["hour_sin"] = np.sin(expense_df["hour"] * (2 * np.pi / 24))
     expense_df["hour_cos"] = np.cos(expense_df["hour"] * (2 * np.pi / 24))
 
-    # One-hot encode categories
+    # Add month for seasonal spending patterns
+    expense_df["month"] = expense_df["date"].dt.month
+
+    # One-hot encode categories if present
     if "category" in expense_df.columns:
         expense_df = pd.get_dummies(expense_df, columns=["category"], prefix="cat")
 
     # Select features for anomaly detection
     features = ["amount", "day_sin", "day_cos", "hour_sin", "hour_cos"]
-    # Add category features
     cat_features = [col for col in expense_df.columns if col.startswith("cat_")]
     features.extend(cat_features)
 
-    # Prepare data - drop rows with missing values for these columns
+    # Prepare data: drop rows with missing feature values
     X = expense_df[features].dropna()
-
     if len(X) < 10:
         return []
 
-    # Train model
+    # Train or load Isolation Forest model
     model = SimpleAIModel(model_type="anomaly")
     model_path = f"./AI_models/anomaly_{user_id}.joblib"
-
     if not model.load(model_path):
         model.fit(X)
         model.save(model_path)
 
-    # Predict anomalies
+    # Predict anomaly scores (Isolation Forest produces negative scores for outliers)
     anomaly_scores = model.predict(X)
 
-    # Get indices of anomalous transactions (negative scores in Isolation Forest indicate anomalies)
-    anomaly_indices = np.where(anomaly_scores < -0.5)[0]
+    # Determine threshold for anomalies
+    sorted_scores = np.sort(anomaly_scores)
+    lowest_10_percent = np.percentile(anomaly_scores, 10)
+
+    anomaly_threshold = -0.3
+    max_extreme_raw = lowest_10_percent
+
+    anomaly_indices = np.where(anomaly_scores < anomaly_threshold)[0]
 
     if len(anomaly_indices) == 0:
         return []
 
     # Extract anomalous transactions
     anomalies = []
-    for idx_pos in anomaly_indices:
-        # Get the actual index from X's index
+    for pos, idx_pos in enumerate(anomaly_indices):
         if idx_pos >= len(X.index):
-            continue  # Skip if index is out of bounds
-
+            continue
         idx = X.index[idx_pos]
         if idx >= len(expense_df):
-            continue  # Skip if the index doesn't exist in expense_df
+            continue
 
         transaction = expense_df.iloc[idx]
-
-        # Get the anomaly score safely
         raw_score = anomaly_scores[idx_pos]
 
-        # Calculate how anomalous it is (score between 0-100)
-        anomaly_score = min(100, max(0, 100 * (0.8 - raw_score)))
+        # Map the raw score to a percentage (0-100, linear)
+        if raw_score > anomaly_threshold:
+            mapped_score = 0
+        else:
+            mapped_score = (
+                (anomaly_threshold - raw_score) / (anomaly_threshold - max_extreme_raw)
+            ) * 100
+
+        anomaly_score = min(100, max(0, math.sqrt(mapped_score) * 10))
+
+        # Create metrics for anomaly reasoning
+        metrics = _compute_anomaly_metrics(transaction, expense_df)
+
+        # Calculate a combined anomaly score that considers multiple factors to not depend solely on the Isolation Forest score
+        factor_weights = {
+            "model_score": 0.5,  # Weight of the Isolation Forest score
+            "amount_z_score": 0.2,  # How unusual is the amount
+            "time_rarity": 0.1,  # How unusual is the time of day/week
+            "category_rarity": 0.1,  # How rare is this category
+            "merchant_rarity": 0.1,  # How rare is this merchant
+        }
+
+        # Calculate the factor scores (all between 0-100)
+        factor_scores = {
+            "model_score": mapped_score,
+            "amount_z_score": min(100, max(0, abs(metrics["amount"]["z_score"]) * 25)),
+            "time_rarity": min(
+                100,
+                max(
+                    0,
+                    (metrics["time"]["hour_rarity"] + metrics["time"]["day_rarity"])
+                    * 50,
+                ),
+            ),
+            "category_rarity": (
+                min(100, max(0, metrics["category"].get("category_rarity", 0) * 100))
+                if metrics["category"]
+                else 0
+            ),
+            "merchant_rarity": min(
+                100, max(0, metrics["frequency"]["merchant_rarity"] * 100)
+            ),
+        }
+
+        # Apply weights to each factor
+        combined_score = sum(
+            factor_weights[k] * factor_scores[k] for k in factor_weights
+        )
+
+        # Make sure the combined score is between 0-100
+        anomaly_score = round(min(100, max(0, combined_score)))
 
         anomalies.append(
             {
@@ -615,42 +665,258 @@ def detect_anomalous_transactions(user_id: str) -> List[Dict[str, Any]]:
                 "description": transaction.get("description", ""),
                 "category": transaction.get("category", "Unknown"),
                 "anomaly_score": round(anomaly_score, 2),
-                "reason": _determine_anomaly_reason(transaction, expense_df),
+                "reason": _determine_anomaly_reason(transaction, expense_df, metrics),
+                "metrics": metrics,
             }
         )
 
-    # Sort by anomaly score (highest first)
+    # Sort anomalies by score (highest anomalous score first)
     anomalies.sort(key=lambda x: x["anomaly_score"], reverse=True)
+    # Return up to 10 anomalies
+    return anomalies[:10]
 
-    return anomalies[:10]  # Return top 10 anomalies
 
-
-def _determine_anomaly_reason(transaction, expense_df):
-    """Helper to determine why a transaction was flagged as anomalous."""
+def _compute_anomaly_metrics(transaction, expense_df):
+    """
+    Compute detailed metrics about why a transaction might be anomalous.
+    Returns a dictionary of metrics that can be used for reasoning.
+    """
     amount = transaction["amount"]
-    avg_amount = expense_df["amount"].mean()
-    std_amount = expense_df["amount"].std()
 
-    # Check amount
-    if amount > (avg_amount + 2 * std_amount):
-        return "Unusually large transaction amount"
+    # Amount-related statistics
+    amount_stats = {
+        "transaction_amount": amount,
+        "avg_amount": expense_df["amount"].mean(),
+        "median_amount": expense_df["amount"].median(),
+        "std_amount": expense_df["amount"].std(),
+        "percentile": 100 * (expense_df["amount"] <= amount).mean(),
+        "z_score": (
+            (amount - expense_df["amount"].mean()) / expense_df["amount"].std()
+            if expense_df["amount"].std() > 0
+            else 0
+        ),
+    }
 
-    # Check timing
+    # Time-related statistics
     hour = transaction["date"].hour
-    if hour < 6 or hour > 22:
-        return "Unusual transaction time"
-
-    # Check day
     day = transaction["date"].dayofweek
-    if day >= 5:  # Weekend
-        if "category" in transaction and transaction["category"] in [
-            "Business",
-            "Work",
-        ]:
-            return "Unusual weekend business expense"
+    month = transaction["date"].month
 
-    # Default
-    return "Multiple factors contribute to unusual pattern"
+    # Compute hour frequency
+    hour_freq = expense_df["hour"].value_counts(normalize=True)
+    hour_rarity = 1 - hour_freq.get(hour, 0)
+
+    # Compute day frequency
+    day_freq = expense_df["day_of_week"].value_counts(normalize=True)
+    day_rarity = 1 - day_freq.get(day, 0)
+
+    # Compute month seasonality
+    month_freq = expense_df["month"].value_counts(normalize=True)
+    month_rarity = 1 - month_freq.get(month, 0)
+
+    time_stats = {
+        "hour": hour,
+        "day_of_week": day,
+        "month": month,
+        "hour_rarity": hour_rarity,
+        "day_rarity": day_rarity,
+        "month_rarity": month_rarity,
+        "is_weekend": day >= 5,
+        "is_business_hours": 9 <= hour <= 17,
+        "is_late_night": hour < 6 or hour > 22,
+    }
+
+    # Category-related statistics
+    category_stats = {}
+    if "category" in transaction:
+        category = transaction["category"]
+        if "category" in expense_df.columns:
+            cat_freq = expense_df["category"].value_counts(normalize=True)
+            category_stats = {
+                "category": category,
+                "category_frequency": cat_freq.get(category, 0),
+                "category_rarity": 1 - cat_freq.get(category, 0),
+                "is_rare_category": cat_freq.get(category, 0) < 0.05,
+            }
+
+            # Category-specific amount statistics
+            cat_df = expense_df[expense_df["category"] == category]
+            if len(cat_df) > 0:
+                category_stats.update(
+                    {
+                        "cat_avg_amount": cat_df["amount"].mean(),
+                        "cat_median_amount": cat_df["amount"].median(),
+                        "cat_std_amount": cat_df["amount"].std(),
+                        "cat_percentile": (
+                            100 * (cat_df["amount"] <= amount).mean()
+                            if len(cat_df) > 1
+                            else 50
+                        ),
+                        "cat_z_score": (
+                            (amount - cat_df["amount"].mean()) / cat_df["amount"].std()
+                            if cat_df["amount"].std() > 0 and len(cat_df) > 1
+                            else 0
+                        ),
+                    }
+                )
+
+    # Frequency statistics
+    merchant = transaction.get("description", "").strip().lower()
+    merchant_freq = 0
+    if merchant:
+        merchant_counts = (
+            expense_df["description"]
+            .str.strip()
+            .str.lower()
+            .value_counts(normalize=True)
+        )
+        merchant_freq = merchant_counts.get(merchant, 0)
+
+    frequency_stats = {
+        "merchant": merchant,
+        "merchant_frequency": merchant_freq,
+        "merchant_rarity": 1 - merchant_freq,
+        "is_rare_merchant": bool(merchant_freq < 0.03),
+    }
+
+    return {
+        "amount": amount_stats,
+        "time": time_stats,
+        "category": category_stats,
+        "frequency": frequency_stats,
+    }
+
+
+def _determine_anomaly_reason(transaction, expense_df, metrics=None):
+    """
+    Provide detailed reasoning about why a transaction was flagged as unusual.
+
+    Returns a list of specific reasons with contextual details about:
+        - Amount anomalies (compared to overall spending and category-specific spending)
+        - Timing anomalies (unusual hours, days, or seasonal patterns)
+        - Category anomalies (rare categories or unusual amounts within a category)
+        - Merchant anomalies (rare merchants or unusual spending at a specific merchant)
+    """
+    reasons = []
+
+    # Use pre-computed metrics if available, otherwise compute them
+    if metrics is None:
+        metrics = _compute_anomaly_metrics(transaction, expense_df)
+
+    # Amount-based anomalies (with specific thresholds and context)
+    amount = metrics["amount"]["transaction_amount"]
+    avg_amount = metrics["amount"]["avg_amount"]
+    median_amount = metrics["amount"]["median_amount"]
+    std_amount = metrics["amount"]["std_amount"]
+    z_score = metrics["amount"]["z_score"]
+    percentile = metrics["amount"]["percentile"]
+
+    # Add specific amount-related reasons with context
+    if z_score > 3:
+        reasons.append(
+            f"Expense of ${amount:.2f} is extremely high (top {100-percentile:.1f}%, {z_score:.1f}× standard deviation from average)"
+        )
+    elif z_score > 2:
+        reasons.append(
+            f"Expense of ${amount:.2f} is unusually high (top {100-percentile:.1f}%, {z_score:.1f}× standard deviation from average)"
+        )
+    elif amount > 3 * median_amount:
+        reasons.append(
+            f"Expense of ${amount:.2f} is {amount/median_amount:.1f}× higher than your median expense of ${median_amount:.2f}"
+        )
+
+    # Check category-specific anomalies
+    if "category" in metrics and metrics["category"]:
+        category = metrics["category"]["category"]
+        if "cat_z_score" in metrics["category"]:
+            cat_z_score = metrics["category"]["cat_z_score"]
+            cat_percentile = metrics["category"]["cat_percentile"]
+            cat_avg = metrics["category"]["cat_avg_amount"]
+
+            if cat_z_score > 2.5:
+                reasons.append(
+                    f"Expense of ${amount:.2f} is unusually high for '{category}' category (top {100-cat_percentile:.1f}%, {cat_z_score:.1f}× standard deviation above category average of ${cat_avg:.2f})"
+                )
+
+        # Check if this is a rare category
+        if metrics["category"]["is_rare_category"]:
+            cat_freq = metrics["category"]["category_frequency"]
+            reasons.append(
+                f"'{category}' is an uncommon category for you (only {cat_freq*100:.1f}% of your transactions)"
+            )
+
+    # Time-based anomalies
+    hour = metrics["time"]["hour"]
+    day = metrics["time"]["day_of_week"]
+    is_weekend = metrics["time"]["is_weekend"]
+    is_late_night = metrics["time"]["is_late_night"]
+    hour_rarity = metrics["time"]["hour_rarity"]
+    day_rarity = metrics["time"]["day_rarity"]
+
+    # Add specific time-related reasons
+    if is_late_night and hour_rarity > 0.8:
+        time_str = f"{hour}:00" if hour <= 12 else f"{hour-12}:00 PM"
+        reasons.append(
+            f"Unusual transaction time ({time_str}) - you rarely make purchases at this hour"
+        )
+
+    if is_weekend and day_rarity > 0.7:
+        day_names = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+        ]
+        reasons.append(
+            f"Unusual transaction day ({day_names[day]}) - you don't often make purchases on this day"
+        )
+
+    # Merchant-based anomalies
+    if metrics["frequency"]["is_rare_merchant"]:
+        merchant = metrics["frequency"]["merchant"]
+        merchant_freq = metrics["frequency"]["merchant_frequency"]
+        if merchant and len(merchant) > 3:  # Avoid empty or very short merchant names
+            reasons.append(
+                f"Uncommon merchant '{merchant}' (only {merchant_freq*100:.1f}% of your transactions)"
+            )
+
+    # Monthly/seasonal anomalies
+    month_rarity = metrics["time"]["month_rarity"]
+    month = metrics["time"]["month"]
+    month_names = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ]
+    if month_rarity > 0.8:
+        reasons.append(
+            f"Unusual spending in {month_names[month-1]} - you don't typically spend as much during this month"
+        )
+
+    # If no specific reason was found, provide a generic message with some context
+    if not reasons:
+        if z_score > 1.5:
+            reasons.append(
+                f"Transaction deviates from your typical spending patterns (${amount:.2f} vs average ${avg_amount:.2f})"
+            )
+        else:
+            reasons.append(
+                "Multiple minor factors combine to make this transaction unusual"
+            )
+
+    return reasons
 
 
 ##################
