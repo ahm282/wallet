@@ -1,0 +1,920 @@
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+from typing import Dict, List, Any
+from services.data_fetch import (
+    fetch_transactions_for_user,
+    fetch_accounts_for_user,
+    fetch_goals_for_user,
+)
+from config.database import get_db
+from models.simple_ai_model import SimpleAIModel
+from util.helpers import model_to_dict
+import math
+
+
+##################
+# Predictions
+##################
+def calculate_and_store_all_predictions(user_id: str):
+    """
+    Calculate and store all financial predictions for a user.
+    """
+    try:
+        db = next(get_db())
+        predictions = {}
+
+        # Income prediction
+        income_prediction = predict_income_for_user(user_id)
+        save_prediction_history(user_id, "income", income_prediction)
+        predictions["income"] = income_prediction
+
+        # Spending prediction
+        spending_prediction = predict_spending_for_user(user_id)
+        save_prediction_history(user_id, "spending", spending_prediction)
+        predictions["spending"] = spending_prediction
+
+        # Cashflow prediction
+        cashflow_prediction = predict_cashflow_for_user(user_id)
+        save_prediction_history(user_id, "cashflow", cashflow_prediction)
+        predictions["cashflow"] = cashflow_prediction
+
+        # Goal completion prediction
+        goal_predictions = predict_goal_completion(user_id)
+        save_prediction_history(user_id, "goals", {"goals": goal_predictions})
+        predictions["goals"] = goal_predictions
+
+        return predictions
+    except Exception as e:
+        print(f"Error calculating and storing predictions: {e}")
+        return None
+
+
+def get_stored_predictions_for_user(user_id: str) -> Dict[str, Any]:
+    """
+    Get stored financial predictions for a user.
+    """
+    try:
+        db = next(get_db())
+        predictions = {}
+
+        # Income prediction
+        income_prediction = get_stored_prediction(user_id, "income")
+        predictions["income"] = income_prediction
+
+        # Spending prediction
+        spending_prediction = get_stored_prediction(user_id, "spending")
+        predictions["spending"] = spending_prediction
+
+        # Cashflow prediction
+        cashflow_prediction = get_stored_prediction(user_id, "cashflow")
+        predictions["cashflow"] = cashflow_prediction
+
+        # Goal completion prediction
+        goal_predictions = get_stored_prediction(user_id, "goals")
+        predictions["goals"] = goal_predictions
+
+        return predictions
+    except Exception as e:
+        print(f"Error fetching stored predictions: {e}")
+        return None
+
+def get_stored_prediction(user_id: str, prediction_type: str) -> Dict[str, Any]:
+    """
+    Get stored prediction for a user and prediction type.
+    """
+    try:
+        db = next(get_db())
+        from config.database import income_prediction_repository
+        from config.database import spending_prediction_repository
+        from config.database import cash_flow_repository
+
+        if prediction_type == "income":
+            prediction = income_prediction_repository.get_latest_for_user(db, user_id)
+        elif prediction_type == "spending":
+            prediction = spending_prediction_repository.get_latest_for_user(db, user_id)
+        elif prediction_type == "cashflow":
+            prediction = cash_flow_repository.get_latest_for_user(db, user_id)
+        else:
+            prediction = None
+
+        if prediction:
+            return model_to_dict(prediction)
+        else:
+            return {}
+    except Exception as e:
+        print(f"Error fetching stored prediction: {e}")
+        return {}
+
+
+def predict_income_for_user(user_id: str) -> Dict[str, Any]:
+    """
+    Predict future income for a user based on their transaction history.
+    Uses a simple regression model to forecast next month's income.
+    """
+    transactions = fetch_transactions_for_user(user_id)
+    if not transactions:
+        return {
+            "predicted_income": None,
+            "confidence": 0,
+            "details": "Insufficient data",
+        }
+
+    # Process transaction data
+    df = pd.DataFrame(transactions)
+    df["amount"] = pd.to_numeric(df["amount"], errors="coerce")
+    df["date"] = pd.to_datetime(df["date"], unit="ms", errors="coerce")
+    df["month"] = df["date"].dt.to_period("M")
+
+    # Filter for income transactions
+    income_df = df[df["amount"] > 0].copy()
+
+    if income_df.empty or len(income_df["month"].unique()) < 2:
+        return {
+            "predicted_income": None,
+            "confidence": 0,
+            "details": "Insufficient income history",
+        }
+
+    # Aggregate by month
+    monthly_income = income_df.groupby("month")["amount"].sum().reset_index()
+    monthly_income["month_num"] = range(1, len(monthly_income) + 1)
+
+    # Prepare features - we'll use a simple time-based approach
+    X = monthly_income[["month_num"]].values
+    y = monthly_income["amount"].values
+
+    # Initialize model
+    model = SimpleAIModel(model_type="linear")
+    model_path = f"./AI_models/income_{user_id}.joblib"
+
+    # Try to load existing model, or train a new one
+    if not model.load(model_path):
+        model.fit(X, y)
+        model.save(model_path)
+
+    # Predict next month
+    next_month = len(monthly_income) + 1
+    predicted_income = float(model.predict([[next_month]])[0])
+
+    # Calculate confidence based on historical variance
+    if len(y) >= 3:
+        income_std = np.std(y)
+        income_mean = np.mean(y)
+        coefficient_variation = income_std / income_mean if income_mean > 0 else 1
+        confidence = max(0, min(100, 100 * (1 - coefficient_variation)))
+    else:
+        confidence = 50  # Default medium confidence with limited data
+
+    # Get recent trends for context
+    if len(monthly_income) >= 2:
+        last_month = monthly_income.iloc[-1]["amount"]
+        previous_month = monthly_income.iloc[-2]["amount"]
+        trend_pct = (
+            ((last_month - previous_month) / previous_month * 100)
+            if previous_month > 0
+            else 0
+        )
+    else:
+        trend_pct = 0
+
+    # Adjust prediction if it's negative (unlikely for income)
+    predicted_income = max(0, predicted_income)
+
+    return {
+        "predicted_income": round(predicted_income, 2),
+        "confidence": round(confidence, 2),
+        "forecast_date": (datetime.now() + timedelta(days=30)).strftime("%Y-%m"),
+        "historical_avg": round(float(np.mean(y)), 2),
+        "trend_percentage": round(trend_pct, 2),
+        "data_points_used": len(monthly_income),
+    }
+
+
+def predict_spending_for_user(user_id: str) -> Dict[str, Any]:
+    """
+    Predict future spending for a user based on their transaction history.
+    Provides overall spending prediction and category-specific predictions.
+    """
+    transactions = fetch_transactions_for_user(user_id)
+    if not transactions:
+        return {
+            "predicted_spending": None,
+            "confidence": 0,
+            "details": "Insufficient data",
+        }
+
+    # Process transaction data
+    df = pd.DataFrame(transactions)
+    df["amount"] = pd.to_numeric(df["amount"], errors="coerce")
+    df["date"] = pd.to_datetime(df["date"], unit="ms", errors="coerce")
+    df["month"] = df["date"].dt.to_period("M")
+
+    # Filter for expense transactions
+    expense_df = df[df["amount"] < 0].copy()
+    expense_df["amount"] = abs(expense_df["amount"])  # Make positive for analysis
+
+    if expense_df.empty or len(expense_df["month"].unique()) < 2:
+        return {
+            "predicted_spending": None,
+            "confidence": 0,
+            "details": "Insufficient spending history",
+        }
+
+    # Aggregate by month
+    monthly_spending = expense_df.groupby("month")["amount"].sum().reset_index()
+    monthly_spending["month_num"] = range(1, len(monthly_spending) + 1)
+
+    # Prepare data for model
+    X = monthly_spending[["month_num"]].values
+    y = monthly_spending["amount"].values
+
+    # Train model
+    model = SimpleAIModel(model_type="forest")
+    model_path = f"./AI_models/spending_{user_id}.joblib"
+
+    if not model.load(model_path):
+        model.fit(X, y)
+        model.save(model_path)
+
+    # Predict next month's spending
+    next_month = len(monthly_spending) + 1
+    predicted_spending = float(model.predict([[next_month]])[0])
+
+    # Calculate confidence based on historical data
+    if len(y) >= 3:
+        spending_std = np.std(y)
+        spending_mean = np.mean(y)
+        coefficient_variation = spending_std / spending_mean if spending_mean > 0 else 1
+        confidence = max(
+            0, min(95, 95 * (1 - coefficient_variation))
+        )  # Cap at 95% confidence
+    else:
+        confidence = 40  # Lower default confidence for spending
+
+    # Category predictions
+    category_predictions = {}
+    if "category" in expense_df.columns:
+        top_categories = (
+            expense_df.groupby("category")["amount"].sum().nlargest(5).index.tolist()
+        )
+
+        for category in top_categories:
+            cat_df = expense_df[expense_df["category"] == category]
+            cat_monthly = cat_df.groupby("month")["amount"].sum().reset_index()
+
+            if len(cat_monthly) >= 2:
+                cat_monthly["month_num"] = range(1, len(cat_monthly) + 1)
+                cat_X = cat_monthly[["month_num"]].values
+                cat_y = cat_monthly["amount"].values
+
+                cat_model = SimpleAIModel(model_type="linear")
+                cat_model.fit(cat_X, cat_y)
+
+                cat_next_month = len(cat_monthly) + 1
+                cat_prediction = float(cat_model.predict([[cat_next_month]])[0])
+
+                # Ensure prediction is non-negative
+                cat_prediction = max(0, cat_prediction)
+
+                # Calculate average and trend
+                cat_avg = np.mean(cat_y)
+                if len(cat_monthly) >= 2:
+                    last_month = cat_monthly.iloc[-1]["amount"]
+                    prev_month = cat_monthly.iloc[-2]["amount"]
+                    if prev_month > 0:
+                        cat_trend = ((last_month - prev_month) / prev_month) * 100
+                    else:
+                        cat_trend = 0
+                else:
+                    cat_trend = 0
+
+                category_predictions[category] = {
+                    "predicted": round(cat_prediction, 2),
+                    "average": round(float(cat_avg), 2),
+                    "trend_percentage": round(float(cat_trend), 2),
+                }
+
+    # Ensure prediction is non-negative
+    predicted_spending = max(0, predicted_spending)
+
+    # Get trend information
+    if len(monthly_spending) >= 2:
+        last_month = monthly_spending.iloc[-1]["amount"]
+        previous_month = monthly_spending.iloc[-2]["amount"]
+        if previous_month > 0:
+            trend_pct = ((last_month - previous_month) / previous_month) * 100
+        else:
+            trend_pct = 0
+    else:
+        trend_pct = 0
+
+    return {
+        "predicted_spending": round(predicted_spending, 2),
+        "confidence": round(confidence, 2),
+        "forecast_date": (datetime.now() + timedelta(days=30)).strftime("%Y-%m"),
+        "historical_avg": round(float(np.mean(y)), 2),
+        "trend_percentage": round(trend_pct, 2),
+        "category_predictions": category_predictions,
+        "data_points_used": len(monthly_spending),
+    }
+
+
+def predict_cashflow_for_user(user_id: str) -> Dict[str, Any]:
+    """
+    Predict future cash flow by combining income and spending predictions.
+    """
+    income_prediction = predict_income_for_user(user_id)
+    spending_prediction = predict_spending_for_user(user_id)
+
+    if (
+        income_prediction.get("predicted_income") is None
+        or spending_prediction.get("predicted_spending") is None
+    ):
+        return {
+            "predicted_cashflow": None,
+            "confidence": 0,
+            "details": "Insufficient data for reliable prediction",
+        }
+
+    predicted_income = income_prediction["predicted_income"]
+    predicted_spending = spending_prediction["predicted_spending"]
+    predicted_cashflow = predicted_income - predicted_spending
+
+    # Average confidence from both predictions, weighted slightly toward the lower one
+    min_conf = min(income_prediction["confidence"], spending_prediction["confidence"])
+    max_conf = max(income_prediction["confidence"], spending_prediction["confidence"])
+    blended_confidence = (min_conf * 0.7) + (max_conf * 0.3)
+
+    return {
+        "predicted_cashflow": round(predicted_cashflow, 2),
+        "predicted_income": round(predicted_income, 2),
+        "predicted_spending": round(predicted_spending, 2),
+        "confidence": round(blended_confidence, 2),
+        "forecast_date": (datetime.now() + timedelta(days=30)).strftime("%Y-%m"),
+        "prediction_type": "positive" if predicted_cashflow > 0 else "negative",
+    }
+
+
+def predict_goal_completion(user_id: str) -> List[Dict[str, Any]]:
+    """
+    Predict when financial goals will be completed based on current progress and predicted cashflow.
+    Returns a list of predictions for each goal with the following keys:
+        - goal_id: str
+        - goal_name: str
+        - target_date: Unix epoch date (seconds)
+        - estimated_monthly_contribution: float
+        - remaining_amount: float
+        - probability: float
+        - progress_percentage: float
+        - days_until_target: int
+    """
+    # Fetch the user's goals and predicted cashflow
+    goals = fetch_goals_for_user(user_id)
+    cashflow_predictions = predict_cashflow_for_user(user_id)
+
+    if not goals:
+        return []
+
+    # Extract predicted cashflow and ensure we only consider positive values for saving
+    predicted_cashflow = cashflow_predictions.get("predicted_cashflow", 0)
+    monthly_positive_cashflow = max(0, predicted_cashflow)
+
+    goal_predictions = []
+    today = datetime.now()
+
+    for goal in goals:
+        goal_id = str(goal.get("_id", ""))
+        goal_name = goal.get("name", "")
+        target_amount = goal.get("targetAmount", 0)
+        current_amount = goal.get("currentAmount", 0)
+        remaining_amount = target_amount - current_amount
+        progress_percentage = (
+            (current_amount / target_amount * 100) if target_amount != 0 else 0
+        )
+
+        # Parse target_date (assumed stored in milliseconds)
+        target_date = datetime.fromtimestamp(goal["targetDate"] / 1000)
+        days_until_target = (target_date - today).days
+
+        # Determine allocation factor based on current progress toward the goal.
+        if current_amount < 0.5 * target_amount:
+            allocation_factor = 0.15  # less commitment early on
+        elif current_amount > 0.8 * target_amount:
+            allocation_factor = 0.25  # ramp up contributions when near completion
+        else:
+            allocation_factor = 0.20
+
+        estimated_monthly_contribution = monthly_positive_cashflow * allocation_factor
+
+        # If no positive cashflow is available, use fallback estimation.
+        if estimated_monthly_contribution <= 0:
+            if days_until_target > 0:
+                # Distribute the remaining amount evenly over the remaining period.
+                estimated_monthly_contribution = remaining_amount / (
+                    days_until_target / 30
+                )
+                predicted_completion = target_date
+                # Lower baseline probability if predicted cashflow is negative.
+                probability = 0.3 if predicted_cashflow < 0 else 0.5
+            else:
+                estimated_monthly_contribution = 0
+                predicted_completion = target_date
+                probability = 0.0
+        else:
+            # Estimate the months needed based on the available contribution.
+            months_needed = remaining_amount / estimated_monthly_contribution
+            predicted_completion = today + timedelta(days=int(months_needed * 30))
+
+            if predicted_completion <= target_date:
+                probability = 0.9
+            else:
+                # Calculate delay and compute a delay ratio relative to days until target.
+                delay = (predicted_completion - target_date).days
+                delay_ratio = (
+                    delay / days_until_target if days_until_target > 0 else 1.0
+                )
+                # Apply exponential decay to reduce probability with increasing delay.
+                probability = 0.9 * math.exp(-delay_ratio)
+                probability = max(0.3, min(probability, 0.9))
+
+        goal_predictions.append(
+            {
+                "goal_id": goal_id,
+                "goal_name": goal_name,
+                "target_date": int(target_date.timestamp()),
+                "estimated_monthly_contribution": round(
+                    estimated_monthly_contribution, 2
+                ),
+                "remaining_amount": round(remaining_amount, 2),
+                "probability": round(probability, 2),
+                "progress_percentage": round(progress_percentage, 2),
+                "days_until_target": days_until_target,
+            }
+        )
+
+    return goal_predictions
+
+
+def predict_account_balances(user_id: str, days_forward=30) -> Dict[str, Any]:
+    """
+    Predict future account balances based on cashflow predictions.
+    """
+    accounts = fetch_accounts_for_user(user_id)
+    cashflow = predict_cashflow_for_user(user_id)
+
+    if not accounts:
+        return {"message": "No accounts found"}
+
+    # Get total current balance across all accounts
+    total_current_balance = sum(account.get("balance", 0) for account in accounts)
+
+    # Calculate projected balance directly using days_forward
+    total_projected_balance = (
+        total_current_balance
+        + (cashflow.get("predicted_cashflow", 0) / 30) * days_forward
+    )
+    projected_date = (datetime.now() + timedelta(days=days_forward)).strftime(
+        "%Y-%m-%d"
+    )
+
+    # Make individual account predictions
+    # This simplified approach distributes cashflow proportionally across accounts
+    account_predictions = []
+    for account in accounts:
+        account_balance = account.get("balance", 0)
+        account_ratio = (
+            account_balance / total_current_balance if total_current_balance else 0
+        )
+
+        # Project forward
+        projected_balance = account_balance + (
+            cashflow.get("predicted_cashflow", 0) * account_ratio * days_forward / 30
+        )
+
+        account_predictions.append(
+            {
+                "account_id": str(account.get("_id", "")),
+                "account_name": account.get("name", ""),
+                "current_balance": account_balance,
+                "projected_balance": round(projected_balance, 2),
+                "change": round(projected_balance - account_balance, 2),
+                "change_percentage": (
+                    round(((projected_balance / account_balance) - 1) * 100, 2)
+                    if account_balance
+                    else 0
+                ),
+            }
+        )
+
+    return {
+        "total_current_balance": round(total_current_balance, 2),
+        "total_projected_balance": round(total_projected_balance, 2),
+        "projected_date": projected_date,
+        "confidence": cashflow.get("confidence", 50),
+        "days_forward": days_forward,
+        "account_predictions": account_predictions,
+    }
+
+
+def evaluate_prediction_accuracy(user_id: str) -> Dict[str, Any]:
+    """
+    Evaluate accuracy of past predictions by comparing with actual data.
+    """
+    try:
+        # Get database session (using next() since get_db() returns an iterator)
+        db = next(get_db())
+
+        # Import repositories
+        from config.database import (
+            income_prediction_repository,
+            spending_prediction_repository,
+        )
+
+        # Get income predictions from PostgreSQL
+        income_predictions = income_prediction_repository.get_all_for_user(db, user_id)
+
+        # If no predictions found, return early
+        if not income_predictions:
+            return {"message": "No historical predictions available for evaluation"}
+
+        # Get actual transaction data
+        transactions = fetch_transactions_for_user(user_id)
+        df = pd.DataFrame(transactions)
+
+        if df.empty:
+            return {"message": "No transaction data available for evaluation"}
+
+        # Prepare transaction data
+        df["amount"] = pd.to_numeric(df["amount"], errors="coerce")
+        df["date"] = pd.to_datetime(df["date"], unit="ms", errors="coerce")
+
+        # Evaluate income predictions
+        accuracy_results = {"income": [], "spending": [], "cashflow": []}
+
+        for prediction in income_predictions:
+            # Extract dates - prediction is for 30 days after creation
+            pred_date = prediction.prediction_date + timedelta(days=30)
+            start_date = prediction.prediction_date
+            end_date = pred_date
+
+            # Get actual data for this period
+            period_df = df[(df["date"] >= start_date) & (df["date"] <= end_date)]
+
+            if period_df.empty:
+                continue
+
+            # Calculate actual income for this period
+            actual_income = period_df[period_df["amount"] > 0]["amount"].sum()
+
+            # Compare with prediction
+            predicted = prediction.predicted_income
+            error_pct = (
+                abs((predicted - actual_income) / actual_income * 100)
+                if actual_income
+                else 100
+            )
+            accuracy = max(0, 100 - error_pct)
+
+            accuracy_results["income"].append(
+                {
+                    "prediction_date": prediction.prediction_date.isoformat(),
+                    "for_period": f"{start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}",
+                    "predicted": round(predicted, 2),
+                    "actual": round(actual_income, 2),
+                    "accuracy": round(accuracy, 2),
+                    "error_percentage": round(error_pct, 2),
+                }
+            )
+
+        # Calculate average accuracies
+        avg_accuracies = {}
+        for pred_type, results in accuracy_results.items():
+            if results:
+                avg_accuracies[pred_type] = round(
+                    sum(result["accuracy"] for result in results) / len(results), 2
+                )
+            else:
+                avg_accuracies[pred_type] = None
+        return {
+            "average_accuracies": avg_accuracies,
+            "detailed_results": accuracy_results,
+        }
+
+    except Exception as e:
+        print(f"Error evaluating prediction accuracy: {str(e)}")
+        return {"error": str(e), "message": "Failed to evaluate prediction accuracy"}
+
+
+##################
+# Anomaly Detection
+##################
+def detect_anomalous_transactions(user_id: str) -> List[Dict[str, Any]]:
+    """
+    Use Isolation Forest to detect anomalous transactions that might be fraud or unusual spending.
+    """
+    transactions = fetch_transactions_for_user(user_id)
+    if not transactions or len(transactions) < 20:  # Need reasonable amount of data
+        return []
+
+    df = pd.DataFrame(transactions)
+    df["amount"] = pd.to_numeric(df["amount"], errors="coerce")
+    df["date"] = pd.to_datetime(df["date"], unit="ms", errors="coerce")
+
+    # We'll focus on expenses
+    expense_df = df[df["amount"] < 0].copy()
+    expense_df["amount"] = abs(expense_df["amount"])  # Make positive for analysis
+
+    if len(expense_df) < 10:
+        return []
+
+    # Feature engineering for anomaly detection
+    # Day of week as cyclical features
+    expense_df["day_of_week"] = expense_df["date"].dt.dayofweek
+    expense_df["day_sin"] = np.sin(expense_df["day_of_week"] * (2 * np.pi / 7))
+    expense_df["day_cos"] = np.cos(expense_df["day_of_week"] * (2 * np.pi / 7))
+
+    # Hour of day as cyclical features
+    expense_df["hour"] = expense_df["date"].dt.hour
+    expense_df["hour_sin"] = np.sin(expense_df["hour"] * (2 * np.pi / 24))
+    expense_df["hour_cos"] = np.cos(expense_df["hour"] * (2 * np.pi / 24))
+
+    # One-hot encode categories
+    if "category" in expense_df.columns:
+        expense_df = pd.get_dummies(expense_df, columns=["category"], prefix="cat")
+
+    # Select features for anomaly detection
+    features = ["amount", "day_sin", "day_cos", "hour_sin", "hour_cos"]
+    # Add category features
+    cat_features = [col for col in expense_df.columns if col.startswith("cat_")]
+    features.extend(cat_features)
+
+    # Prepare data - drop rows with missing values for these columns
+    X = expense_df[features].dropna()
+
+    if len(X) < 10:
+        return []
+
+    # Train model
+    model = SimpleAIModel(model_type="anomaly")
+    model_path = f"./AI_models/anomaly_{user_id}.joblib"
+
+    if not model.load(model_path):
+        model.fit(X)
+        model.save(model_path)
+
+    # Predict anomalies
+    anomaly_scores = model.predict(X)
+
+    # Get indices of anomalous transactions (negative scores in Isolation Forest indicate anomalies)
+    anomaly_indices = np.where(anomaly_scores < -0.5)[0]
+
+    # Get original indices in DataFrame
+    original_indices = X.index[anomaly_indices]
+
+    # Extract anomalous transactions
+    anomalies = []
+    for idx in original_indices:
+        transaction = expense_df.iloc[idx]
+
+        # Calculate how anomalous it is (score between 0-100)
+        anomaly_score = min(
+            100,
+            max(
+                0, 100 * (0.8 - anomaly_scores[np.where(original_indices == idx)[0][0]])
+            ),
+        )
+
+        anomalies.append(
+            {
+                "transaction_id": transaction.get("_id", ""),
+                "date": (
+                    transaction["date"].isoformat()
+                    if not pd.isna(transaction["date"])
+                    else None
+                ),
+                "amount": round(transaction["amount"], 2),
+                "description": transaction.get("description", ""),
+                "category": transaction.get("category", "Unknown"),
+                "anomaly_score": round(anomaly_score, 2),
+                "reason": _determine_anomaly_reason(transaction, expense_df),
+            }
+        )
+
+    # Sort by anomaly score (highest first)
+    anomalies.sort(key=lambda x: x["anomaly_score"], reverse=True)
+
+    return anomalies[:10]  # Return top 10 anomalies
+
+
+def _determine_anomaly_reason(transaction, expense_df):
+    """Helper to determine why a transaction was flagged as anomalous."""
+    amount = transaction["amount"]
+    avg_amount = expense_df["amount"].mean()
+    std_amount = expense_df["amount"].std()
+
+    # Check amount
+    if amount > (avg_amount + 2 * std_amount):
+        return "Unusually large transaction amount"
+
+    # Check timing
+    hour = transaction["date"].hour
+    if hour < 6 or hour > 22:
+        return "Unusual transaction time"
+
+    # Check day
+    day = transaction["date"].dayofweek
+    if day >= 5:  # Weekend
+        if "category" in transaction and transaction["category"] in [
+            "Business",
+            "Work",
+        ]:
+            return "Unusual weekend business expense"
+
+    # Default
+    return "Multiple factors contribute to unusual pattern"
+
+
+##################
+# Save to DB
+##################
+def save_prediction_history(
+    user_id: str, prediction_type: str, prediction_data: Dict[str, Any]
+) -> bool:
+    """
+    Save prediction history for tracking accuracy over time.
+    Delegates to specialized functions based on prediction type.
+    """
+    try:
+        # First, ensure the user exists in PostgreSQL
+        db = next(get_db())
+        from models.psql.user import User
+        from config.database import user_repository
+
+        # Check if user exists
+        user = user_repository.get_by_id(db, user_id)
+        if not user:
+            # Create user if doesn't exist
+            new_user = User(id=user_id)
+            user_repository.create(db, new_user)
+
+        # Now delegate to the appropriate function
+        if prediction_type == "income":
+            return save_income_prediction(user_id, prediction_data)
+        elif prediction_type == "spending":
+            return save_spending_prediction(user_id, prediction_data)
+        elif prediction_type == "cashflow":
+            return save_cashflow_prediction(user_id, prediction_data)
+        elif prediction_type == "goals":
+            return save_goals_prediction(user_id, prediction_data)
+        elif prediction_type == "balances":
+            return save_balance_prediction(user_id, prediction_data)
+        else:
+            print(f"Unsupported prediction type: {prediction_type}")
+            return False
+    except Exception as e:
+        print(f"Error saving prediction history: {e}")
+        return False
+
+
+def save_income_prediction(user_id: str, prediction_data: Dict[str, Any]) -> bool:
+    """Save income prediction to PostgreSQL."""
+    try:
+        db = next(get_db())
+        from models.psql.income_prediction import IncomePrediction
+        from config.database import income_prediction_repository
+
+        prediction = IncomePrediction(
+            user_id=user_id,
+            month=(datetime.now() + timedelta(days=30)).strftime("%Y-%m"),
+            predicted_income=prediction_data.get("predicted_income", 0),
+            confidence=float(prediction_data.get("confidence", 0)),
+            prediction_date=datetime.now(),
+        )
+
+        income_prediction_repository.create(db, prediction)
+        return True
+    except Exception as e:
+        print(f"Error saving income prediction: {e}")
+        return False
+
+
+def save_spending_prediction(user_id: str, prediction_data: Dict[str, Any]) -> bool:
+    """Save spending prediction to PostgreSQL."""
+    try:
+        db = next(get_db())
+        from models.psql.spending_prediction import SpendingPrediction
+        from config.database import spending_prediction_repository
+
+        prediction = SpendingPrediction(
+            user_id=user_id,
+            month=(datetime.now() + timedelta(days=30)).strftime("%Y-%m"),
+            predicted_spending=float(prediction_data.get("predicted_spending", 0)),
+            confidence=float(prediction_data.get("confidence", 0)),
+            categories=prediction_data.get("category_predictions", {}),
+            prediction_date=datetime.now(),
+        )
+        spending_prediction_repository.create(db, prediction)
+        return True
+    except Exception as e:
+        print(f"Error saving spending prediction: {e}")
+        return False
+
+
+def save_cashflow_prediction(user_id: str, prediction_data: Dict[str, Any]) -> bool:
+    """Save cashflow prediction to PostgreSQL."""
+    try:
+        db = next(get_db())
+        from models.psql.cash_flow import CashFlow
+        from config.database import cash_flow_repository
+
+        cash_flow = CashFlow(
+            user_id=user_id,
+            date=datetime.now(),
+            income=prediction_data.get("predicted_income", 0),
+            expenses=prediction_data.get("predicted_spending", 0),
+            net=prediction_data.get("predicted_cashflow", 0),
+            period_type="month",
+            period_id=(datetime.now() + timedelta(days=30)).strftime("%Y-%m"),
+        )
+
+        cash_flow_repository.create(db, cash_flow)
+        return True
+    except Exception as e:
+        print(f"Error saving cashflow prediction: {e}")
+        return False
+
+
+def save_goals_prediction(user_id: str, prediction_data: Dict[str, Any]) -> bool:
+    """Save goal predictions to PostgreSQL."""
+    try:
+        db = next(get_db())
+        from models.psql.goal_projection import GoalProjection
+        from config.database import goal_projection_repository
+
+        goals = prediction_data.get("goals", [])
+        if not goals:
+            return True
+
+        for goal_data in goals:
+            goal_projection = GoalProjection(
+                user_id=user_id,
+                goal_id=goal_data.get("goal_id", ""),
+                name=goal_data.get("goal_name", ""),
+                current=goal_data.get("remaining_amount", 0),
+                target=goal_data.get("target_amount", 0),
+                projected_completion_date=datetime.fromtimestamp(
+                    goal_data.get("target_date", 0)
+                ),
+                on_track=(goal_data.get("probability", 0) > 0.5),
+                percentage_complete=goal_data.get("progress_percentage", 0),
+                recommended_monthly_contribution=goal_data.get(
+                    "estimated_monthly_contribution", 0
+                ),
+            )
+
+            goal_projection_repository.create(db, goal_projection)
+
+        return True
+    except Exception as e:
+        print(f"Error saving goals prediction: {e}")
+        return False
+
+
+def save_balance_prediction(user_id: str, prediction_data: Dict[str, Any]) -> bool:
+    """Save account balance predictions to PostgreSQL."""
+    try:
+        # There's no specific model for balance predictions in the provided code,
+        # but we can use an insight record to store this information
+        db = next(get_db())
+        from models.psql.insight import Insight
+        from models.psql.enums import InsightType
+        from config.database import insight_repository
+
+        insight = Insight(
+            user_id=user_id,
+            type=InsightType.INFO,
+            message="Account balance prediction",
+            relevance_score=0.8,
+            data={
+                "total_current_balance": prediction_data.get(
+                    "total_current_balance", 0
+                ),
+                "total_projected_balance": prediction_data.get(
+                    "total_projected_balance", 0
+                ),
+                "projected_date": prediction_data.get("projected_date", ""),
+                "confidence": prediction_data.get("confidence", 0),
+                "predictions": prediction_data.get("daily_predictions", [])[
+                    :5
+                ],  # Store first 5 days
+                "account_predictions": prediction_data.get("account_predictions", []),
+            },
+            is_read=False,
+        )
+
+        insight_repository.create(db, insight)
+        return True
+    except Exception as e:
+        print(f"Error saving balance prediction: {e}")
+        return False
