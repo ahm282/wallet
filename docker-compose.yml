@@ -1,86 +1,109 @@
 services:
-    user-db:
-        image: mariadb:latest
-        environment:
-            MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-            MYSQL_DATABASE: ${USER_DB_NAME}
-            MYSQL_USER: ${USER_DB_USER}
-            MYSQL_PASSWORD: ${USER_DB_PASS}
-        volumes:
-            - user_db_data:/var/lib/mysql
-        ports:
-            - "${USER_DB_PORT}:3306"
-        healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${USER_DB_USER}", "-p${USER_DB_PASS}"]
-            interval: 10s
-            timeout: 5s
-            retries: 5
+  user-service:
+    build:
+      context: ./user-service/
+      dockerfile: Dockerfile
+    image: ahm282/user-service:latest
+    depends_on:
+      - user-db
+    environment:
+      - USER_DB_HOST=${USER_DB_HOST}
+      - USER_DB_PORT=${USER_DB_PORT}
+      - USER_DB_NAME=${USER_DB_NAME}
+      - USER_DB_USER=${USER_DB_USER}
+      - USER_DB_PASS=${USER_DB_PASS}
+    ports:
+      - "${USER_APP_PORT}:8081"
+    restart: always
 
-    user-service:
-        build:
-            context: ./user-service/
-            dockerfile: Dockerfile
-        image: ahm282/user-service:latest
-        depends_on:
-            - user-db
-        environment:
-            - USER_DB_HOST=${USER_DB_HOST}
-            - USER_DB_PORT=${USER_DB_PORT}
-            - USER_DB_NAME=${USER_DB_NAME}
-            - USER_DB_USER=${USER_DB_USER}
-            - USER_DB_PASS=${USER_DB_PASS}
-        ports:
-            - "${USER_APP_PORT}:8081"
-        restart: always
+  api-gateway:
+    build:
+      context: ./api-gateway/
+      dockerfile: Dockerfile
+    image: ahm282/api-gateway:latest
+    depends_on:
+      - user-service
+    environment:
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - USER_SERVICE_BASEURL=user-service:8081
+      - FINANCE_SERVICE_BASEURL=finance-service:3000
+    ports:
+      - "${API_GATEWAY_PORT}:8080"
+    restart: always
 
-    api-gateway:
-        build:
-            context: ./api-gateway/
-            dockerfile: Dockerfile
-        image: ahm282/api-gateway:latest
-        depends_on:
-            - user-service
-        environment:
-            - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-            - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-            - USER_SERVICE_BASEURL=user-service:8081
-            - FINANCE_SERVICE_BASEURL=finance-service:3000
-        ports:
-            - "${API_GATEWAY_PORT}:8080"
-        restart: always
+  frontend:
+    build:
+      context: ./frontend/
+      dockerfile: Dockerfile
+    image: ahm282/frontend:latest
+    restart: always
+    ports:
+      - "80:80"
 
-    frontend:
-        build:
-            context: ./frontend/
-            dockerfile: Dockerfile
-        image: ahm282/frontend:latest
-        restart: always
-        ports:
-            - "80:80"
+  finance-service:
+    build:
+      context: ./finance-service/
+      dockerfile: Dockerfile
+    image: ahm282/finance-service:latest
+    depends_on:
+      - finance-db
+    environment:
+      - MONGO_URI=mongodb://finance-db:27017/wallet
+      - NESTJS_PORT=${NESTJS_PORT}
+      - NODE_ENV=${NEST_ENV}
+    ports:
+      - "${NESTJS_PORT}:3000"
+    restart: always
 
-    finance-service:
-        build:
-            context: ./finance-service/
-            dockerfile: Dockerfile
-        image: ahm282/finance-service:latest
-        depends_on:
-            - finance-db
-        environment:
-            - MONGO_URI=mongodb://finance-db:27017/wallet
-            - NESTJS_PORT=${NESTJS_PORT}
-            - NODE_ENV=${NEST_ENV}
-        ports:
-            - "${NESTJS_PORT}:3000"
-        restart: always
+  user-db:
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${USER_DB_NAME}
+      MYSQL_USER: ${USER_DB_USER}
+      MYSQL_PASSWORD: ${USER_DB_PASS}
+    volumes:
+      - user_db_data:/var/lib/mysql
+    ports:
+      - "${USER_DB_PORT}:3306"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "${USER_DB_USER}",
+          "-p${USER_DB_PASS}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-    finance-db:
-        image: mongo:latest
-        volumes:
-            - mongodb_data:/data/db
-        ports:
-            - "27017:27017"
-        restart: always
+  finance-db:
+    image: mongo:latest
+    restart: always
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+
+  insights-db:
+    image: postgres:latest
+    restart: always
+    volumes:
+      - insights_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${INSIGHTS_DB_NAME}
+      - POSTGRES_USER=${INSIGHTS_DB_USER}
+      - POSTGRES_PASSWORD=${INSIGHTS_DB_PASS}
+    ports:
+      - "${POSTGRES_PORT}:5432"
 
 volumes:
-    user_db_data:
-    mongodb_data:
+  user_db_data:
+  mongodb_data:
+  insights_data:
