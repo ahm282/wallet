@@ -79,6 +79,7 @@ def get_stored_predictions_for_user(user_id: str) -> Dict[str, Any]:
         print(f"Error fetching stored predictions: {e}")
         return None
 
+
 def get_stored_prediction(user_id: str, prediction_type: str) -> Dict[str, Any]:
     """
     Get stored prediction for a user and prediction type.
@@ -517,95 +518,6 @@ def predict_account_balances(user_id: str, days_forward=30) -> Dict[str, Any]:
     }
 
 
-def evaluate_prediction_accuracy(user_id: str) -> Dict[str, Any]:
-    """
-    Evaluate accuracy of past predictions by comparing with actual data.
-    """
-    try:
-        # Get database session (using next() since get_db() returns an iterator)
-        db = next(get_db())
-
-        # Import repositories
-        from config.database import (
-            income_prediction_repository,
-            spending_prediction_repository,
-        )
-
-        # Get income predictions from PostgreSQL
-        income_predictions = income_prediction_repository.get_all_for_user(db, user_id)
-
-        # If no predictions found, return early
-        if not income_predictions:
-            return {"message": "No historical predictions available for evaluation"}
-
-        # Get actual transaction data
-        transactions = fetch_transactions_for_user(user_id)
-        df = pd.DataFrame(transactions)
-
-        if df.empty:
-            return {"message": "No transaction data available for evaluation"}
-
-        # Prepare transaction data
-        df["amount"] = pd.to_numeric(df["amount"], errors="coerce")
-        df["date"] = pd.to_datetime(df["date"], unit="ms", errors="coerce")
-
-        # Evaluate income predictions
-        accuracy_results = {"income": [], "spending": [], "cashflow": []}
-
-        for prediction in income_predictions:
-            # Extract dates - prediction is for 30 days after creation
-            pred_date = prediction.prediction_date + timedelta(days=30)
-            start_date = prediction.prediction_date
-            end_date = pred_date
-
-            # Get actual data for this period
-            period_df = df[(df["date"] >= start_date) & (df["date"] <= end_date)]
-
-            if period_df.empty:
-                continue
-
-            # Calculate actual income for this period
-            actual_income = period_df[period_df["amount"] > 0]["amount"].sum()
-
-            # Compare with prediction
-            predicted = prediction.predicted_income
-            error_pct = (
-                abs((predicted - actual_income) / actual_income * 100)
-                if actual_income
-                else 100
-            )
-            accuracy = max(0, 100 - error_pct)
-
-            accuracy_results["income"].append(
-                {
-                    "prediction_date": prediction.prediction_date.isoformat(),
-                    "for_period": f"{start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}",
-                    "predicted": round(predicted, 2),
-                    "actual": round(actual_income, 2),
-                    "accuracy": round(accuracy, 2),
-                    "error_percentage": round(error_pct, 2),
-                }
-            )
-
-        # Calculate average accuracies
-        avg_accuracies = {}
-        for pred_type, results in accuracy_results.items():
-            if results:
-                avg_accuracies[pred_type] = round(
-                    sum(result["accuracy"] for result in results) / len(results), 2
-                )
-            else:
-                avg_accuracies[pred_type] = None
-        return {
-            "average_accuracies": avg_accuracies,
-            "detailed_results": accuracy_results,
-        }
-
-    except Exception as e:
-        print(f"Error evaluating prediction accuracy: {str(e)}")
-        return {"error": str(e), "message": "Failed to evaluate prediction accuracy"}
-
-
 ##################
 # Anomaly Detection
 ##################
@@ -669,25 +581,31 @@ def detect_anomalous_transactions(user_id: str) -> List[Dict[str, Any]]:
     # Get indices of anomalous transactions (negative scores in Isolation Forest indicate anomalies)
     anomaly_indices = np.where(anomaly_scores < -0.5)[0]
 
-    # Get original indices in DataFrame
-    original_indices = X.index[anomaly_indices]
+    if len(anomaly_indices) == 0:
+        return []
 
     # Extract anomalous transactions
     anomalies = []
-    for idx in original_indices:
+    for idx_pos in anomaly_indices:
+        # Get the actual index from X's index
+        if idx_pos >= len(X.index):
+            continue  # Skip if index is out of bounds
+
+        idx = X.index[idx_pos]
+        if idx >= len(expense_df):
+            continue  # Skip if the index doesn't exist in expense_df
+
         transaction = expense_df.iloc[idx]
 
+        # Get the anomaly score safely
+        raw_score = anomaly_scores[idx_pos]
+
         # Calculate how anomalous it is (score between 0-100)
-        anomaly_score = min(
-            100,
-            max(
-                0, 100 * (0.8 - anomaly_scores[np.where(original_indices == idx)[0][0]])
-            ),
-        )
+        anomaly_score = min(100, max(0, 100 * (0.8 - raw_score)))
 
         anomalies.append(
             {
-                "transaction_id": transaction.get("_id", ""),
+                "transaction_id": str(transaction.get("_id", "")),
                 "date": (
                     transaction["date"].isoformat()
                     if not pd.isna(transaction["date"])
