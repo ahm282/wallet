@@ -12,7 +12,7 @@ async function bootstrap() {
         abortOnError: false,
     });
 
-    app.setGlobalPrefix("/api/finance");
+    app.setGlobalPrefix("/api/v1/finance");
 
     // Swagger configuration
     const config = new DocumentBuilder()
@@ -24,8 +24,8 @@ async function bootstrap() {
 
     const document = SwaggerModule.createDocument(app, config);
 
-    if (process.env.NODE_ENV !== "production") {
-        SwaggerModule.setup("api-docs", app, document);
+    if (process.env.NODEJS_ENV !== "production") {
+        SwaggerModule.setup("/api/v1/finance/api-docs", app, document);
     }
 
     await app.listen(process.env.NESTJS_PORT ?? 3000, "0.0.0.0");
