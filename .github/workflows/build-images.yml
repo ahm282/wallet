@@ -11,9 +11,10 @@ jobs:
         runs-on: ubuntu-latest
         env:
             DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
-            USER_DB_NAME: user_db
-            USER_DB_USER: user
+            USER_DB_NAME: ${{ secrets.USER_DB_NAME }}
+            USER_DB_USER: ${{ secrets.USER_DB_USER }}
             USER_DB_PASS: ${{ secrets.USER_DB_PASS }}
+            USER_DB_HOST: ${{ secrets.USER_DB_HOST }}
             USER_DB_PORT: ${{ secrets.USER_DB_PORT }}
             USER_APP_PORT: ${{ secrets.USER_APP_PORT }}
             API_GATEWAY_PORT: ${{ secrets.API_GATEWAY_PORT }}
@@ -23,7 +24,15 @@ jobs:
             DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
             FINANCE_DB_HOST: ${{ secrets.FINANCE_DB_HOST }}
             NESTJS_PORT: ${{ secrets.NESTJS_PORT }}
-            NEST_ENV: ${{ secrets.NEST_ENV }}
+            NESTJS_ENV: ${{ secrets.NESTJS_ENV }}
+            INSIGHTS_DB_NAME: ${{ secrets.INSIGHTS_DB_NAME }}
+            INSIGHTS_DB_USER: ${{ secrets.INSIGHTS_DB_USER }}
+            INSIGHTS_DB_PASS: ${{ secrets.INSIGHTS_DB_PASS }}
+            INSIGHTS_PORT: ${{ secrets.INSIGHTS_PORT }}
+            POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+            MONGO_URI: ${{ secrets.MONGO_URI }}
+            MONGO_DB_NAME: ${{ secrets.MONGO_DB_NAME }}
+
 
         steps:
             - name: Checkout repository
