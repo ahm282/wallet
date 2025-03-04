@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CalendarDays, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,21 +11,19 @@ const UpcomingBillsCard = ({ data }: { data: any }) => {
     // Sort bills by days until due
     const sortedBills = [...upcoming_bills].sort((a, b) => a.days_until_due - b.days_until_due);
 
+    // Function to be called when a bill is paid
     const queryClient = useQueryClient();
 
-    // Mutation for marking a bill as paid
-    const markBillAsPaidMutation = useMutation({
-        mutationFn: async (billId: string) => {
-            payBill(billId);
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["bills"] });
-        },
-    });
-
-    const payBillHandler = (billId: string) => {
-        markBillAsPaidMutation.mutate(billId);
+    const handleBillPaid = () => {
+        // Invalidate and refetch
+        queryClient.invalidateQueries({ queryKey: ["dashboardData"] });
     };
+
+    // Mutation for invalidating and refetching the dashboard data
+    const { mutate: payBillHandler } = useMutation({
+        mutationFn: (billId: string) => payBill(billId),
+        onSettled: handleBillPaid,
+    });
 
     return (
         <Card>
