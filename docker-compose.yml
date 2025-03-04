@@ -90,10 +90,12 @@ services:
         ports:
             - "${USER_DB_PORT}:3306"
         healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${USER_DB_USER}", "-p${USER_DB_PASS}"]
-            interval: 10s
-            timeout: 5s
-            retries: 5
+          test: ["CMD-SHELL", "mariadb-admin --user=$${USER_DB_USER} --password=$${USER_DB_PASS} --host=localhost ping"]
+          start_period: 60s
+          start_interval: 15s
+          interval: 30s
+          timeout: 5s
+          retries: 3
 
     finance-db:
         image: mongo:latest
