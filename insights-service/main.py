@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from api.home import router as home_router
 from api.analytics import router as analytics_router
 from api.dashboard import router as dashboard_router
 from api.predictions import router as predictions_router
@@ -11,9 +12,12 @@ app = FastAPI(
 )
 
 # Include routers with appropriate prefixes and tags
+app.include_router(home_router, tags=["Home"])
 app.include_router(analytics_router, prefix="/analytics", tags=["Analytics"])
 app.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
-app.include_router(predictions_router, prefix="/magic", tags=["Predictions"])
+app.include_router(
+    predictions_router, prefix="/magic", tags=["Predictions and Anomalies"]
+)
 
 if __name__ == "__main__":
     import uvicorn
