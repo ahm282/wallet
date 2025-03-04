@@ -28,7 +28,7 @@ async function bootstrap() {
         SwaggerModule.setup("/api/v1/finance/api-docs", app, document);
     }
 
-    await app.listen(process.env.NESTJS_PORT ?? 3000, "0.0.0.0");
+    await app.listen(process.env.NESTJS_PORT ?? 8082, "0.0.0.0");
 }
 
 bootstrap();

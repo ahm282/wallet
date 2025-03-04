@@ -4,12 +4,12 @@ import { Link } from "react-router-dom";
 import { PlusCircle, ArrowRight, Wallet, PieChart, Target, CreditCard, UserCircle, Smile } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
-const Onboarding: React.FC = () => {
+export const Onboarding: React.FC = () => {
     const isDesktop = useMediaQuery("(min-width: 768px)");
     return <>{isDesktop ? <DesktopLayout /> : <MobileLayout />}</>;
 };
 
-const DesktopLayout: React.FC = () => {
+export const DesktopLayout: React.FC = () => {
     return (
         <div className='md:w-10/12 lg:w-10/12 lg:max-w-4xl 2xl:max-w-5xl my-8 mx-auto flex flex-col space-y-7'>
             <Card>
@@ -133,7 +133,7 @@ const DesktopLayout: React.FC = () => {
     );
 };
 
-const MobileLayout: React.FC = () => {
+export const MobileLayout: React.FC = () => {
     return (
         <div className='w-10/12 mx-auto my-8'>
             <div

@@ -34,6 +34,10 @@ export function formatDateString(date: Date): string {
     return format(date, "dd/MM/yyyy");
 }
 
+export function getDaysInMonth(month: number, year: number): number {
+    return new Date(year, month + 1, 0).getDate();
+}
+
 // AUTH UTILS
 export function getToken() {
     return useAuthStore.getState().token;

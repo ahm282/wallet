@@ -580,7 +580,7 @@ def detect_anomalous_transactions(user_id: str) -> List[Dict[str, Any]]:
 
     # Determine threshold for anomalies
     sorted_scores = np.sort(anomaly_scores)
-    lowest_10_percent = np.percentile(anomaly_scores, 10)
+    lowest_10_percent = np.percentile(sorted_scores, 10)
 
     anomaly_threshold = -0.3
     max_extreme_raw = lowest_10_percent
