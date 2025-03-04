@@ -51,9 +51,9 @@ async def get_user_predictions(
 
 
 # New AI prediction endpoints
-@router.get("/predict/income/{user_id}", response_model=Dict[str, Any])
+@router.get("/income/{user_id}", response_model=Dict[str, Any])
 async def predict_user_income(user_id: str, db: Session = Depends(get_db)):
-    """Predict future income patterns for a user"""
+    """Predict future income patterns for a user based on past transactions"""
     try:
         predictions = predict_income_for_user(user_id)
         # Save prediction history for later evaluation
@@ -63,9 +63,9 @@ async def predict_user_income(user_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 
-@router.get("/predict/spending/{user_id}", response_model=Dict[str, Any])
+@router.get("/spending/{user_id}", response_model=Dict[str, Any])
 async def predict_user_spending(user_id: str, db: Session = Depends(get_db)):
-    """Predict future spending patterns for a user"""
+    """Predict future spending patterns for a user based on past transactions"""
     try:
         predictions = predict_spending_for_user(user_id)
         save_prediction_history(user_id, "spending", predictions)
@@ -74,9 +74,9 @@ async def predict_user_spending(user_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 
-@router.get("/predict/cashflow/{user_id}", response_model=Dict[str, Any])
+@router.get("/cashflow/{user_id}", response_model=Dict[str, Any])
 async def predict_user_cashflow(user_id: str, db: Session = Depends(get_db)):
-    """Predict future cashflow for a user"""
+    """Predict future cashflow patterns for a user"""
     try:
         predictions = predict_cashflow_for_user(user_id)
         save_prediction_history(user_id, "cashflow", predictions)
@@ -85,9 +85,9 @@ async def predict_user_cashflow(user_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 
-@router.get("/predict/goals/{user_id}", response_model=List[Dict[str, Any]])
+@router.get("/goals/{user_id}", response_model=List[Dict[str, Any]])
 async def predict_goal_complete(user_id: str, db: Session = Depends(get_db)):
-    """Predict when financial goals will be completed"""
+    """Predict when financial goals will be completed for a user"""
     try:
         predictions = predict_goal_completion(user_id)
         save_prediction_history(user_id, "goals", {"goals": predictions})
@@ -96,11 +96,11 @@ async def predict_goal_complete(user_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 
-@router.get("/predict/balances/{user_id}", response_model=Dict[str, Any])
+@router.get("/balances/{user_id}", response_model=Dict[str, Any])
 async def predict_account_balance(
     user_id: str, days: int = Query(365, ge=1, le=365), db: Session = Depends(get_db)
 ):
-    """Predict account balances for specified days into the future"""
+    """Predict account balances for specified days into the future for a user"""
     try:
         predictions = predict_account_balances(user_id, days_forward=days)
         save_prediction_history(user_id, "balances", predictions)
@@ -109,9 +109,9 @@ async def predict_account_balance(
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 
-@router.get("/anomalies/transactions/{user_id}", response_model=List[Dict[str, Any]])
+@router.get("/anomalies/{user_id}", response_model=List[Dict[str, Any]])
 async def detect_anomalies(user_id: str, db: Session = Depends(get_db)):
-    """Detect anomalous transactions using machine learning"""
+    """Detect anomalous transactions using machine learning models for a user"""
     try:
         anomalies = detect_anomalous_transactions(user_id)
         return anomalies
