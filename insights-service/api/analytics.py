@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.get("/")
 async def get_insights():
-    return {"message": "Analytics and insights endpoint"}
+    return "Insights endpoint at your service! 🫡"
 
 
 @router.get("/{user_id}", response_model=dict)

@@ -20,7 +20,7 @@ router = APIRouter()
 # predictions endpoints
 @router.get("/")
 async def get_predictions():
-    return {"message": "Predictions endpoint"}
+    return "Predictions endpoint at your service! 🫡"
 
 
 @router.get("/{user_id}", response_model=dict)

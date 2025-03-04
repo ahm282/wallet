@@ -687,14 +687,17 @@ def _compute_anomaly_metrics(transaction, expense_df):
     # Amount-related statistics
     amount_stats = {
         "transaction_amount": amount,
-        "avg_amount": expense_df["amount"].mean(),
-        "median_amount": expense_df["amount"].median(),
-        "std_amount": expense_df["amount"].std(),
-        "percentile": 100 * (expense_df["amount"] <= amount).mean(),
-        "z_score": (
-            (amount - expense_df["amount"].mean()) / expense_df["amount"].std()
-            if expense_df["amount"].std() > 0
-            else 0
+        "avg_amount": round(expense_df["amount"].mean(), 2),
+        "median_amount": round(expense_df["amount"].median(), 2),
+        "std_amount": round(expense_df["amount"].std(), 2),
+        "percentile": round(100 * (expense_df["amount"] <= amount).mean()),
+        "z_score": round(
+            (
+                (amount - expense_df["amount"].mean()) / expense_df["amount"].std()
+                if expense_df["amount"].std() > 0
+                else 0
+            ),
+            5,
         ),
     }
 
@@ -719,9 +722,9 @@ def _compute_anomaly_metrics(transaction, expense_df):
         "hour": hour,
         "day_of_week": day,
         "month": month,
-        "hour_rarity": hour_rarity,
-        "day_rarity": day_rarity,
-        "month_rarity": month_rarity,
+        "hour_rarity": round(hour_rarity, 2),
+        "day_rarity": round(day_rarity, 2),
+        "month_rarity": round(month_rarity, 2),
         "is_weekend": day >= 5,
         "is_business_hours": 9 <= hour <= 17,
         "is_late_night": hour < 6 or hour > 22,
@@ -745,18 +748,24 @@ def _compute_anomaly_metrics(transaction, expense_df):
             if len(cat_df) > 0:
                 category_stats.update(
                     {
-                        "cat_avg_amount": cat_df["amount"].mean(),
-                        "cat_median_amount": cat_df["amount"].median(),
-                        "cat_std_amount": cat_df["amount"].std(),
-                        "cat_percentile": (
-                            100 * (cat_df["amount"] <= amount).mean()
-                            if len(cat_df) > 1
-                            else 50
+                        "cat_avg_amount": round(cat_df["amount"].mean(), 2),
+                        "cat_median_amount": round(cat_df["amount"].median(), 2),
+                        "cat_std_amount": round(cat_df["amount"].std(), 2),
+                        "cat_percentile": round(
+                            (
+                                100 * (cat_df["amount"] <= amount).mean()
+                                if len(cat_df) > 1
+                                else 50
+                            ),
                         ),
-                        "cat_z_score": (
-                            (amount - cat_df["amount"].mean()) / cat_df["amount"].std()
-                            if cat_df["amount"].std() > 0 and len(cat_df) > 1
-                            else 0
+                        "cat_z_score": round(
+                            (
+                                (amount - cat_df["amount"].mean())
+                                / cat_df["amount"].std()
+                                if cat_df["amount"].std() > 0 and len(cat_df) > 1
+                                else 0
+                            ),
+                            4,
                         ),
                     }
                 )
@@ -775,8 +784,8 @@ def _compute_anomaly_metrics(transaction, expense_df):
 
     frequency_stats = {
         "merchant": merchant,
-        "merchant_frequency": merchant_freq,
-        "merchant_rarity": 1 - merchant_freq,
+        "merchant_frequency": round(merchant_freq, 2),
+        "merchant_rarity": round(1 - merchant_freq),
         "is_rare_merchant": bool(merchant_freq < 0.03),
     }
 

@@ -10,7 +10,7 @@ router = APIRouter()
 
 @router.get("/")
 async def get_dashboard():
-    return {"message": "Dashboard endpoint"}
+    return "Dashboard endpoint at your service! 🫡"
 
 
 @router.get("/{user_id}", response_model=Dict[str, Any])
