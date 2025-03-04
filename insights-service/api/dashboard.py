@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Dict, Any
 from config.database import get_db
 from services.dashboard import get_dashboard_for_user, compute_and_save_dashboard
+from dto.refresh_dashboard_dto import RefreshDashboardDTO
 
 router = APIRouter()
 
@@ -16,7 +17,6 @@ async def get_dashboard():
 async def get_user_dashboard(
     user_id: str,
     refresh: bool = Query(False, description="Force recalculation of dashboard"),
-    db: Session = Depends(get_db),
 ):
     """
     Get financial dashboard for a specific user.
@@ -33,11 +33,14 @@ async def get_user_dashboard(
 
 
 @router.post("/refresh", response_model=Dict[str, Any])
-async def refresh_user_dashboard(user_id: str, db: Session = Depends(get_db)):
+async def refresh_user_dashboard(
+    req: RefreshDashboardDTO, db: Session = Depends(get_db)
+):
     """
     Force refresh of dashboard data for a user.
     """
     try:
+        user_id = req.user_id
         dashboard = compute_and_save_dashboard(user_id, db)
         return dashboard
     except Exception as e:
