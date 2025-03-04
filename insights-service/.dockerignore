@@ -1,0 +1,49 @@
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environment
+venv/
+ENV/
+
+# Environment variables
+.env
+
+# Git related files
+.git
+.gitignore
+
+# Editor directories and files
+.idea
+.vscode
+*.swp
+*.swo
+
+# Docker related
+Dockerfile
+docker-compose*.yml
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Others
+.DS_Store
