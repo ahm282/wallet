@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpRight, ArrowDownRight, DollarSign, TrendingUp } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Coins, CreditCard, ArrowUpDown, Receipt } from "lucide-react";
 import { currencyNotation } from "@/lib/utils";
 import { InsightsData, TrendsData } from "@/types/insights.types";
 
@@ -17,7 +17,7 @@ export const SummaryCards = ({ summary, trends, netChangePercent, isPositiveChan
             <Card>
                 <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                     <CardTitle className='text-sm font-medium'>Total Income</CardTitle>
-                    <DollarSign className='h-4 w-4 text-muted-foreground' />
+                    <Coins className='h-4 w-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
                     <div className='text-2xl font-bold'>{currencyNotation(summary!.total_income)}</div>
@@ -40,7 +40,7 @@ export const SummaryCards = ({ summary, trends, netChangePercent, isPositiveChan
             <Card>
                 <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                     <CardTitle className='text-sm font-medium'>Total Expenses</CardTitle>
-                    <DollarSign className='h-4 w-4 text-muted-foreground' />
+                    <CreditCard className='h-4 w-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
                     <div className='text-2xl font-bold'>{currencyNotation(summary!.total_expenses)}</div>
@@ -63,7 +63,7 @@ export const SummaryCards = ({ summary, trends, netChangePercent, isPositiveChan
             <Card>
                 <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                     <CardTitle className='text-sm font-medium'>Net Cashflow</CardTitle>
-                    <TrendingUp className='h-4 w-4 text-muted-foreground' />
+                    <ArrowUpDown className='h-4 w-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
                     <div className='text-2xl font-bold'>{currencyNotation(summary!.net_cashflow)}</div>
@@ -86,7 +86,7 @@ export const SummaryCards = ({ summary, trends, netChangePercent, isPositiveChan
             <Card>
                 <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                     <CardTitle className='text-sm font-medium'>Average Transaction</CardTitle>
-                    <DollarSign className='h-4 w-4 text-muted-foreground' />
+                    <Receipt className='h-4 w-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
                     <div className='text-2xl font-bold'>{currencyNotation(summary!.average_transaction)}</div>

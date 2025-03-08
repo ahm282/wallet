@@ -10,6 +10,13 @@ interface Props {
     colors: string[];
 }
 
+const pieChartStyles = `
+  .recharts-sector:hover {
+    opacity: 0.8;
+    transition: opacity 0.25s ease;
+  }
+`;
+
 export const SpendingCategories = ({ topCategories, colors }: Props) => {
     const pieChartData = topCategories.map((cat) => ({
         name: cat.name,
@@ -23,6 +30,7 @@ export const SpendingCategories = ({ topCategories, colors }: Props) => {
                 <PieChartIcon className='size-5 text-muted-foreground' />
             </CardHeader>
             <CardContent className='pt-2'>
+                <style>{pieChartStyles}</style>
                 {topCategories.length > 0 ? (
                     <div className='h-72'>
                         <ResponsiveContainer
@@ -45,8 +53,17 @@ export const SpendingCategories = ({ topCategories, colors }: Props) => {
                                         />
                                     ))}
                                 </Pie>
-                                <Tooltip formatter={(value) => currencyNotation(value as number)} />
-                                <Legend />
+                                <Tooltip
+                                    formatter={(value) => currencyNotation(value as number)}
+                                    contentStyle={{ fontFamily: "poppins" }}
+                                />
+                                <Legend
+                                    align='center'
+                                    height={36}
+                                    iconSize={12}
+                                    iconType='circle'
+                                    wrapperStyle={{ fontSize: "0.85rem", fontFamily: "poppins" }}
+                                />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
