@@ -35,8 +35,8 @@ const createUserPayload = (googleUser: GoogleUser) => {
  * Posts the user payload to the backend and returns the response.
  */
 const postUserData = async (payload: object, token: string): Promise<UserResponse> => {
-    const api = instantiateAPI("http://localhost:8080/api");
-    const user = api.login<UserResponse>("/user", token, payload);
+    const api = instantiateAPI();
+    const user = api.login<UserResponse>("/login", token, payload);
     return user;
 };
 

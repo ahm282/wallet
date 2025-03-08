@@ -8,8 +8,8 @@ export class ApiUtil {
         const api_endpoint =
             baseURL ||
             (import.meta.env.VITE_ENV_NAME === "dev"
-                ? "http://localhost:8082/api/v1/finance"
-                : "https://api.walletapp.top/api");
+                ? "http://localhost:8080/api/v1"
+                : "https://api.walletapp.top/api/v1");
 
         this.api = axios.create({
             baseURL: api_endpoint,

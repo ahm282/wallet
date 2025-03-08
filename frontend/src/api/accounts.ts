@@ -5,12 +5,12 @@ import type { Account } from "@/types/accounts.types";
 export const fetchAccounts = async (): Promise<Account[]> => {
     const userId = getUserId();
     const api = instantiateAPI();
-    return await api.get<Account[]>(`/account?id=${userId}`);
+    return await api.get<Account[]>(`/finance/account?id=${userId}`);
 };
 
 export const createAccount = async (newAccount: Omit<Account, "id">) => {
     const api = instantiateAPI();
-    return await api.post("/account", {
+    return await api.post("/finance/account", {
         ...newAccount,
         userId: getUserId(),
     });
@@ -18,10 +18,10 @@ export const createAccount = async (newAccount: Omit<Account, "id">) => {
 
 export const updateAccount = async (updatedAccount: Account) => {
     const api = instantiateAPI();
-    return await api.patch(`/account?id=${updatedAccount.id}`, updatedAccount);
+    return await api.patch(`/finance/account?id=${updatedAccount.id}`, updatedAccount);
 };
 
 export const deleteAccount = async (accountId: string) => {
     const api = instantiateAPI();
-    return await api.delete(`/account?id=${accountId}`);
+    return await api.delete(`/finance/account?id=${accountId}`);
 };
