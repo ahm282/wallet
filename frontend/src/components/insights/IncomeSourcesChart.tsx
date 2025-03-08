@@ -9,6 +9,13 @@ interface Props {
     colors: string[];
 }
 
+const pieChartStyles = `
+  .recharts-sector:hover {
+    opacity: 0.8;
+    transition: opacity 0.25s ease;
+  }
+`;
+
 export const IncomeSourcesChart = ({ incomeSourcesData, colors }: Props) => {
     return (
         <Card className='h-96'>
@@ -17,6 +24,7 @@ export const IncomeSourcesChart = ({ incomeSourcesData, colors }: Props) => {
                 <LineChartIcon className='size-5 text-muted-foreground' />
             </CardHeader>
             <CardContent className='pt-2'>
+                <style>{pieChartStyles}</style>
                 {incomeSourcesData.length > 0 ? (
                     <div className='h-72'>
                         <ResponsiveContainer
@@ -27,7 +35,7 @@ export const IncomeSourcesChart = ({ incomeSourcesData, colors }: Props) => {
                                     data={incomeSourcesData}
                                     cx='50%'
                                     cy='50%'
-                                    labelLine={true}
+                                    labelLine={false}
                                     outerRadius={80}
                                     fill='#8884d8'
                                     dataKey='value'>
@@ -38,8 +46,17 @@ export const IncomeSourcesChart = ({ incomeSourcesData, colors }: Props) => {
                                         />
                                     ))}
                                 </Pie>
-                                <Tooltip formatter={(value) => currencyNotation(value as number)} />
-                                <Legend />
+                                <Tooltip
+                                    formatter={(value) => currencyNotation(value as number)}
+                                    contentStyle={{ fontFamily: "poppins" }}
+                                />
+                                <Legend
+                                    layout='horizontal'
+                                    align='center'
+                                    verticalAlign='bottom'
+                                    iconType='circle'
+                                    wrapperStyle={{ fontFamily: "poppins", fontSize: "0.85rem" }}
+                                />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>

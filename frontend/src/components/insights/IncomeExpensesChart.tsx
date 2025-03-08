@@ -38,6 +38,64 @@ export const IncomeExpensesChart = ({ monthlyData, trends }: Props) => {
                                     left: 0,
                                     bottom: 0,
                                 }}>
+                                <CartesianGrid strokeDasharray='3 3' />
+                                <XAxis
+                                    dataKey={"name"}
+                                    tick={{ fontSize: 14 }}
+                                    tickLine={false}
+                                />
+                                <YAxis
+                                    tick={{ fontSize: 10, fontFamily: "poppins", fontWeight: "bold" }}
+                                    tickLine={false}
+                                    tickFormatter={(value) => currencyNotation(value as number)}
+                                />
+                                <Tooltip
+                                    formatter={(value) => currencyNotation(value as number)}
+                                    labelFormatter={(value) => `Month: ${value}`}
+                                    separator={": "}
+                                    labelStyle={{
+                                        fontFamily: "poppins",
+                                        fontSize: "14px",
+                                        fontWeight: "bold",
+                                        color: "#f0f0f0",
+                                    }}
+                                    contentStyle={{
+                                        backgroundColor: "rgba(0, 0, 0, 0.8)",
+                                        border: "1px solid #f0f0f0",
+                                        alignSelf: "center",
+                                        fontFamily: "poppins",
+                                    }}
+                                    itemStyle={{ fontSize: "14px" }}
+                                />
+                                <Legend
+                                    wrapperStyle={{
+                                        fontSize: "14px",
+                                        fontWeight: "bold",
+                                        fontFamily: "poppins",
+                                        textTransform: "capitalize",
+                                    }}
+                                />
+                                <Area
+                                    type='monotone'
+                                    dataKey='income'
+                                    stroke='#00ff41'
+                                    fill='url(#gradientIncome)'
+                                    strokeWidth={2}
+                                />
+                                <Area
+                                    type='monotone'
+                                    dataKey='expenses'
+                                    stroke='#ff4a4a'
+                                    fill='url(#gradientExpenses)'
+                                    strokeWidth={2}
+                                />
+                                <Area
+                                    type='monotone'
+                                    dataKey='net'
+                                    stroke='#00bfff'
+                                    fill='url(#gradientNet)'
+                                    strokeWidth={2}
+                                />
                                 <defs>
                                     <linearGradient
                                         id='gradientIncome'
@@ -47,12 +105,12 @@ export const IncomeExpensesChart = ({ monthlyData, trends }: Props) => {
                                         y2='1'>
                                         <stop
                                             offset='5%'
-                                            stopColor='#00ff41'
+                                            stopColor='#10b981'
                                             stopOpacity={0.8}
                                         />
                                         <stop
                                             offset='95%'
-                                            stopColor='#00ff41'
+                                            stopColor='#10b981'
                                             stopOpacity={0}
                                         />
                                     </linearGradient>
@@ -91,46 +149,6 @@ export const IncomeExpensesChart = ({ monthlyData, trends }: Props) => {
                                         />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray='3 3' />
-                                <XAxis
-                                    dataKey={"name"}
-                                    tick={{ fontSize: 14 }}
-                                    tickLine={false}
-                                />
-                                <YAxis />
-                                <Tooltip formatter={(value) => currencyNotation(value as number)} />
-                                <Legend
-                                    wrapperStyle={{
-                                        fontSize: "14px",
-                                        fontWeight: "bold",
-                                        fontFamily: "poppins",
-                                        textTransform: "capitalize",
-                                    }}
-                                />
-                                <Area
-                                    type='monotone'
-                                    dataKey='income'
-                                    stackId='1'
-                                    stroke='#00ff41'
-                                    fill='url(#gradientIncome)'
-                                    strokeWidth={2}
-                                />
-                                <Area
-                                    type='monotone'
-                                    dataKey='expenses'
-                                    stackId='2'
-                                    stroke='#ff4a4a'
-                                    fill='url(#gradientExpenses)'
-                                    strokeWidth={2}
-                                />
-                                <Area
-                                    type='monotone'
-                                    dataKey='net'
-                                    stackId='3'
-                                    stroke='#00bfff'
-                                    fill='url(#gradientNet)'
-                                    strokeWidth={2}
-                                />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>

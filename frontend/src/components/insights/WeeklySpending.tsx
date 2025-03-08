@@ -30,13 +30,60 @@ export const WeeklySpending = ({ dayOfWeekData }: Props) => {
                                     bottom: 5,
                                 }}>
                                 <CartesianGrid strokeDasharray='3 3' />
-                                <XAxis dataKey='day' />
-                                <YAxis />
-                                <Tooltip formatter={(value) => currencyNotation(value as number)} />
+                                <XAxis
+                                    dataKey='day'
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tick={{ fill: "#9CA3AF" }}
+                                    style={{ fontSize: "0.75rem" }}
+                                />
+                                <YAxis
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tick={{ fill: "#9CA3AF" }}
+                                    style={{ fontSize: "0.75rem" }}
+                                    tickFormatter={(value) => currencyNotation(value as number)}
+                                />
+                                <Tooltip
+                                    formatter={(value) => currencyNotation(value as number)}
+                                    labelFormatter={(value) => `Day: ${value}`}
+                                    labelStyle={{ color: "#fff", fontFamily: "poppins" }}
+                                    cursor={{
+                                        fill: "rgba(0,0,0,0.05)",
+                                        className:
+                                            "transition-colors duration-100 ease-in-out group-hover:fill-[rgba(0,0,0,0.1)]",
+                                    }}
+                                    contentStyle={{
+                                        backgroundColor: "rgba(0, 0, 0, 0.8)",
+                                        border: "1px solid #D1D5DB",
+                                        fontFamily: "poppins",
+                                    }}
+                                />
                                 <Bar
                                     dataKey='amount'
-                                    fill='#8884d8'
+                                    fill='url(#weeklySpendingGradient)'
+                                    barSize={30}
+                                    radius={[4, 4, 0, 0]}
                                 />
+                                <defs>
+                                    <linearGradient
+                                        id='weeklySpendingGradient'
+                                        x1='0'
+                                        y1='0'
+                                        x2='0'
+                                        y2='1'>
+                                        <stop
+                                            offset='0%'
+                                            stopColor='#6EE7B7'
+                                        />{" "}
+                                        // Dark slate gray
+                                        <stop
+                                            offset='100%'
+                                            stopColor='#3B82F6'
+                                        />{" "}
+                                        // Lighter gray
+                                    </linearGradient>
+                                </defs>
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
