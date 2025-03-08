@@ -3,12 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchDashboardData } from "@/api/dashboard";
 import { Onboarding } from "@/components/dashboard/Onboarding";
 import { Dashboard } from "@/components/dashboard/Dashboard";
+import { useHasEntities } from "@/hooks/use-has-entities";
 
 const DashboardPage: React.FC = () => {
     const { data, isLoading, isError, error } = useQuery<Object, Error>({
         queryKey: ["dashboardData"],
         queryFn: fetchDashboardData,
     });
+
+    const hasEntities = useHasEntities();
 
     /*
      * Sets the title of the page to " Dashboard | Wallet" when the component mounts
@@ -33,7 +36,7 @@ const DashboardPage: React.FC = () => {
         );
     }
 
-    if (!data) {
+    if (!hasEntities) {
         return <Onboarding />;
     }
 
