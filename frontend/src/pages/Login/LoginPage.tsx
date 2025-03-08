@@ -36,7 +36,7 @@ const createUserPayload = (googleUser: GoogleUser) => {
  */
 const postUserData = async (payload: object, token: string): Promise<UserResponse> => {
     const api = instantiateAPI();
-    const user = api.login<UserResponse>("/login", token, payload);
+    const user = api.login<UserResponse>("/user", token, payload);
     return user;
 };
 
