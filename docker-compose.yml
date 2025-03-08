@@ -10,7 +10,8 @@ services:
             - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
             - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
             - USER_SERVICE_BASEURL=user-service:8081
-            - FINANCE_SERVICE_BASEURL=finance-service:3000
+            - FINANCE_SERVICE_BASEURL=finance-service:8082
+            - INSIGHTS_SERVICE_BASEURL=insights-service:8083
         ports:
             - "${API_GATEWAY_PORT}:8080"
         restart: always
@@ -49,7 +50,7 @@ services:
         depends_on:
             - finance-db-svc
         environment:
-            - MONGO_URI=mongodb://finance-db:27017/wallet
+            - MONGO_URI=${MONGO_URI}
             - NESTJS_PORT=${NESTJS_PORT}
             - NODEJS_ENV=${NESTJS_ENV}
         ports:
@@ -70,7 +71,7 @@ services:
             - INSIGHTS_DB_USER=${INSIGHTS_DB_USER}
             - INSIGHTS_DB_PASS=${INSIGHTS_DB_PASS}
             - INSIGHTS_PORT=${INSIGHTS_PORT}
-            - POSTGRES_URI=postgresql://${INSIGHTS_DB_USER}:${INSIGHTS_DB_PASS}@insights-db:5432/${INSIGHTS_DB_NAME}
+            - POSTGRES_URI=postgresql://${INSIGHTS_DB_USER}:${INSIGHTS_DB_PASS}@insights-db-svc:5432/${INSIGHTS_DB_NAME}
             - MONGO_URI=${MONGO_URI}
             - MONGO_DB_NAME=${MONGO_DB_NAME}
         ports:

@@ -9,7 +9,7 @@ export class ApiUtil {
             baseURL ||
             (import.meta.env.VITE_ENV_NAME === "dev"
                 ? "http://localhost:8080/api/v1"
-                : "https://api.walletapp.top/api/v1");
+                : "https://walletapp.top/api/v1");
 
         this.api = axios.create({
             baseURL: api_endpoint,

@@ -32,7 +32,6 @@ export const AddBudgetDialog: React.FC<AddBudgetDialogProps> = ({ createBudgetMu
         e.preventDefault();
         const { isValid, errors: validationErrors } = validateBudgetForm(newBudget);
         if (isValid) {
-            console.log("Adding budget", newBudget);
             createBudgetMutation?.mutate(newBudget);
 
             // Reset the form and errors
