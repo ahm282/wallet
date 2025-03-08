@@ -1,5 +1,5 @@
 import { useSidebar } from "@/components/ui/sidebar";
-import { BarChart2, Wallet, Home, PieChart, Target, List, Calendar, TrendingUp, UserCircle } from "lucide-react";
+import { Wallet, Home, PieChart, Target, List, Calendar, TrendingUp, UserCircle } from "lucide-react";
 import {
     Sidebar,
     SidebarContent,
