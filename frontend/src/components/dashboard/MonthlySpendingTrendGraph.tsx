@@ -88,7 +88,7 @@ export const MonthlySpendingTrendGraph = ({ data }: { data: Record<string, numbe
                             fill={chartConfig.income.color}
                             radius={[8, 8, 0, 0]}
                             name='Income'
-                            className='transition-colors duration-100 ease-in-out hover:fill-[hsl(0_70%_55%))]'
+                            className='transition-colors duration-100 ease-in-out hover:fill-[hsl(0_70%_45%)]'
                         />
                     </BarChart>
                 </ResponsiveContainer>
