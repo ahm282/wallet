@@ -69,7 +69,7 @@ export const InsightsPage = () => {
         2
     );
     const isPositiveChange = parseFloat(netChangePercent) >= 0;
-    const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
+    const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#FF6384", "#82ca9d", "#ff9e82", "#ffc658"];
 
     // Prepare day of week data
     const dayOfWeekData = Object.entries(spendingPatterns?.by_day_of_week || {}).map(([day, amount]) => ({
