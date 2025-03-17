@@ -30,7 +30,6 @@ public class SecurityConfig {
   public SecurityWebFilterChain springSecurityFilterChain(
       final ServerHttpSecurity serverHttpSecurity, final GlobalCorsProperties corsProperties) {
     serverHttpSecurity
-        .csrf(csrf -> csrf.disable())
         .cors(withDefaults())
         .authorizeExchange(
             exchange ->
@@ -38,8 +37,6 @@ public class SecurityConfig {
                     .pathMatchers(HttpMethod.OPTIONS, "/**")
                     .permitAll()
                     .pathMatchers(HttpMethod.GET, "/")
-                    .permitAll()
-                    .pathMatchers(HttpMethod.GET, "/api/finance")
                     .permitAll()
                     .anyExchange()
                     .authenticated())

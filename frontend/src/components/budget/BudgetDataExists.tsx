@@ -30,7 +30,6 @@ export const BudgetDataExists: React.FC<BudgetDataExistsProps> = ({
     };
 
     const handleDelete = (id: string) => {
-        console.log("Deleting budget with id:", id);
         deleteBudgetMutation?.mutate(id);
     };
 

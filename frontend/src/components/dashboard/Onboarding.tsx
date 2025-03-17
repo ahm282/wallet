@@ -3,13 +3,29 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { PlusCircle, ArrowRight, Wallet, PieChart, Target, CreditCard, UserCircle, Smile } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useHasEntities } from "@/hooks/use-has-entities";
 
-const Onboarding: React.FC = () => {
-    const isDesktop = useMediaQuery("(min-width: 768px)");
-    return <>{isDesktop ? <DesktopLayout /> : <MobileLayout />}</>;
+type EntityStatusProps = {
+    entityStatus: {
+        hasAccounts: boolean;
+        hasBudgets: boolean;
+        hasGoals: boolean;
+        hasTransactions: boolean;
+    };
 };
 
-const DesktopLayout: React.FC = () => {
+export const Onboarding: React.FC = () => {
+    const isDesktop = useMediaQuery("(min-width: 768px)");
+    const entityStatus = useHasEntities();
+
+    return (
+        <>{isDesktop ? <DesktopLayout entityStatus={entityStatus} /> : <MobileLayout entityStatus={entityStatus} />}</>
+    );
+};
+
+export const DesktopLayout: React.FC<EntityStatusProps> = ({ entityStatus }) => {
+    const { hasAccounts, hasBudgets, hasGoals, hasTransactions } = entityStatus;
+
     return (
         <div className='md:w-10/12 lg:w-10/12 lg:max-w-4xl 2xl:max-w-5xl my-8 mx-auto flex flex-col space-y-7'>
             <Card>
@@ -34,14 +50,23 @@ const DesktopLayout: React.FC = () => {
                                 </p>
                             </CardHeader>
                             <CardContent>
-                                <Link to='/accounts'>
+                                {hasAccounts ? (
                                     <Button
                                         className='mt-4 w-full'
-                                        size='sm'>
-                                        <PlusCircle className='mr-2 h-4 w-4' />
-                                        Add Account
+                                        size='sm'
+                                        disabled={true}>
+                                        Accounts Added
                                     </Button>
-                                </Link>
+                                ) : (
+                                    <Link to='/accounts'>
+                                        <Button
+                                            className='mt-4 w-full'
+                                            size='sm'>
+                                            <PlusCircle className='mr-2 h-4 w-4' />
+                                            Add Account
+                                        </Button>
+                                    </Link>
+                                )}
                             </CardContent>
                         </Card>
                         <Card className='flex flex-col justify-between'>
@@ -55,14 +80,23 @@ const DesktopLayout: React.FC = () => {
                                 </p>
                             </CardHeader>
                             <CardContent>
-                                <Link to='/accounts'>
+                                {hasBudgets ? (
                                     <Button
                                         className='mt-4 w-full'
-                                        size='sm'>
-                                        <PlusCircle className='mr-2 h-4 w-4' />
-                                        Create Budget
+                                        size='sm'
+                                        disabled={true}>
+                                        Budget Set
                                     </Button>
-                                </Link>
+                                ) : (
+                                    <Link to='/budgets'>
+                                        <Button
+                                            className='mt-4 w-full'
+                                            size='sm'>
+                                            <PlusCircle className='mr-2 h-4 w-4' />
+                                            Create Budget
+                                        </Button>
+                                    </Link>
+                                )}
                             </CardContent>
                         </Card>
                         <Card className='flex flex-col justify-between'>
@@ -76,14 +110,23 @@ const DesktopLayout: React.FC = () => {
                                 </p>
                             </CardHeader>
                             <CardContent>
-                                <Link to='/goals'>
+                                {hasGoals ? (
                                     <Button
                                         className='mt-4 w-full'
-                                        size='sm'>
-                                        <PlusCircle className='mr-2 h-4 w-4' />
-                                        Add Goal
+                                        size='sm'
+                                        disabled={true}>
+                                        Goals Added
                                     </Button>
-                                </Link>
+                                ) : (
+                                    <Link to='/goals'>
+                                        <Button
+                                            className='mt-4 w-full'
+                                            size='sm'>
+                                            <PlusCircle className='mr-2 h-4 w-4' />
+                                            Add Goal
+                                        </Button>
+                                    </Link>
+                                )}
                             </CardContent>
                         </Card>
                         <Card className='flex flex-col justify-between'>
@@ -97,14 +140,23 @@ const DesktopLayout: React.FC = () => {
                                 </p>
                             </CardHeader>
                             <CardContent>
-                                <Link to='/transactions'>
+                                {hasTransactions ? (
                                     <Button
                                         className='mt-4 w-full'
-                                        size='sm'>
-                                        <PlusCircle className='mr-2 h-4 w-4' />
-                                        Log Expense
+                                        size='sm'
+                                        disabled={true}>
+                                        Expenses Logged
                                     </Button>
-                                </Link>
+                                ) : (
+                                    <Link to='/transactions'>
+                                        <Button
+                                            className='mt-4 w-full'
+                                            size='sm'>
+                                            <PlusCircle className='mr-2 h-4 w-4' />
+                                            Log Expense
+                                        </Button>
+                                    </Link>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
@@ -133,7 +185,8 @@ const DesktopLayout: React.FC = () => {
     );
 };
 
-const MobileLayout: React.FC = () => {
+export const MobileLayout: React.FC<EntityStatusProps> = ({ entityStatus }) => {
+    const { hasAccounts, hasBudgets, hasGoals, hasTransactions } = entityStatus;
     return (
         <div className='w-10/12 mx-auto my-8'>
             <div
@@ -157,9 +210,16 @@ const MobileLayout: React.FC = () => {
                         <p className='text-xs text-muted-foreground'>Link your bank accounts to track your finances</p>
                         <Button
                             className='mt-4 w-full'
-                            size='sm'>
-                            <PlusCircle className='mr-2 h-4 w-4' />
-                            Add Account
+                            size='sm'
+                            disabled={hasAccounts}>
+                            {hasAccounts ? (
+                                "Accounts Added"
+                            ) : (
+                                <>
+                                    <PlusCircle className='mr-2 h-4 w-4' />
+                                    Add Account
+                                </>
+                            )}
                         </Button>
                     </CardContent>
                 </Card>
@@ -172,9 +232,16 @@ const MobileLayout: React.FC = () => {
                         <p className='text-xs text-muted-foreground'>Create a budget to manage your spending</p>
                         <Button
                             className='mt-4 w-full'
-                            size='sm'>
-                            <PlusCircle className='mr-2 h-4 w-4' />
-                            Create Budget
+                            size='sm'
+                            disabled={hasBudgets}>
+                            {hasBudgets ? (
+                                "Budget Set"
+                            ) : (
+                                <>
+                                    <PlusCircle className='mr-2 h-4 w-4' />
+                                    Create Budget
+                                </>
+                            )}
                         </Button>
                     </CardContent>
                 </Card>
@@ -187,9 +254,16 @@ const MobileLayout: React.FC = () => {
                         <p className='text-xs text-muted-foreground'>Set financial goals to work towards</p>
                         <Button
                             className='mt-4 w-full'
-                            size='sm'>
-                            <PlusCircle className='mr-2 h-4 w-4' />
-                            Add Goal
+                            size='sm'
+                            disabled={hasGoals}>
+                            {hasGoals ? (
+                                "Goals Added"
+                            ) : (
+                                <>
+                                    <PlusCircle className='mr-2 h-4 w-4' />
+                                    Add Goal
+                                </>
+                            )}
                         </Button>
                     </CardContent>
                 </Card>
@@ -202,9 +276,16 @@ const MobileLayout: React.FC = () => {
                         <p className='text-xs text-muted-foreground'>Start logging your expenses to gain insights</p>
                         <Button
                             className='mt-4 w-full'
-                            size='sm'>
-                            <PlusCircle className='mr-2 h-4 w-4' />
-                            Log Expense
+                            size='sm'
+                            disabled={hasTransactions}>
+                            {hasTransactions ? (
+                                "Expenses Logged"
+                            ) : (
+                                <>
+                                    <PlusCircle className='mr-2 h-4 w-4' />
+                                    Log Expense
+                                </>
+                            )}
                         </Button>
                     </CardContent>
                 </Card>

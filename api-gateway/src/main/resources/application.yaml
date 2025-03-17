@@ -4,12 +4,12 @@ server:
 logging:
   level:
     root: INFO
-    org.springframework.cloud.gateway: INFO
-    org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: INFO
-    reactor.netty: INFO
-    org.springframework.web: INFO
-    org.springframework.http: INFO
-    org.springframework.boot.web: INFO
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: DEBUG
+    reactor.netty: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.http: DEBUG
+    org.springframework.boot.web: DEBUG
 #    reactor.netty: ERROR
 #    org.springframework.web: WARN
 #    org.springframework.http: WARN
@@ -39,21 +39,30 @@ spring:
             allowedOrigins:
                 - "http://localhost:5173"
                 - "http://localhost"
-                - "chrome-extension://"
+                - "https://walletapp.top"
             allowedMethods:
               - GET
               - POST
               - PUT
+              - PATCH
               - DELETE
               - OPTIONS
+            allowed-headers:
+              - "*"
+            allow-credentials: true
       routes:
         - id: user-service
           uri: http://${USER_SERVICE_BASEURL:localhost:8081}
           predicates:
-            - Path=/api/user, /api/user/{id}
-            - Method=GET, POST, PUT, DELETE
+            - Path=/api/v1/user, /api/v1/user/**
+            - Method=GET, POST, PUT, PATCH, DELETE
         - id: finance-service
-          uri: 'http://${FINANCE_SERVICE_BASEURL:localhost:3000}'
+          uri: http://${FINANCE_SERVICE_BASEURL:localhost:8082}
           predicates:
-            - Path=/api/finance, /api/finance/**
-            - Method=GET, POST, PUT, DELETE
+            - Path=/api/v1/finance, /api/v1/finance/**
+            - Method=GET, POST, PUT, PATCH, DELETE
+        - id: insights-service
+          uri: http://${INSIGHTS_SERVICE_BASEURL:localhost:8083}
+          predicates:
+            - Path=/api/v1/insights, /api/v1/insights/**
+            - Method=GET, POST, PUT, PATCH, DELETE
