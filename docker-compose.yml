@@ -40,7 +40,7 @@ services:
             args:
                 VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
                 VITE_GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-                VITE_ENV_NAME: ${NESTJS_ENV}
+                VITE_ENV_NAME: dev
         image: ahm282/frontend:latest
         restart: always
         ports:

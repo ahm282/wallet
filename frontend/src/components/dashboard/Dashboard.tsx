@@ -13,8 +13,8 @@ export const Dashboard = ({ data }: { data: any }) => {
                 <RecentActivityCard data={data.recent_activity} />
             </div>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
-                <MonthlyIncomeTrendGraph data={data.income.monthly_trend} />
-                <MonthlySpendingTrendGraph data={data.spending.monthly_trend} />
+                {data.income.monthly_trend ? <MonthlyIncomeTrendGraph data={data.income.monthly_trend} /> : null}
+                {data.spending.monthly_trend ? <MonthlySpendingTrendGraph data={data.spending.monthly_trend} /> : null}
             </div>
         </div>
     );

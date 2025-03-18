@@ -6,7 +6,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install curl for healthcheck
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl postgresql-client && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -18,9 +18,13 @@ COPY . .
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-# Healthprobe
+# Copy the entrypoint script
+COPY alembic_entrypoint.sh /alembic_entrypoint.sh
+RUN chmod +x /alembic_entrypoint.sh
+
+# Healthcheck (ensure that INSIGHTS_PORT is set in your environment)
 HEALTHCHECK --interval=30s --timeout=30s --start-period=30s --retries=3 \
     CMD curl --fail http://localhost:${INSIGHTS_PORT}/api/v1/insights/ || exit 1
 
-# Command to run the application
-CMD uvicorn main:app --host 0.0.0.0 --port ${INSIGHTS_PORT}
+# Use the entrypoint script as the container command
+CMD ["/alembic_entrypoint.sh"]

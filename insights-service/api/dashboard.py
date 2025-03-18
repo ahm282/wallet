@@ -4,6 +4,8 @@ from typing import Dict, Any
 from config.database import get_db
 from services.dashboard import get_dashboard_for_user, compute_and_save_dashboard
 from dto.refresh_dashboard_dto import RefreshDashboardDTO
+import logging
+import traceback
 
 router = APIRouter()
 
@@ -27,6 +29,7 @@ async def get_user_dashboard(
         dashboard = get_dashboard_for_user(user_id, refresh)
         return dashboard
     except Exception as e:
+        logging.error("Error in get_user_dashboard: %s", traceback.format_exc())
         raise HTTPException(
             status_code=500, detail=f"Failed to generate dashboard: {str(e)}"
         )
@@ -44,6 +47,7 @@ async def refresh_user_dashboard(
         dashboard = compute_and_save_dashboard(user_id, db)
         return dashboard
     except Exception as e:
+        logging.error("Error in refresh_user_dashboard: %s", traceback.format_exc())
         raise HTTPException(
             status_code=500, detail=f"Failed to refresh dashboard: {str(e)}"
         )

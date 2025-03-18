@@ -361,9 +361,9 @@ def _compute_spending_stats(
 
         day_spending_data = {
             day: {
-                "total": round(row["sum"], 2),
-                "average": round(row["mean"], 2),
-                "count": int(row["count"]),
+                "total": round(row["sum"] if not pd.isna(row["sum"]) else 0, 2),
+                "average": round(row["mean"] if not pd.isna(row["mean"]) else 0, 2),
+                "count": int(row["count"]) if not pd.isna(row["count"]) else 0,
             }
             for day, row in day_spending.iterrows()
             if day in day_spending.index
