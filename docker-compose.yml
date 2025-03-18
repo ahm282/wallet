@@ -37,12 +37,11 @@ services:
         build:
             context: ./frontend/
             dockerfile: Dockerfile
+            args:
+                VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+                VITE_GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+                VITE_ENV_NAME: ${NESTJS_ENV}
         image: ahm282/frontend:latest
-        environment:
-            - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-            - VITE_GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-            - VITE_ENV_NAME=${NESTJS_ENV}
-
         restart: always
         ports:
             - "80:80"
