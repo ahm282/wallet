@@ -1,6 +1,11 @@
 # -------- Build Stage --------
 FROM node:22-alpine AS build
 
+# Set the environment variables
+ARG VITE_GOOGLE_CLIENT_ID
+ARG VITE_GOOGLE_CLIENT_SECRET
+ARG VITE_ENV_NAME
+
 # Set working directory
 WORKDIR /app
 
@@ -12,6 +17,11 @@ RUN npm ci
 
 # Copy the remaining source code
 COPY . .
+
+# Use the environment variables to build the frontend
+ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+ENV VITE_GOOGLE_CLIENT_SECRET=${VITE_GOOGLE_CLIENT_SECRET}
+ENV VITE_ENV_NAME=${VITE_ENV_NAME}
 
 # Build the frontend (adjust the build command if needed)
 RUN npm run build
