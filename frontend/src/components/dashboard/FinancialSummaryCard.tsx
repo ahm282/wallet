@@ -141,7 +141,7 @@ export const FinancialSummaryCard = ({ data }: { data: any }) => {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className='text-xl font-medium font-primary'>
-                                {currencyNotation(current_month.income)}
+                                {current_month.income ? currencyNotation(current_month.income) : currencyNotation(0)}
                                 <span className='text-sm text-muted-foreground ms-3'>earned</span>
                             </CardContent>
                         </Card>
@@ -153,7 +153,9 @@ export const FinancialSummaryCard = ({ data }: { data: any }) => {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className='text-xl font-medium font-primary'>
-                                {currencyNotation(current_month.spending)}
+                                {current_month.spending
+                                    ? currencyNotation(current_month.spending)
+                                    : currencyNotation(0)}
                                 <span className='text-sm text-muted-foreground ms-3'>spent</span>
                             </CardContent>
                         </Card>

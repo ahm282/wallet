@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: frontend
+    namespace: wallet
+    labels:
+        app: frontend
+spec:
+    ports:
+        - port: 80
+          targetPort: 80
+          name: http
+    selector:
+        app: frontend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: frontend
+    namespace: wallet
+spec:
+    selector:
+        matchLabels:
+            app: frontend
+    replicas: 2
+    template:
+        metadata:
+            labels:
+                app: frontend
+        spec:
+            containers:
+                - name: frontend
+                  image: ahm282/frontend:latest
+                  imagePullPolicy: Always
+                  ports:
+                      - containerPort: 80
+                  env:
+                      - name: API_GATEWAY_PORT
+                        valueFrom:
+                            configMapKeyRef:
+                                name: wallet-config
+                                key: API_GATEWAY_PORT
+                      - name: USER_SERVICE_BASEURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: wallet-config
+                                key: USER_SERVICE_BASEURL
+                      - name: FINANCE_SERVICE_BASEURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: wallet-config
+                                key: FINANCE_SERVICE_BASEURL
+                      - name: INSIGHTS_SERVICE_BASEURL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: wallet-config
+                                key: INSIGHTS_SERVICE_BASEURL
+                      - name: GOOGLE_CLIENT_ID
+                        valueFrom:
+                            secretKeyRef:
+                                name: wallet-secrets
+                                key: GOOGLE_CLIENT_ID
+                      - name: GOOGLE_CLIENT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: wallet-secrets
+                                key: GOOGLE_CLIENT_SECRET
+                  resources:
+                      requests:
+                          memory: "64Mi"
+                          cpu: "50m"
+                      limits:
+                          memory: "128Mi"
+                          cpu: "100m"

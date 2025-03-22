@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: finance-service
+    namespace: wallet
+    labels:
+        app: finance-service
+spec:
+    ports:
+        - port: 8082
+          targetPort: 8082
+          name: http
+    selector:
+        app: finance-service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: finance-service
+    namespace: wallet
+spec:
+    selector:
+        matchLabels:
+            app: finance-service
+    replicas: 1
+    template:
+        metadata:
+            labels:
+                app: finance-service
+        spec:
+            containers:
+                - name: finance-service
+                  image: ahm282/finance-service:latest
+                  imagePullPolicy: Always
+                  ports:
+                      - containerPort: 8082
+                  env:
+                      - name: MONGO_URI
+                        valueFrom:
+                            configMapKeyRef:
+                                name: wallet-config
+                                key: MONGO_URI
+                      - name: NESTJS_PORT
+                        valueFrom:
+                            configMapKeyRef:
+                                name: wallet-config
+                                key: NESTJS_PORT
+                      - name: NODEJS_ENV
+                        valueFrom:
+                            configMapKeyRef:
+                                name: wallet-config
+                                key: NESTJS_ENV
+                  resources:
+                      requests:
+                          memory: "128Mi"
+                          cpu: "100m"
+                      limits:
+                          memory: "256Mi"
+                          cpu: "200m"

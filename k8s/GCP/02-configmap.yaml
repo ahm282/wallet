@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: wallet-config
+    namespace: wallet
+data:
+    USER_DB_HOST: "user-db-svc"
+    USER_DB_PORT: "3306"
+    USER_DB_NAME: "users"
+    USER_APP_PORT: "8081"
+
+    FINANCE_DB_HOST: "finance-db-svc"
+    NESTJS_PORT: "8082"
+    NESTJS_ENV: "production"
+    MONGO_DB_NAME: "wallet"
+
+    INSIGHTS_DB_HOST: "insights-db-svc"
+    INSIGHTS_DB_NAME: "wallet"
+    MONGO_URI: "mongodb://finance-db-svc:27017/wallet"
+    INSIGHTS_PORT: "8083"
+    POSTGRES_PORT: "5432"
+
+    API_GATEWAY_PORT: "8080"
+    USER_SERVICE_BASEURL: "user-service.wallet.svc.cluster.local"
+    FINANCE_SERVICE_BASEURL: "finance-service.wallet.svc.cluster.local"
+    INSIGHTS_SERVICE_BASEURL: "insights-service.wallet.svc.cluster.local"

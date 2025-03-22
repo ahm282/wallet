@@ -10,10 +10,6 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.http: DEBUG
     org.springframework.boot.web: DEBUG
-#    reactor.netty: ERROR
-#    org.springframework.web: WARN
-#    org.springframework.http: WARN
-#    org.springframework.boot.web: WARN
 
 spring:
   security:
@@ -31,15 +27,16 @@ spring:
         jwt:
           issuer-uri: https://accounts.google.com
           jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+
   cloud:
     gateway:
       globalcors:
         cors-configurations:
           '[/**]':
             allowedOrigins:
-                - "http://localhost:5173"
-                - "http://localhost"
-                - "https://walletapp.top"
+              - "http://localhost:5173"
+              - "http://localhost"
+              - "https://walletapp.top"
             allowedMethods:
               - GET
               - POST
@@ -50,19 +47,17 @@ spring:
             allowed-headers:
               - "*"
             allow-credentials: true
+
       routes:
         - id: user-service
-          uri: http://${USER_SERVICE_BASEURL:localhost:8081}
+          uri: http://${USER_SERVICE_BASEURL:user-service.wallet.svc.cluster.local}:8081
           predicates:
-            - Path=/api/v1/user, /api/v1/user/**
-            - Method=GET, POST, PUT, PATCH, DELETE
+            - Path=/api/v1/user/**
         - id: finance-service
-          uri: http://${FINANCE_SERVICE_BASEURL:localhost:8082}
+          uri: http://${FINANCE_SERVICE_BASEURL:finance-service.wallet.svc.cluster.local}:8082
           predicates:
-            - Path=/api/v1/finance, /api/v1/finance/**
-            - Method=GET, POST, PUT, PATCH, DELETE
+            - Path=/api/v1/finance/**
         - id: insights-service
-          uri: http://${INSIGHTS_SERVICE_BASEURL:localhost:8083}
+          uri: http://${INSIGHTS_SERVICE_BASEURL:insights-service.wallet.svc.cluster.local}:8083
           predicates:
-            - Path=/api/v1/insights, /api/v1/insights/**
-            - Method=GET, POST, PUT, PATCH, DELETE
+            - Path=/api/v1/insights/**

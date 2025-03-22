@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: insights-db-svc
+    namespace: wallet
+    labels:
+        app: insights-db
+spec:
+    ports:
+        - port: 5432
+          targetPort: 5432
+          name: postgres
+    selector:
+        app: insights-db
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: insights-db-pvc
+    namespace: wallet
+spec:
+    storageClassName: gcp-standard
+    accessModes:
+        - ReadWriteOnce
+    resources:
+        requests:
+            storage: 1Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+    name: insights-db
+    namespace: wallet
+spec:
+    serviceName: insights-db-svc
+    replicas: 1
+    selector:
+        matchLabels:
+            app: insights-db
+    template:
+        metadata:
+            labels:
+                app: insights-db
+        spec:
+            containers:
+                - name: postgres
+                  image: postgres:latest
+                  imagePullPolicy: Always
+                  ports:
+                      - containerPort: 5432
+                  env:
+                      - name: POSTGRES_DB
+                        valueFrom:
+                            configMapKeyRef:
+                                name: wallet-config
+                                key: INSIGHTS_DB_NAME
+                      - name: POSTGRES_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: wallet-secrets
+                                key: INSIGHTS_DB_USER
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: wallet-secrets
+                                key: INSIGHTS_DB_PASS
+                  volumeMounts:
+                      - name: insights-db-data
+                        mountPath: /var/lib/postgresql/data
+                        subPath: postgres
+                  resources:
+                      requests:
+                          memory: "128Mi"
+                          cpu: "50m"
+                      limits:
+                          memory: "256Mi"
+                          cpu: "200m"
+                  args: ["-c", "shared_buffers=32MB", "-c", "max_connections=20"]
+            volumes:
+                - name: insights-db-data
+                  persistentVolumeClaim:
+                      claimName: insights-db-pvc
