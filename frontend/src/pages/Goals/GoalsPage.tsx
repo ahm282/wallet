@@ -26,7 +26,7 @@ export const GoalsPage = () => {
             return createGoal(newGoal);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["goals"] });
+            queryClient.invalidateQueries({ queryKey: ["goals", getUserId()] });
         },
     });
 
@@ -36,7 +36,7 @@ export const GoalsPage = () => {
             return updateGoal(updatedGoal);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["goals"] });
+            queryClient.invalidateQueries({ queryKey: ["goals", getUserId()] });
         },
     });
 
@@ -46,7 +46,7 @@ export const GoalsPage = () => {
             return deleteGoal(goalId);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["goals"] });
+            queryClient.invalidateQueries({ queryKey: ["goals", getUserId()] });
         },
     });
 

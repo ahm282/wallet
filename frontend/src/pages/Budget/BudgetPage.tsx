@@ -19,31 +19,31 @@ export const BudgetPage = () => {
     // Mutation for adding a budget
     const createBudgetMutation = useMutation({
         mutationFn: async (newBudget: Omit<Budget, "id">) => {
-            createBudget(newBudget);
+            return createBudget(newBudget);
         },
         onSuccess: () => {
             // Invalidate budgets query to refetch data
-            queryClient.invalidateQueries({ queryKey: ["budgets"] });
+            queryClient.invalidateQueries({ queryKey: ["budgets", getUserId()] });
         },
     });
 
     // Mutation for updating a budget
     const updateBudgetMutation = useMutation({
         mutationFn: async (updatedBudget: Budget) => {
-            updateBudget(updatedBudget);
+            return updateBudget(updatedBudget);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["budgets"] });
+            queryClient.invalidateQueries({ queryKey: ["budgets", getUserId()] });
         },
     });
 
     // Mutation for deleting a budget
     const deleteBudgetMutation = useMutation({
         mutationFn: async (budgetId: string) => {
-            deleteBudget(budgetId);
+            return deleteBudget(budgetId);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["budgets"] });
+            queryClient.invalidateQueries({ queryKey: ["budgets", getUserId()] });
         },
     });
 

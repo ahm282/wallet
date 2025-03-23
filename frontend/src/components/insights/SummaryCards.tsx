@@ -11,6 +11,12 @@ interface Props {
 }
 
 export const SummaryCards = ({ summary, trends, netChangePercent, isPositiveChange }: Props) => {
+    const renderCurrency = (value: number | null | undefined) =>
+        value != null && !isNaN(value) ? currencyNotation(value) : "";
+
+    const renderPercent = (value: number | null | undefined) =>
+        value != null && !isNaN(value) ? `${Math.abs(value).toFixed(2)}% from last month` : "";
+
     return (
         <div className='grid grid-cols-1 md:grid-cols-4 gap-5'>
             {/* Income */}
@@ -20,18 +26,22 @@ export const SummaryCards = ({ summary, trends, netChangePercent, isPositiveChan
                     <Coins className='h-4 w-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
-                    <div className='text-2xl font-bold'>{currencyNotation(summary!.total_income)}</div>
-                    <p className='text-xs text-muted-foreground'>
-                        {trends.income_change_pct >= 0 ? (
-                            <span className='text-green-600'>
-                                <ArrowUpRight className='inline h-4 w-4' />
-                                {trends.income_change_pct.toFixed(2)}% from last month
-                            </span>
+                    <div className='text-2xl font-bold'>{renderCurrency(summary?.total_income)}</div>
+                    <p className='text-xs mt-2 text-muted-foreground'>
+                        {trends.income_change_pct != null && !isNaN(trends.income_change_pct) ? (
+                            trends.income_change_pct >= 0 ? (
+                                <span className='text-green-600'>
+                                    <ArrowUpRight className='inline h-4 w-4' />{" "}
+                                    {renderPercent(trends.income_change_pct)}
+                                </span>
+                            ) : (
+                                <span className='text-red-600'>
+                                    <ArrowDownRight className='inline h-4 w-4' />{" "}
+                                    {renderPercent(trends.income_change_pct)}
+                                </span>
+                            )
                         ) : (
-                            <span className='text-red-600'>
-                                <ArrowDownRight className='inline h-4 w-4' />
-                                {Math.abs(trends.income_change_pct).toFixed(2)}% from last month
-                            </span>
+                            ""
                         )}
                     </p>
                 </CardContent>
@@ -43,18 +53,22 @@ export const SummaryCards = ({ summary, trends, netChangePercent, isPositiveChan
                     <CreditCard className='h-4 w-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
-                    <div className='text-2xl font-bold'>{currencyNotation(summary!.total_expenses)}</div>
-                    <p className='text-xs text-muted-foreground'>
-                        {trends.expense_change_pct >= 0 ? (
-                            <span className='text-red-600'>
-                                <ArrowUpRight className='inline h-4 w-4' />
-                                {trends.expense_change_pct.toFixed(2)}% from last month
-                            </span>
+                    <div className='text-2xl font-bold'>{renderCurrency(summary?.total_expenses)}</div>
+                    <p className='text-xs mt-2 text-muted-foreground'>
+                        {trends.expense_change_pct != null && !isNaN(trends.expense_change_pct) ? (
+                            trends.expense_change_pct >= 0 ? (
+                                <span className='text-red-600'>
+                                    <ArrowUpRight className='inline h-4 w-4' />{" "}
+                                    {renderPercent(trends.expense_change_pct)}
+                                </span>
+                            ) : (
+                                <span className='text-green-600'>
+                                    <ArrowDownRight className='inline h-4 w-4' />{" "}
+                                    {renderPercent(trends.expense_change_pct)}
+                                </span>
+                            )
                         ) : (
-                            <span className='text-green-600'>
-                                <ArrowDownRight className='inline h-4 w-4' />
-                                {Math.abs(trends.expense_change_pct).toFixed(2)}% from last month
-                            </span>
+                            ""
                         )}
                     </p>
                 </CardContent>
@@ -66,18 +80,20 @@ export const SummaryCards = ({ summary, trends, netChangePercent, isPositiveChan
                     <ArrowUpDown className='h-4 w-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
-                    <div className='text-2xl font-bold'>{currencyNotation(summary!.net_cashflow)}</div>
-                    <p className='text-xs text-muted-foreground'>
-                        {isPositiveChange ? (
-                            <span className='text-green-600'>
-                                <ArrowUpRight className='inline h-4 w-4' />
-                                {netChangePercent}% from last month
-                            </span>
+                    <div className='text-2xl font-bold'>{renderCurrency(summary?.net_cashflow)}</div>
+                    <p className='text-xs mt-2 text-muted-foreground'>
+                        {!isNaN(parseFloat(netChangePercent)) && parseFloat(netChangePercent) != 0 ? (
+                            isPositiveChange ? (
+                                <span className='text-green-600'>
+                                    <ArrowUpRight className='inline h-4 w-4' /> {netChangePercent}% from last month
+                                </span>
+                            ) : (
+                                <span className='text-red-600'>
+                                    <ArrowDownRight className='inline h-4 w-4' /> {netChangePercent}% from last month
+                                </span>
+                            )
                         ) : (
-                            <span className='text-red-600'>
-                                <ArrowDownRight className='inline h-4 w-4' />
-                                {netChangePercent}% from last month
-                            </span>
+                            ""
                         )}
                     </p>
                 </CardContent>
@@ -89,8 +105,11 @@ export const SummaryCards = ({ summary, trends, netChangePercent, isPositiveChan
                     <Receipt className='h-4 w-4 text-muted-foreground' />
                 </CardHeader>
                 <CardContent>
-                    <div className='text-2xl font-bold'>{currencyNotation(summary!.average_transaction)}</div>
-                    <p className='text-xs text-muted-foreground'>{summary!.transaction_count} transactions</p>
+                    <div className='text-2xl font-bold'>{renderCurrency(summary?.average_transaction)}</div>
+                    <p className='text-xs mt-2 text-muted-foreground'>
+                        {summary?.transaction_count != null ? summary.transaction_count : ""}{" "}
+                        {summary?.transaction_count != 1 ? "transactions" : "transaction"} this month
+                    </p>
                 </CardContent>
             </Card>
         </div>

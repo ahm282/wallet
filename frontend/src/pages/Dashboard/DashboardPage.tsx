@@ -9,6 +9,8 @@ const DashboardPage: React.FC = () => {
     const { data, isLoading, isError, error } = useQuery<Object, Error>({
         queryKey: ["dashboardData"],
         queryFn: fetchDashboardData,
+        refetchOnMount: true,
+        refetchOnWindowFocus: true,
     });
 
     const hasEntities = useHasEntities();
@@ -36,7 +38,7 @@ const DashboardPage: React.FC = () => {
         );
     }
 
-    if (!hasEntities) {
+    if (!hasEntities.hasAccounts || !hasEntities.hasBudgets || !hasEntities.hasGoals || !hasEntities.hasTransactions) {
         return <Onboarding />;
     }
 

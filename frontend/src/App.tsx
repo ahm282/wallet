@@ -12,6 +12,7 @@ import TransactionsPage from "@/pages/Transactions/TransactionsPage";
 import AccountsPage from "@/pages/Accounts/AccountsPage";
 import BillsPage from "@/pages/Bills/BillsPage";
 import InsightsPage from "./pages/Insights/InsightsPage";
+import { ApiProvider } from "./providers/ApiProvider";
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "CLIENT_ID_NOT_FOUND";
 
@@ -25,78 +26,79 @@ function App() {
                     vaul-drawer-wrapper=''
                     className='bg-background'>
                     <BrowserRouter>
-                        <Routes>
-                            {/* Public route for Login */}
-                            <Route
-                                path='/'
-                                element={
-                                    <PublicRoute>
-                                        <LoginPage />
-                                    </PublicRoute>
-                                }
-                            />
-                            {/* Protected layout for nested routes */}
-                            <Route
-                                path='/'
-                                element={<Layout />}>
+                        <ApiProvider>
+                            <Routes>
+                                {/* Public route for Login */}
                                 <Route
-                                    path='dashboard'
+                                    path='/'
                                     element={
-                                        <ProtectedRoute>
-                                            <DashboardPage />
-                                        </ProtectedRoute>
+                                        <PublicRoute>
+                                            <LoginPage />
+                                        </PublicRoute>
                                     }
                                 />
+                                {/* Protected layout for nested routes */}
                                 <Route
-                                    path='profile'
-                                    element={
-                                        <ProtectedRoute>
-                                            <ProfilePage />
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                <Route
-                                    path='budget'
-                                    element={
-                                        <ProtectedRoute>
-                                            <BudgetPage />
-                                        </ProtectedRoute>
-                                    }
-                                />
+                                    path='/'
+                                    element={<Layout />}>
+                                    <Route
+                                        path='dashboard'
+                                        element={
+                                            <ProtectedRoute>
+                                                <DashboardPage />
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path='profile'
+                                        element={
+                                            <ProtectedRoute>
+                                                <ProfilePage />
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path='budget'
+                                        element={
+                                            <ProtectedRoute>
+                                                <BudgetPage />
+                                            </ProtectedRoute>
+                                        }
+                                    />
 
-                                <Route
-                                    path='/goals'
-                                    element={
-                                        <ProtectedRoute>
-                                            <GoalsPage />
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                <Route
-                                    path='/transactions'
-                                    element={
-                                        <ProtectedRoute>
-                                            <TransactionsPage />
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                <Route
-                                    path='/accounts'
-                                    element={
-                                        <ProtectedRoute>
-                                            <AccountsPage />
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                <Route
-                                    path='/bills'
-                                    element={
-                                        <ProtectedRoute>
-                                            <BillsPage />
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                {/* <Route
+                                    <Route
+                                        path='/goals'
+                                        element={
+                                            <ProtectedRoute>
+                                                <GoalsPage />
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path='/transactions'
+                                        element={
+                                            <ProtectedRoute>
+                                                <TransactionsPage />
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path='/accounts'
+                                        element={
+                                            <ProtectedRoute>
+                                                <AccountsPage />
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path='/bills'
+                                        element={
+                                            <ProtectedRoute>
+                                                <BillsPage />
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                    {/* <Route
                   path="/reports"
                   element={
                     <ProtectedRoute>
@@ -104,16 +106,17 @@ function App() {
                     </ProtectedRoute>
                   }
                 /> */}
-                                <Route
-                                    path='/insights'
-                                    element={
-                                        <ProtectedRoute>
-                                            <InsightsPage />
-                                        </ProtectedRoute>
-                                    }
-                                />
-                            </Route>
-                        </Routes>
+                                    <Route
+                                        path='/insights'
+                                        element={
+                                            <ProtectedRoute>
+                                                <InsightsPage />
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                </Route>
+                            </Routes>
+                        </ApiProvider>
                     </BrowserRouter>
                 </div>
             </ThemeProvider>

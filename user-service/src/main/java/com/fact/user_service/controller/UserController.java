@@ -21,9 +21,14 @@ public class UserController {
     this.userService = userService;
   }
 
-  @GetMapping
-  public List<UserResponse> getAllUsers() {
-    return this.userService.getAllUsers();
+//  @GetMapping
+//  public List<UserResponse> getAllUsers() {
+//    return this.userService.getAllUsers();
+//  }
+
+  @GetMapping()
+  public String home() {
+        return "User Service API is operational! 🚀";
   }
 
   @GetMapping("/{id}")

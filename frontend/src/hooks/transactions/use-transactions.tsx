@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchTransactions, createTransaction, updateTransaction, deleteTransaction } from "@/api/transactions";
+import { getUserId } from "@/lib/utils";
 import type { Transaction } from "@/types/transactions.types";
 
 export function useTransactions() {
@@ -10,35 +11,35 @@ export function useTransactions() {
         isLoading,
         isError,
         error,
-    } = useQuery<Transaction[], Error>({ queryKey: ["transactions"], queryFn: fetchTransactions });
+    } = useQuery<Transaction[], Error>({ queryKey: ["transactions", getUserId()], queryFn: fetchTransactions });
 
     // Mutation for adding a transaction
     const createTranasactionMutation = useMutation({
         mutationFn: async (newTransaction: Omit<Transaction, "id">) => {
-            createTransaction(newTransaction);
+            return createTransaction(newTransaction);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["transactions"] });
+            queryClient.invalidateQueries({ queryKey: ["transactions", getUserId()] });
         },
     });
 
     // Mutation for updating a transaction
     const updateTransactionMutation = useMutation({
         mutationFn: async (updatedTransaction: Transaction) => {
-            updateTransaction(updatedTransaction);
+            return updateTransaction(updatedTransaction);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["transactions"] });
+            queryClient.invalidateQueries({ queryKey: ["transactions", getUserId()] });
         },
     });
 
     // Mutation for deleting a transaction
     const deleteTransactionMutation = useMutation({
         mutationFn: async (transactionId: string) => {
-            deleteTransaction(transactionId);
+            return deleteTransaction(transactionId);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["transactions"] });
+            queryClient.invalidateQueries({ queryKey: ["transactions", getUserId()] });
         },
     });
 
@@ -52,3 +53,5 @@ export function useTransactions() {
         error,
     };
 }
+
+export default useTransactions;

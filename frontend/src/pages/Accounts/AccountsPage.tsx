@@ -19,31 +19,30 @@ export const AccountsPage = () => {
     // Mutation for adding an account
     const createAccountMutation = useMutation({
         mutationFn: async (newAccount: Omit<Account, "id">) => {
-            createAccount(newAccount);
+            return createAccount(newAccount);
         },
         onSuccess: () => {
-            // Invalidate accounts query to refetch data
-            queryClient.invalidateQueries({ queryKey: ["accounts"] });
+            queryClient.invalidateQueries({ queryKey: ["accounts", getUserId()] });
         },
     });
 
     // Mutation for updating an account
     const updateAccountMutation = useMutation({
         mutationFn: async (updatedAccount: Account) => {
-            updateAccount(updatedAccount);
+            return updateAccount(updatedAccount);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["accounts"] });
+            queryClient.invalidateQueries({ queryKey: ["accounts", getUserId()] });
         },
     });
 
     // Mutation for deleting an account
     const deleteAccountMutation = useMutation({
         mutationFn: async (accountId: string) => {
-            deleteAccount(accountId);
+            return deleteAccount(accountId);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["accounts"] });
+            queryClient.invalidateQueries({ queryKey: ["accounts", getUserId()] });
         },
     });
 

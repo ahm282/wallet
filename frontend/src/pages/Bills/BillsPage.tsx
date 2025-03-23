@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { NoBills } from "@/components/bills/NoBills";
 import { BillsDataExists } from "@/components/bills/BillsDataExists";
 import { fetchBills, createBill, updateBill, deleteBill, payBill } from "@/api/bills";
+import { getUserId } from "@/lib/utils";
 import type { Bill } from "@/types/bills.types";
 
 export const BillsPage = () => {
@@ -13,45 +14,45 @@ export const BillsPage = () => {
         isLoading,
         isError,
         error,
-    } = useQuery<Bill[], Error>({ queryKey: ["bills"], queryFn: fetchBills });
+    } = useQuery<Bill[], Error>({ queryKey: ["bills", getUserId()], queryFn: fetchBills });
 
     // Mutation for adding a bill
     const createBillMutation = useMutation({
         mutationFn: async (newBill: Omit<Bill, "id">) => {
-            createBill(newBill);
+            return createBill(newBill);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["bills"] });
+            queryClient.invalidateQueries({ queryKey: ["bills", getUserId()] });
         },
     });
 
     // Mutation for updating a bill
     const updateBillMutation = useMutation({
         mutationFn: async (updatedBill: Bill) => {
-            updateBill(updatedBill);
+            return updateBill(updatedBill);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["bills"] });
+            queryClient.invalidateQueries({ queryKey: ["bills", getUserId()] });
         },
     });
 
     // Mutation for deleting a bill
     const deleteBillMutation = useMutation({
         mutationFn: async (billId: string) => {
-            deleteBill(billId);
+            return deleteBill(billId);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["bills"] });
+            queryClient.invalidateQueries({ queryKey: ["bills", getUserId()] });
         },
     });
 
     // Mutation for marking a bill as paid
     const markBillAsPaidMutation = useMutation({
         mutationFn: async (billId: string) => {
-            payBill(billId);
+            return payBill(billId);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["bills"] });
+            queryClient.invalidateQueries({ queryKey: ["bills", getUserId()] });
         },
     });
 

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, TriangleAlert } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { fetchInsightsData } from "@/api/insights";
 import { getUserId } from "@/lib/utils";
@@ -14,9 +14,8 @@ import {
     IncomeSourcesChart,
     BudgetPerformance,
     AnomaliesCard,
-} from "@/components/insights/index";
+} from "@/components/insights";
 
-// Fallback
 const DEFAULT_SUMMARY: InsightsData["summary"] = {
     total_income: 0,
     total_expenses: 0,
@@ -30,10 +29,12 @@ const DEFAULT_TRENDS: TrendsData = {
     expense_change_pct: 0,
 };
 
-export const InsightsPage = () => {
+export const InsightsPage: React.FC = () => {
     const { data, isLoading, isError, error } = useQuery<InsightsData, Error>({
         queryKey: ["insightsData", getUserId()],
         queryFn: () => fetchInsightsData() as Promise<InsightsData>,
+        refetchOnMount: true,
+        refetchOnWindowFocus: true,
     });
 
     useEffect(() => {
@@ -47,8 +48,21 @@ export const InsightsPage = () => {
         );
     }
 
-    // Error state
+    // Handle "not enough data" case if API returns 404
     if (isError) {
+        const statusCode = (error as any)?.response?.status;
+        if (statusCode === 404) {
+            return (
+                <div className='w-10/12 lg:w-8/12 xl:w-7/12 mx-auto px-4 py-6 mt-10 bg-zinc-800 font-primary text-left lg:text-center rounded-md text-sm lg:text-lg font-medium flex justify-between items-center'>
+                    <TriangleAlert className='size-9 ms-1 lg:ms-5 lg:size-11' />
+                    <div className='w-9/12 xl:w-full'>
+                        <p>Not enough data available to generate insights.</p>
+                        <p className='mt-5 lg:mt-2.5'>Start tracking your finances to see insights here.</p>
+                    </div>
+                </div>
+            );
+        }
+        // Generic error handling for other errors
         return (
             <div className='w-6/12 mx-auto p-4 mt-10 bg-red-100 text-red-600 font-primary text-center rounded-md'>
                 Error fetching insights: {error?.message || "Unknown error"}
@@ -56,29 +70,37 @@ export const InsightsPage = () => {
         );
     }
 
-    const insightsData: InsightsData = data || {};
-    const summary = insightsData.summary || DEFAULT_SUMMARY;
-    const categoryBreakdown = insightsData.category_breakdown || { top_categories: [] };
-    const topCategories = categoryBreakdown.top_categories || [];
-    const monthlyTrends = insightsData.monthly_trends || { monthly_data: {}, trends: DEFAULT_TRENDS };
-    const budgetPerformance = insightsData.budget_performance || {};
-    const anomalies = insightsData.anomalies || [];
-    const spendingPatterns = insightsData.spending_patterns || { by_day_of_week: {} };
-    const incomeAnalysis = insightsData.income_analysis || { income_sources: {} };
-    const netChangePercent = (monthlyTrends.trends.income_change_pct - monthlyTrends.trends.expense_change_pct).toFixed(
-        2
-    );
+    // Use fallbacks if certain sections of data are missing.
+    const summary = data?.summary || DEFAULT_SUMMARY;
+    const monthlyTrends = data?.monthly_trends || { monthly_data: {}, trends: DEFAULT_TRENDS };
+    const categoryBreakdown = data?.category_breakdown || { top_categories: [] };
+    const topCategories = categoryBreakdown.top_categories;
+    const budgetPerformance = data?.budget_performance || {};
+    const anomalies = data?.anomalies || [];
+    const spendingPatterns = data?.spending_patterns || { by_day_of_week: {} };
+    const incomeAnalysis = data?.income_analysis || { income_sources: {} };
+
+    // Ensure that income_change_pct and expense_change_pct are valid numbers before calculating
+    const incomeChange =
+        monthlyTrends.trends && typeof monthlyTrends.trends.income_change_pct === "number"
+            ? monthlyTrends.trends.income_change_pct
+            : 0;
+    const expenseChange =
+        monthlyTrends.trends && typeof monthlyTrends.trends.expense_change_pct === "number"
+            ? monthlyTrends.trends.expense_change_pct
+            : 0;
+    const netChangePercent = (incomeChange - expenseChange).toFixed(2);
     const isPositiveChange = parseFloat(netChangePercent) >= 0;
     const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#FF6384", "#82ca9d", "#ff9e82", "#ffc658"];
 
     // Prepare day of week data
-    const dayOfWeekData = Object.entries(spendingPatterns?.by_day_of_week || {}).map(([day, amount]) => ({
+    const dayOfWeekData = Object.entries(spendingPatterns.by_day_of_week || {}).map(([day, amount]) => ({
         day,
         amount,
     }));
 
-    // Income sources data for chart
-    const incomeSourcesData = Object.entries(incomeAnalysis?.income_sources || {}).map(([source, data]) => ({
+    // Prepare income sources data for chart
+    const incomeSourcesData = Object.entries(incomeAnalysis.income_sources || {}).map(([source, data]) => ({
         name: source,
         value: data.sum,
     }));
@@ -120,10 +142,12 @@ export const InsightsPage = () => {
 
             <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
                 <WeeklySpending dayOfWeekData={dayOfWeekData} />
-                <IncomeSourcesChart
-                    incomeSourcesData={incomeSourcesData}
-                    colors={COLORS}
-                />
+                {Object.keys(incomeAnalysis.income_sources || {}).length === 0 ? null : (
+                    <IncomeSourcesChart
+                        incomeSourcesData={incomeSourcesData}
+                        colors={COLORS}
+                    />
+                )}
             </div>
 
             <Separator

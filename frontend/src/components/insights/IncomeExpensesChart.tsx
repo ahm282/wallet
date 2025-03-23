@@ -156,29 +156,39 @@ export const IncomeExpensesChart = ({ monthlyData, trends }: Props) => {
                     <EmptyState message='No trend data available' />
                 )}
                 {trends && (
-                    <div className='mt-2 py-2 border-t flex justify-between text-sm'>
-                        <div className='flex items-center'>
-                            <span className='mr-1'>Income:</span>
-                            <span className={trends.income_change_pct >= 0 ? "text-green-600" : "text-red-600"}>
-                                {trends.income_change_pct >= 0 ? (
-                                    <ArrowUpIcon className='inline h-3 w-3' />
-                                ) : (
-                                    <ArrowDownIcon className='inline h-3 w-3' />
-                                )}
-                                {Math.abs(trends.income_change_pct).toFixed(1)}%
-                            </span>
-                        </div>
-                        <div className='flex items-center'>
-                            <span className='mr-1'>Expenses:</span>
-                            <span className={trends.expense_change_pct <= 0 ? "text-green-600" : "text-red-600"}>
-                                {trends.expense_change_pct <= 0 ? (
-                                    <ArrowDownIcon className='inline h-3 w-3' />
-                                ) : (
-                                    <ArrowUpIcon className='inline h-3 w-3' />
-                                )}
-                                {Math.abs(trends.expense_change_pct).toFixed(1)}%
-                            </span>
-                        </div>
+                    <div
+                        className={
+                            `py-2 flex justify-between text-sm ` + !isNaN(trends.income_change_pct) &&
+                            !isNaN(trends.expense_change_pct)
+                                ? "border-t mt-2.5"
+                                : ""
+                        }>
+                        {!isNaN(trends.income_change_pct) && (
+                            <div className='flex items-center'>
+                                <span className='mr-1'>Income:</span>
+                                <span className={trends.income_change_pct >= 0 ? "text-green-600" : "text-red-600"}>
+                                    {trends.income_change_pct >= 0 ? (
+                                        <ArrowUpIcon className='inline h-3 w-3' />
+                                    ) : (
+                                        <ArrowDownIcon className='inline h-3 w-3' />
+                                    )}
+                                    {Math.abs(trends.income_change_pct).toFixed(1)}%
+                                </span>
+                            </div>
+                        )}
+                        {!isNaN(trends.expense_change_pct) && (
+                            <div className='flex items-center'>
+                                <span className='mr-1'>Expenses:</span>
+                                <span className={trends.expense_change_pct <= 0 ? "text-green-600" : "text-red-600"}>
+                                    {trends.expense_change_pct <= 0 ? (
+                                        <ArrowDownIcon className='inline h-3 w-3' />
+                                    ) : (
+                                        <ArrowUpIcon className='inline h-3 w-3' />
+                                    )}
+                                    {Math.abs(trends.expense_change_pct).toFixed(1)}%
+                                </span>
+                            </div>
+                        )}
                     </div>
                 )}
             </CardContent>
