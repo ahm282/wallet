@@ -34,9 +34,16 @@ spring:
         cors-configurations:
           '[/**]':
             allowedOrigins:
-              - "http://localhost:5173"
               - "http://localhost"
+              - "https://localhost"
+              - "http://localhost:5173"
+              - "https://localhost:5173"
+              - "http://walletapp.top"
               - "https://walletapp.top"
+              - "http://www.walletapp.top"
+              - "https://www.walletapp.top"
+              - "http://wallet.table278.messwithdns.com:5173"
+              - "https://wallet.table278.messwithdns.com:5173"
             allowedMethods:
               - GET
               - POST

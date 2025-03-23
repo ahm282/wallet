@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogIn } from "lucide-react";
 import { ModeSwitch } from "@/components/ModeSwitch";
 import { BackgroundPaths } from "@/components/BackgroundPaths";
-import { GoogleUser, UserResponse } from "@/types/user.types";
 import { useApi } from "@/providers/ApiProvider";
+import { ApiUtil } from "@/lib/api_utils";
+import { GoogleUser, UserResponse } from "@/types/user.types";
 
 /**
  * Decodes the Google JWT and returns a typed GoogleUser.
@@ -34,8 +35,7 @@ const createUserPayload = (googleUser: GoogleUser) => {
 /**
  * Posts the user payload to the backend and returns the response.
  */
-const postUserData = async (payload: object, token: string): Promise<UserResponse> => {
-    const api = useApi();
+const postUserData = async (api: ApiUtil, payload: object, token: string): Promise<UserResponse> => {
     const user = api.login<UserResponse>("/user", token, payload);
     return user;
 };
@@ -44,6 +44,7 @@ const LoginPage: React.FC = () => {
     const [error, setError] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const navigate = useNavigate();
+    const api = useApi();
     const setAuth = useAuthStore((state) => state.setAuth);
 
     /**
@@ -74,7 +75,7 @@ const LoginPage: React.FC = () => {
             const userPayload = createUserPayload(googleUser);
 
             // Send the payload to the backend
-            const userServiceResponse: UserResponse = await postUserData(userPayload, token);
+            const userServiceResponse: UserResponse = await postUserData(api, userPayload, token);
 
             // Update the auth store with the token and the backend's response data
             setAuth(token, userServiceResponse);

@@ -10,7 +10,9 @@ export class ApiUtil {
     constructor(navigate: NavigateFunction, baseURL?: string) {
         const api_endpoint =
             baseURL ||
-            (import.meta.env.VITE_ENV_NAME === "dev" ? "http://localhost:8080/api/v1" : "https://walletapp.top/api/v1");
+            (import.meta.env.VITE_ENV_NAME === "dev"
+                ? "http://wallet.table278.messwithdns.com:8080/api/v1"
+                : "https://walletapp.top/api/v1");
 
         this.navigate = navigate;
 
