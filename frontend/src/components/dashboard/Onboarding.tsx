@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { PlusCircle, ArrowRight, Wallet, PieChart, Target, CreditCard, UserCircle, Smile } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { useHasEntities } from "@/hooks/use-has-entities";
+import { useHasEntities } from "@/hooks/dashboard/use-has-entities";
 
 type EntityStatusProps = {
     entityStatus: {

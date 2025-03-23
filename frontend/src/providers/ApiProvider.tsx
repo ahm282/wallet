@@ -1,13 +1,22 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { ApiUtil, instantiateAPI } from "@/lib/api_utils";
+import { registerContextApi } from "@/lib/api_adapter";
 
 const ApiContext = createContext<ApiUtil | undefined>(undefined);
 
 export function ApiProvider({ baseURL, children }: { baseURL?: string; children: React.ReactNode }) {
     const navigate = useNavigate();
     const api = instantiateAPI(navigate, baseURL);
-    console.log("an API instance has been created - ApiContext Provider works!");
+
+    // Register the API instance so it can be accessed outside of React components
+    useEffect(() => {
+        registerContextApi(api);
+        return () => {
+            // Cleanup function
+            registerContextApi(null as unknown as ApiUtil);
+        };
+    }, [api]);
     return <ApiContext.Provider value={api}>{children}</ApiContext.Provider>;
 }
 

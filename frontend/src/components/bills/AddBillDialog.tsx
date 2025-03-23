@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
 import { LucideCalendarDays } from "lucide-react";
-import validateBillForm from "@/lib/validations/validate_bill_form";
 import {
     Credenza,
     CredenzaClose,
@@ -16,40 +15,59 @@ import {
     CredenzaHeader,
     CredenzaTitle,
 } from "@/components/ui/credenza";
-import type { BillForm, AddBillDialogProps } from "@/types/bills.types";
+import validateBillForm from "@/lib/validations/validate_bill_form";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import type { BillForm, AddBillDialogProps, BillFormLocal } from "@/types/bills.types";
 
 export const AddBillDialog: React.FC<AddBillDialogProps> = ({ createBillMutation }) => {
-    const [newBill, setNewBill] = useState<BillForm>({
+    // If possible, prefer having newBill typed as BillFormLocal.
+    const [newBill, setNewBill] = useState<BillFormLocal>({
         payee: "",
-        amount: 0,
+        amount: "",
         dueDate: "",
         paidOn: undefined,
         paid: false,
         description: "",
     });
+
     const [errors, setErrors] = useState({
         payee: "",
         amount: "",
         dueDate: "",
         paidOn: "",
     });
+
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+    // Hook to determine if we're on desktop.
+    const isDesktop = useMediaQuery("(min-width: 768px)");
+
+    const clearErrors = () => {
+        setErrors({ payee: "", amount: "", dueDate: "", paidOn: "" });
+    };
 
     const handleAddBill = async (e: React.FormEvent) => {
         e.preventDefault();
-        const { isValid, errors } = validateBillForm(newBill);
+
+        // Convert the amount from string to number before validating/submission.
+        const billToSubmit: BillForm = {
+            ...newBill,
+            amount: Number(newBill.amount),
+        };
+
+        const { isValid, errors } = validateBillForm(billToSubmit);
 
         if (isValid) {
-            createBillMutation?.mutate(newBill);
+            createBillMutation?.mutate(billToSubmit);
 
             setNewBill({
                 payee: "",
-                amount: 0,
+                amount: "",
                 dueDate: "",
                 paidOn: undefined,
                 paid: false,
                 description: "",
-            });
+            } as any); // Cast if necessary if types differ
 
             clearErrors();
             setIsAddDialogOpen(false);
@@ -57,10 +75,6 @@ export const AddBillDialog: React.FC<AddBillDialogProps> = ({ createBillMutation
             setErrors(errors);
         }
     };
-
-    function clearErrors() {
-        setErrors({ payee: "", amount: "", dueDate: "", paidOn: "" });
-    }
 
     return (
         <>
@@ -106,14 +120,14 @@ export const AddBillDialog: React.FC<AddBillDialogProps> = ({ createBillMutation
                                 <div className='col-span-3'>
                                     <Input
                                         id='amount'
-                                        type='text'
-                                        value={newBill.amount === 0 ? "" : newBill.amount.toString()} // FIXME: Remove this hack
-                                        onChange={(e) =>
-                                            setNewBill({
-                                                ...newBill,
-                                                amount: parseFloat(e.target.value) || 0,
-                                            })
-                                        }
+                                        // Use "text" on desktop for freeform editing, "number" on mobile.
+                                        type={isDesktop ? "text" : "number"}
+                                        value={Number(newBill.amount) === 0 ? "" : newBill.amount.toString()}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // Allow an empty value to let the user clear the field.
+                                            setNewBill({ ...newBill, amount: value });
+                                        }}
                                     />
                                     {errors.amount && <p className='text-xs text-red-500'>{errors.amount}</p>}
                                 </div>
@@ -127,11 +141,11 @@ export const AddBillDialog: React.FC<AddBillDialogProps> = ({ createBillMutation
                                 </Label>
                                 <div className='col-span-3'>
                                     <DatePicker
-                                        date={newBill.dueDate ? new Date(newBill.dueDate) : undefined}
+                                        date={newBill.dueDate ? new Date(Number(newBill.dueDate)) : undefined}
                                         onSelect={(date) =>
                                             setNewBill({
                                                 ...newBill,
-                                                dueDate: date ? date.getTime() : "",
+                                                dueDate: date ? date.getTime().toString() : "",
                                             })
                                         }
                                     />
@@ -147,11 +161,11 @@ export const AddBillDialog: React.FC<AddBillDialogProps> = ({ createBillMutation
                                 </Label>
                                 <div className='col-span-3'>
                                     <DatePicker
-                                        date={newBill.paidOn ? new Date(newBill.paidOn) : undefined}
+                                        date={newBill.paidOn ? new Date(Number(newBill.paidOn)) : undefined}
                                         onSelect={(date) =>
                                             setNewBill({
                                                 ...newBill,
-                                                paidOn: date ? date.getTime() : "",
+                                                paidOn: date ? date.getTime().toString() : "",
                                                 paid: !!date,
                                             })
                                         }
@@ -174,7 +188,7 @@ export const AddBillDialog: React.FC<AddBillDialogProps> = ({ createBillMutation
                                     />
                                 </div>
                             </div>
-                            {/* Paid field */}
+                            {/* Paid Checkbox */}
                             <div className='grid grid-cols-4 items-center gap-4'>
                                 <Label
                                     htmlFor='paid'
@@ -200,7 +214,7 @@ export const AddBillDialog: React.FC<AddBillDialogProps> = ({ createBillMutation
                             <CredenzaClose asChild>
                                 <Button
                                     variant='outline'
-                                    onClick={() => clearErrors()}>
+                                    onClick={() => {}}>
                                     Cancel
                                 </Button>
                             </CredenzaClose>

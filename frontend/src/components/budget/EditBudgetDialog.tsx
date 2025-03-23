@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EuroIcon } from "lucide-react";
 import { validateBudgetForm } from "@/lib/validations/validate_budget_form";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import type { Budget, EditBudgetDialogProps } from "@/types/budget.types";
 
 export const EditBudgetDialog: React.FC<EditBudgetDialogProps> = ({ budget, isOpen, setIsOpen, onSave }) => {
@@ -22,6 +23,7 @@ export const EditBudgetDialog: React.FC<EditBudgetDialogProps> = ({ budget, isOp
         budgeted: "",
         spent: "",
     });
+    const isDesktop = useMediaQuery("(min-width: 768px)");
 
     useEffect(() => {
         if (budget) {
@@ -34,11 +36,18 @@ export const EditBudgetDialog: React.FC<EditBudgetDialogProps> = ({ budget, isOp
         e.preventDefault();
         if (!editedBudget) return;
 
-        const { isValid, errors } = validateBudgetForm(editedBudget);
+        // Convert budgeted and spent from string to number before submission.
+        const updatedBudget: Budget = {
+            ...editedBudget,
+            budgeted: Number(editedBudget.budgeted),
+            spent: Number(editedBudget.spent),
+        };
+
+        const { isValid, errors } = validateBudgetForm(updatedBudget);
         setErrors(errors);
 
         if (isValid) {
-            onSave(editedBudget);
+            onSave(updatedBudget);
             setIsOpen(false);
         }
     };
@@ -86,11 +95,9 @@ export const EditBudgetDialog: React.FC<EditBudgetDialogProps> = ({ budget, isOp
                             <div className='col-span-3'>
                                 <Input
                                     id='budgeted'
-                                    type='text'
+                                    type={isDesktop ? "text" : "number"}
                                     value={editedBudget.budgeted?.toString()}
-                                    onChange={(e) =>
-                                        setEditedBudget({ ...editedBudget, budgeted: e.target.value || 0 })
-                                    }
+                                    onChange={(e) => setEditedBudget({ ...editedBudget, budgeted: e.target.value })}
                                 />
                                 {errors.budgeted && <p className='text-xs text-red-500'>{errors.budgeted}</p>}
                             </div>
@@ -105,9 +112,9 @@ export const EditBudgetDialog: React.FC<EditBudgetDialogProps> = ({ budget, isOp
                             <div className='col-span-3'>
                                 <Input
                                     id='spent'
-                                    type='text'
+                                    type={isDesktop ? "text" : "number"}
                                     value={editedBudget.spent?.toString()}
-                                    onChange={(e) => setEditedBudget({ ...editedBudget, spent: e.target.value || 0 })}
+                                    onChange={(e) => setEditedBudget({ ...editedBudget, spent: e.target.value })}
                                 />
                                 {errors.spent && <p className='text-xs text-red-500'>{errors.spent}</p>}
                             </div>
@@ -124,3 +131,5 @@ export const EditBudgetDialog: React.FC<EditBudgetDialogProps> = ({ budget, isOp
         </Credenza>
     );
 };
+
+export default EditBudgetDialog;

@@ -16,10 +16,12 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { LucideCalendarDays } from "lucide-react";
 import { format } from "date-fns";
 import validateBillForm from "@/lib/validations/validate_bill_form";
-import type { Bill, EditBillDialogProps } from "@/types/bills.types";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import type { Bill, EditBillDialogProps, BillFormLocal } from "@/types/bills.types";
 
 export const EditBillDialog: React.FC<EditBillDialogProps> = ({ bill, isOpen, setIsOpen, onSave }) => {
-    const [editedBill, setEditedBill] = useState<Bill | null>(null);
+    // Use local state typed as BillFormLocal so that the amount is stored as a string.
+    const [editedBill, setEditedBill] = useState<BillFormLocal | null>(null);
     const [errors, setErrors] = useState({
         payee: "",
         amount: "",
@@ -27,9 +29,15 @@ export const EditBillDialog: React.FC<EditBillDialogProps> = ({ bill, isOpen, se
         paidOn: "",
     });
 
+    // Use media query to decide the input type for amount.
+    const isDesktop = useMediaQuery("(min-width: 768px)");
+
     useEffect(() => {
         if (bill) {
-            setEditedBill(bill);
+            setEditedBill({
+                ...bill,
+                amount: bill.amount.toString(), // convert number to string for local editing
+            });
             setErrors({ payee: "", amount: "", dueDate: "", paidOn: "" });
         }
     }, [bill]);
@@ -38,12 +46,18 @@ export const EditBillDialog: React.FC<EditBillDialogProps> = ({ bill, isOpen, se
         e.preventDefault();
         if (!editedBill) return;
 
-        const { isValid, errors } = validateBillForm(editedBill);
+        // Convert the local amount (string) back to number.
+        const billToSubmit: Bill = {
+            ...editedBill,
+            id: bill!.id,
+            amount: Number(editedBill.amount),
+        };
 
+        const { isValid, errors } = validateBillForm(billToSubmit);
         setErrors(errors);
 
         if (isValid) {
-            onSave(editedBill);
+            onSave(billToSubmit);
             setIsOpen(false);
         }
     };
@@ -90,14 +104,10 @@ export const EditBillDialog: React.FC<EditBillDialogProps> = ({ bill, isOpen, se
                             <div className='col-span-3'>
                                 <Input
                                     id='amount'
-                                    type='number'
+                                    // On desktop, use "text" to allow freeform editing; on mobile, use "number"
+                                    type={isDesktop ? "text" : "number"}
                                     value={editedBill.amount}
-                                    onChange={(e) =>
-                                        setEditedBill({
-                                            ...editedBill,
-                                            amount: parseFloat(e.target.value) || 0,
-                                        })
-                                    }
+                                    onChange={(e) => setEditedBill({ ...editedBill, amount: e.target.value })}
                                 />
                                 {errors.amount && <p className='text-xs text-red-500'>{errors.amount}</p>}
                             </div>
@@ -181,7 +191,7 @@ export const EditBillDialog: React.FC<EditBillDialogProps> = ({ bill, isOpen, se
                                             paid: Boolean(checked),
                                             paidOn: checked
                                                 ? editedBill.paidOn || format(new Date(), "yyyy-MM-dd")
-                                                : undefined,
+                                                : "",
                                         })
                                     }
                                 />

@@ -1,57 +1,70 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchTransactions, createTransaction, updateTransaction, deleteTransaction } from "@/api/transactions";
+import { useApi } from "@/providers/ApiProvider";
 import { getUserId } from "@/lib/utils";
-import type { Transaction } from "@/types/transactions.types";
+import type { Transaction, TransactionForm } from "@/types/transactions.types";
 
-export function useTransactions() {
+export const useTransactions = () => {
+    const api = useApi();
     const queryClient = useQueryClient();
 
+    // Query key for transactions
+    const TRANSACTIONS_QUERY_KEY = ["transactions", getUserId()];
+
+    // Fetch transactions query
     const {
         data: transactions = [],
         isLoading,
         isError,
         error,
-    } = useQuery<Transaction[], Error>({ queryKey: ["transactions", getUserId()], queryFn: fetchTransactions });
-
-    // Mutation for adding a transaction
-    const createTranasactionMutation = useMutation({
-        mutationFn: async (newTransaction: Omit<Transaction, "id">) => {
-            return createTransaction(newTransaction);
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["transactions", getUserId()] });
+    } = useQuery({
+        queryKey: TRANSACTIONS_QUERY_KEY,
+        queryFn: async (): Promise<Transaction[]> => {
+            const userId = getUserId();
+            return await api.get<Transaction[]>(`/finance/transaction?id=${userId}`);
         },
     });
 
-    // Mutation for updating a transaction
+    // Create transaction mutation
+    const createTranasactionMutation = useMutation({
+        mutationFn: async (newTransaction: TransactionForm) => {
+            return await api.post("/finance/transaction", {
+                ...newTransaction,
+                userId: getUserId(),
+            });
+        },
+        onSuccess: () => {
+            // Invalidate and refetch the transactions query
+            queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY });
+        },
+    });
+
+    // Update transaction mutation
     const updateTransactionMutation = useMutation({
         mutationFn: async (updatedTransaction: Transaction) => {
-            return updateTransaction(updatedTransaction);
+            return await api.patch(`/finance/transaction?id=${updatedTransaction.id}`, updatedTransaction);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["transactions", getUserId()] });
+            queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY });
         },
     });
 
-    // Mutation for deleting a transaction
+    // Delete transaction mutation
     const deleteTransactionMutation = useMutation({
         mutationFn: async (transactionId: string) => {
-            return deleteTransaction(transactionId);
+            return await api.delete(`/finance/transaction?id=${transactionId}`);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["transactions", getUserId()] });
+            queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY });
         },
     });
 
     return {
         transactions,
-        createTranasactionMutation,
-        updateTransactionMutation,
-        deleteTransactionMutation,
         isLoading,
         isError,
         error,
+        createTranasactionMutation,
+        updateTransactionMutation,
+        deleteTransactionMutation,
     };
-}
-
-export default useTransactions;
+};

@@ -39,7 +39,7 @@ export const AccountsDataExists: React.FC<AccountsDataExistsProps> = ({
     );
 
     const totalBalance = accounts.reduce(
-        (sum, account) => sum + (account.balance != null ? Number(account.balance) : 0),
+        (sum, account) => sum + (account.balance != null && Number(account.balance) > 0 ? Number(account.balance) : 0),
         0
     );
 

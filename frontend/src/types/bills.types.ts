@@ -37,6 +37,10 @@ export interface EditBillDialogProps {
 
 export type BillForm = Omit<Bill, "id"> & { amount: string | number };
 
+export type BillFormLocal = Omit<BillForm, "amount"> & {
+    amount: string;
+};
+
 export interface BillFormErrors {
     payee: string;
     amount: string;

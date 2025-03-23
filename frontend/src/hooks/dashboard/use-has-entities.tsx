@@ -9,25 +9,21 @@ export const useHasEntities = () => {
     const { data: accounts } = useQuery({
         queryKey: ["accounts", getUserId()],
         queryFn: fetchAccounts,
-        staleTime: 5 * 60 * 1000, // 5 minutes
     });
 
     const { data: budgets } = useQuery({
         queryKey: ["budgets", getUserId()],
         queryFn: fetchBudgets,
-        staleTime: 5 * 60 * 1000,
     });
 
     const { data: goals } = useQuery({
         queryKey: ["goals", getUserId()],
         queryFn: fetchGoals,
-        staleTime: 5 * 60 * 1000,
     });
 
     const { data: transactions } = useQuery({
         queryKey: ["transactions", getUserId()],
         queryFn: fetchTransactions,
-        staleTime: 5 * 60 * 1000,
     });
 
     return {

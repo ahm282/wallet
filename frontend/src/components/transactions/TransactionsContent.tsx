@@ -19,6 +19,9 @@ export const TransactionsContent: React.FC<TransactionsContentProps> = ({
         );
     }
 
+    // Sort transactions by date in descending order
+    transactions.sort((a, b) => (b.date ?? 0) - (a.date ?? 0));
+
     return (
         <div className='pt-14'>
             <TransactionsTable

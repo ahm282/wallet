@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchDashboardData } from "@/api/dashboard";
 import { Onboarding } from "@/components/dashboard/Onboarding";
 import { Dashboard } from "@/components/dashboard/Dashboard";
-import { useHasEntities } from "@/hooks/use-has-entities";
+import { useHasEntities } from "@/hooks/dashboard/use-has-entities";
 
 const DashboardPage: React.FC = () => {
     const { data, isLoading, isError, error } = useQuery<Object, Error>({

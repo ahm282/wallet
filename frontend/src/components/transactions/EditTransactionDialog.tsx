@@ -14,11 +14,13 @@ import { Label } from "@/components/ui/label";
 import { CategorySelect } from "@/components/transactions/CategoriesDropdown";
 import { DatePicker } from "@/components/ui/date-picker";
 import { validateTransactionForm } from "@/lib/validations/validate_transaction_form";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import type {
     EditTransactionDialogProps,
     TransactionFormErrors,
     Category,
     Transaction,
+    TransactionFormLocal,
 } from "@/types/transactions.types";
 import { List } from "lucide-react";
 
@@ -28,31 +30,48 @@ export const EditTransactionDialog: React.FC<EditTransactionDialogProps> = ({
     transaction,
     onSave,
 }) => {
-    // Explicitly type the state as Transaction | null.
-    const [editedTransaction, setEditedTransaction] = useState<Transaction | null>(transaction);
+    // Use a local state that stores the transaction as TransactionFormLocal.
+    const [editedTransaction, setEditedTransaction] = useState<TransactionFormLocal | null>(null);
     const [errors, setErrors] = useState<TransactionFormErrors>({});
+    const isDesktop = useMediaQuery("(min-width: 768px)");
 
-    // Update state and clear errors when transaction changes.
+    // When the passed-in transaction changes, initialize local state with amount as a string.
     useEffect(() => {
-        setEditedTransaction(transaction);
+        if (transaction) {
+            setEditedTransaction({
+                ...transaction,
+                amount: transaction.amount.toString(),
+            });
+        } else {
+            setEditedTransaction(null);
+        }
         setErrors({});
     }, [transaction]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (editedTransaction) {
-            const { isValid, errors } = validateTransactionForm(editedTransaction);
-            if (isValid) {
-                onSave(editedTransaction);
-                setIsOpen(false);
-            } else {
-                setErrors(errors);
-            }
+        if (!editedTransaction) return;
+
+        // Convert the amount from string to number for submission.
+        const transactionToSubmit: Transaction = {
+            id: transaction!.id, // preserve the original id
+            date: editedTransaction.date,
+            description: editedTransaction.description,
+            amount: Number(editedTransaction.amount),
+            category: editedTransaction.category,
+        };
+
+        const { isValid, errors } = validateTransactionForm(transactionToSubmit);
+        if (isValid) {
+            onSave(transactionToSubmit);
+            setIsOpen(false);
+        } else {
+            setErrors(errors);
         }
     };
 
-    // Make the function generic over keys of Transaction.
-    const handleFieldChange = <K extends keyof TransactionFormErrors>(field: K, value: Transaction[K]) => {
+    // Helper to update fields in the local form state and clear errors for that field.
+    const handleFieldChange = (field: keyof TransactionFormLocal, value: any) => {
         if (!editedTransaction) return;
         setEditedTransaction({
             ...editedTransaction,
@@ -109,7 +128,9 @@ export const EditTransactionDialog: React.FC<EditTransactionDialogProps> = ({
                             <div className='col-span-3'>
                                 <DatePicker
                                     date={editedTransaction.date ? new Date(editedTransaction.date) : undefined}
-                                    onSelect={(selectedDate) => handleFieldChange("date", selectedDate ? selectedDate.getTime() : undefined)}
+                                    onSelect={(selectedDate) =>
+                                        handleFieldChange("date", selectedDate ? selectedDate.getTime() : undefined)
+                                    }
                                     className='col-span-3'
                                 />
                                 {errors.date && <p className='text-red-500 text-xs'>{errors.date}</p>}
@@ -125,10 +146,13 @@ export const EditTransactionDialog: React.FC<EditTransactionDialogProps> = ({
                             <div className='col-span-3'>
                                 <Input
                                     id='edit-amount'
-                                    type='number'
-                                    step='0.01'
+                                    type={isDesktop ? "text" : "number"}
                                     value={editedTransaction.amount}
-                                    onChange={(e) => handleFieldChange("amount", Number(e.target.value))}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // Allow empty value to let user clear the field.
+                                        handleFieldChange("amount", value);
+                                    }}
                                     className='col-span-3'
                                 />
                                 {errors.amount && <p className='text-red-500 text-xs'>{errors.amount}</p>}

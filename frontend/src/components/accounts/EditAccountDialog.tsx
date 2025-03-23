@@ -13,10 +13,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Wallet } from "lucide-react";
 import validateAccountForm from "@/lib/validations/validate_account_form";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import type { Account, EditAccountDialogProps } from "@/types/accounts.types";
+import type { EditAccountFormLocal } from "@/types/accounts.types";
 
 export const EditAccountDialog: React.FC<EditAccountDialogProps> = ({ account, isOpen, setIsOpen, onSave }) => {
-    const [editedAccount, setEditedAccount] = useState<Account | null>(null);
+    const [editedAccount, setEditedAccount] = useState<EditAccountFormLocal | null>(null);
     const [errors, setErrors] = useState({
         name: "",
         institution: "",
@@ -24,9 +26,15 @@ export const EditAccountDialog: React.FC<EditAccountDialogProps> = ({ account, i
         currency: "",
     });
 
+    // Determine if we're on desktop (width >= 768px).
+    const isDesktop = useMediaQuery("(min-width: 768px)");
+
     useEffect(() => {
         if (account) {
-            setEditedAccount(account);
+            setEditedAccount({
+                ...account,
+                balance: account!.balance!.toString(), // Convert number to string for editing
+            });
             setErrors({ name: "", institution: "", balance: "", currency: "" });
         }
     }, [account]);
@@ -35,11 +43,17 @@ export const EditAccountDialog: React.FC<EditAccountDialogProps> = ({ account, i
         e.preventDefault();
         if (!editedAccount) return;
 
-        const { isValid, errors } = validateAccountForm(editedAccount);
+        // Convert the edited balance back to a number.
+        const accountToSubmit: Account = {
+            ...editedAccount,
+            balance: Number(editedAccount.balance),
+        };
+
+        const { isValid, errors } = validateAccountForm(accountToSubmit);
         setErrors(errors);
 
         if (isValid) {
-            onSave(editedAccount);
+            onSave(accountToSubmit);
             setIsOpen(false);
         }
     };
@@ -88,10 +102,7 @@ export const EditAccountDialog: React.FC<EditAccountDialogProps> = ({ account, i
                                     id='institution'
                                     value={editedAccount.institution}
                                     onChange={(e) =>
-                                        setEditedAccount({
-                                            ...editedAccount,
-                                            institution: e.target.value,
-                                        })
+                                        setEditedAccount({ ...editedAccount, institution: e.target.value })
                                     }
                                 />
                                 {errors.institution && <p className='text-xs text-red-500'>{errors.institution}</p>}
@@ -107,14 +118,9 @@ export const EditAccountDialog: React.FC<EditAccountDialogProps> = ({ account, i
                             <div className='col-span-3'>
                                 <Input
                                     id='balance'
-                                    type='number'
-                                    value={editedAccount.balance?.toString()}
-                                    onChange={(e) =>
-                                        setEditedAccount({
-                                            ...editedAccount,
-                                            balance: parseFloat(e.target.value) || 0,
-                                        })
-                                    }
+                                    type={isDesktop ? "text" : "number"}
+                                    value={editedAccount.balance}
+                                    onChange={(e) => setEditedAccount({ ...editedAccount, balance: e.target.value })}
                                 />
                                 {errors.balance && <p className='text-xs text-red-500'>{errors.balance}</p>}
                             </div>
@@ -130,12 +136,7 @@ export const EditAccountDialog: React.FC<EditAccountDialogProps> = ({ account, i
                                 <Input
                                     id='currency'
                                     value={editedAccount.currency}
-                                    onChange={(e) =>
-                                        setEditedAccount({
-                                            ...editedAccount,
-                                            currency: e.target.value,
-                                        })
-                                    }
+                                    onChange={(e) => setEditedAccount({ ...editedAccount, currency: e.target.value })}
                                 />
                                 {errors.currency && <p className='text-xs text-red-500'>{errors.currency}</p>}
                             </div>

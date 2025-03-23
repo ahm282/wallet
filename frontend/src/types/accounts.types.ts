@@ -21,6 +21,10 @@ export interface AccountsDataExistsProps {
     deleteAccountMutation?: UseMutationResult<any, Error, string>;
 }
 
+export type EditAccountFormLocal = Omit<Account, "balance"> & {
+    balance: string;
+};
+
 export interface AddAccountDialogProps {
     createAccountMutation?: UseMutationResult<any, Error, Omit<Account, "id">>;
 }

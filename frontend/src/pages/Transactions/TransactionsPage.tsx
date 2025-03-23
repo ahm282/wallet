@@ -10,7 +10,7 @@ import { TransactionsContent } from "@/components/transactions/TransactionsConte
 import { AddTransactionDialog } from "@/components/transactions/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/transactions/EditTransactionDialog";
 import { Category } from "@/types/transactions.types";
-import type { Transaction, TransactionForm } from "@/types/transactions.types";
+import type { Transaction, TransactionForm, TransactionFormLocal } from "@/types/transactions.types";
 
 export const TransactionsPage = () => {
     const {
@@ -35,10 +35,10 @@ export const TransactionsPage = () => {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-    const [newTransaction, setNewTransaction] = useState<TransactionForm>({
+    const [newTransaction, setNewTransaction] = useState<TransactionFormLocal>({
         date: undefined,
         description: "",
-        amount: 0,
+        amount: "",
         category: null,
     });
 
@@ -68,7 +68,7 @@ export const TransactionsPage = () => {
         setNewTransaction({
             date: undefined,
             description: "",
-            amount: 0,
+            amount: "",
             category: null,
         });
     };

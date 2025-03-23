@@ -1,3 +1,5 @@
+// src/components/transactions/AddTransactionDialog.tsx
+
 import React, { useState, useEffect } from "react";
 import {
     Credenza,
@@ -15,8 +17,16 @@ import { CategorySelect } from "@/components/transactions/CategoriesDropdown";
 import { DatePicker } from "@/components/ui/date-picker";
 import { List, PlusCircle } from "lucide-react";
 import { validateTransactionForm } from "@/lib/validations/validate_transaction_form";
-import type { AddTransactionDialogProps, TransactionFormErrors, Category } from "@/types/transactions.types";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import type {
+    AddTransactionDialogProps,
+    TransactionFormLocal,
+    TransactionFormErrors,
+    Category,
+    TransactionForm,
+} from "@/types/transactions.types";
 
+// The updated AddTransactionDialogProps now expects newTransaction to be of type TransactionFormLocal.
 export const AddTransactionDialog: React.FC<AddTransactionDialogProps> = ({
     isOpen,
     setIsOpen,
@@ -25,6 +35,7 @@ export const AddTransactionDialog: React.FC<AddTransactionDialogProps> = ({
     setNewTransaction,
 }) => {
     const [errors, setErrors] = useState<TransactionFormErrors>({});
+    const isDesktop = useMediaQuery("(min-width: 768px)");
 
     // Reset form and errors when the dialog is closed.
     useEffect(() => {
@@ -33,7 +44,7 @@ export const AddTransactionDialog: React.FC<AddTransactionDialogProps> = ({
             setNewTransaction({
                 date: undefined,
                 description: "",
-                amount: 0,
+                amount: "",
                 category: null,
             });
         }
@@ -41,15 +52,22 @@ export const AddTransactionDialog: React.FC<AddTransactionDialogProps> = ({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const { isValid, errors } = validateTransactionForm(newTransaction);
+
+        // Convert the amount from string to number before submission.
+        const transactionToSubmit: TransactionForm = {
+            ...newTransaction,
+            amount: Number(newTransaction.amount),
+        };
+
+        const { isValid, errors } = validateTransactionForm(transactionToSubmit);
 
         if (isValid) {
-            onAdd(newTransaction);
+            onAdd(transactionToSubmit);
             // Clear form and errors after adding.
             setNewTransaction({
                 date: undefined,
                 description: "",
-                amount: 0,
+                amount: "",
                 category: null,
             });
             setErrors({});
@@ -60,7 +78,7 @@ export const AddTransactionDialog: React.FC<AddTransactionDialogProps> = ({
     };
 
     // Helper to update a field and clear its error if any.
-    const handleFieldChange = (field: keyof typeof newTransaction, value: any) => {
+    const handleFieldChange = (field: keyof TransactionFormLocal, value: any) => {
         setNewTransaction({
             ...newTransaction,
             [field]: value,
@@ -130,10 +148,15 @@ export const AddTransactionDialog: React.FC<AddTransactionDialogProps> = ({
                             <div className='col-span-3'>
                                 <Input
                                     id='amount'
-                                    type='number'
-                                    step='0.01'
+                                    // Use "text" input on desktop to allow freeform editing,
+                                    // and "number" on mobile to invoke the native numeric keyboard.
+                                    type={isDesktop ? "text" : "number"}
                                     value={newTransaction.amount}
-                                    onChange={(e) => handleFieldChange("amount", Number(e.target.value))}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // Allow empty value so the user can clear the field.
+                                        handleFieldChange("amount", value);
+                                    }}
                                     className='col-span-3'
                                 />
                                 {errors.amount && <p className='text-red-500 text-xs'>{errors.amount}</p>}

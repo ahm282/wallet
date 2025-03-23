@@ -65,12 +65,14 @@ export interface TransactionFiltersProps {
     setDateRange: Dispatch<SetStateAction<DateRange | undefined>>;
 }
 
+export type TransactionFormLocal = Omit<TransactionForm, "amount"> & { amount: string };
+
 export interface AddTransactionDialogProps {
     isOpen: boolean;
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
     onAdd: (transaction: TransactionForm) => void;
-    newTransaction: TransactionForm;
-    setNewTransaction: React.Dispatch<React.SetStateAction<TransactionForm>>;
+    newTransaction: TransactionFormLocal;
+    setNewTransaction: React.Dispatch<React.SetStateAction<TransactionFormLocal>>;
     categories: Category[];
 }
 
