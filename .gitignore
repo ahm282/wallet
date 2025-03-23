@@ -33,3 +33,5 @@ npm-debug.log
 # Idea
 .idea
 dist/
+
+*secrets.yaml
