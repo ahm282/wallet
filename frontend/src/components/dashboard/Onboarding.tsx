@@ -215,10 +215,14 @@ export const MobileLayout: React.FC<EntityStatusProps> = ({ entityStatus }) => {
                             {hasAccounts ? (
                                 "Accounts Added"
                             ) : (
-                                <>
-                                    <PlusCircle className='mr-2 h-4 w-4' />
-                                    Add Account
-                                </>
+                                <Link to='/accounts'>
+                                    <Button
+                                        className='w-full'
+                                        size='sm'>
+                                        <PlusCircle className='mr-2 h-4 w-4' />
+                                        Add Account
+                                    </Button>
+                                </Link>
                             )}
                         </Button>
                     </CardContent>
@@ -237,10 +241,14 @@ export const MobileLayout: React.FC<EntityStatusProps> = ({ entityStatus }) => {
                             {hasBudgets ? (
                                 "Budget Set"
                             ) : (
-                                <>
-                                    <PlusCircle className='mr-2 h-4 w-4' />
-                                    Create Budget
-                                </>
+                                <Link to='/budget'>
+                                    <Button
+                                        className='w-full'
+                                        size='sm'>
+                                        <PlusCircle className='mr-2 h-4 w-4' />
+                                        Create Budget
+                                    </Button>
+                                </Link>
                             )}
                         </Button>
                     </CardContent>
@@ -259,10 +267,14 @@ export const MobileLayout: React.FC<EntityStatusProps> = ({ entityStatus }) => {
                             {hasGoals ? (
                                 "Goals Added"
                             ) : (
-                                <>
-                                    <PlusCircle className='mr-2 h-4 w-4' />
-                                    Add Goal
-                                </>
+                                <Link to='/accounts'>
+                                    <Button
+                                        className='w-full'
+                                        size='sm'>
+                                        <PlusCircle className='mr-2 h-4 w-4' />
+                                        Add Goals
+                                    </Button>
+                                </Link>
                             )}
                         </Button>
                     </CardContent>
@@ -281,10 +293,14 @@ export const MobileLayout: React.FC<EntityStatusProps> = ({ entityStatus }) => {
                             {hasTransactions ? (
                                 "Expenses Logged"
                             ) : (
-                                <>
-                                    <PlusCircle className='mr-2 h-4 w-4' />
-                                    Log Expense
-                                </>
+                                <Link to='/transactions'>
+                                    <Button
+                                        className='w-full'
+                                        size='sm'>
+                                        <PlusCircle className='mr-2 h-4 w-4' />
+                                        Log Expense
+                                    </Button>
+                                </Link>
                             )}
                         </Button>
                     </CardContent>
