@@ -4,13 +4,13 @@ import { GoogleLogin } from "@react-oauth/google";
 import { GiWallet } from "react-icons/gi";
 import { useAuthStore } from "@/store/authStore";
 import { jwtDecode } from "jwt-decode";
-import { instantiateAPI } from "@/lib/api_utils";
 import { ScaleLoader } from "react-spinners";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogIn } from "lucide-react";
 import { ModeSwitch } from "@/components/ModeSwitch";
 import { BackgroundPaths } from "@/components/BackgroundPaths";
 import { GoogleUser, UserResponse } from "@/types/user.types";
+import { useApi } from "@/providers/ApiProvider";
 
 /**
  * Decodes the Google JWT and returns a typed GoogleUser.
@@ -35,7 +35,7 @@ const createUserPayload = (googleUser: GoogleUser) => {
  * Posts the user payload to the backend and returns the response.
  */
 const postUserData = async (payload: object, token: string): Promise<UserResponse> => {
-    const api = instantiateAPI();
+    const api = useApi();
     const user = api.login<UserResponse>("/user", token, payload);
     return user;
 };
